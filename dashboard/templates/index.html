@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOA - Guardianes del Océano y el Ambiente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Outfit',sans-serif; background:#fff; overflow:hidden; height:100vh; }
+
+        /* ══ INTRO ══ */
+        #intro {
+            position: fixed; inset: 0; z-index: 200;
+            background: #f5fafd;
+            transition: opacity 0.7s ease;
+        }
+        #intro.out { opacity: 0; pointer-events: none; }
+
+        /* Video ocupa toda la pantalla, sin controles, sin borde */
+        #intro-video {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: contain;   /* igual que el video original: no recorta */
+            background: #f5fafd;
+            display: block;
+            /* Sin interfaz del navegador */
+            outline: none;
+            border: none;
+        }
+        /* Ocultar controles nativos del navegador agresivamente */
+        #intro-video::-webkit-media-controls { display: none !important; }
+        #intro-video::-webkit-media-controls-enclosure { display: none !important; }
+        #intro-video::-webkit-media-controls-panel { display: none !important; }
+
+        /* Skip button — único elemento visible encima del video */
+        #skip {
+            position: absolute; top: 16px; right: 20px; z-index: 300;
+            background: rgba(14,165,233,0.12);
+            border: 1px solid rgba(14,165,233,0.35);
+            border-radius: 30px; padding: 7px 18px;
+            font-family: 'Outfit', sans-serif; font-size: .85rem;
+            font-weight: 600; color: #0369a1; cursor: pointer;
+            opacity: 0; transform: translateY(-8px);
+            transition: opacity .4s, transform .4s, background .2s;
+        }
+        #skip.show  { opacity: 1; transform: translateY(0); }
+        #skip:hover { background: rgba(14,165,233,0.25); }
+        /* ══ PORTAL ══ */
+        #portal {
+            position: fixed; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: space-between;
+            overflow: hidden;
+            padding: 3vh 0 2vh;
+            opacity: 0; pointer-events: none;
+            transition: opacity .85s ease;
+        }
+        #portal.in { opacity: 1; pointer-events: all; }
+
+        /* Fondo: cielo azul oceánico y agua con caústicas dinámicas */
+        .portal-bg {
+            position: absolute; inset: 0; z-index: 0;
+            background: 
+                radial-gradient(circle at 50% -20%, #e8f5fd 0%, #b8def3 45%, #8ecce9 75%, #59afd5 100%),
+                linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+            background-blend-mode: overlay;
+            overflow: hidden;
+        }
+
+        /* Líneas de luz/caústicas de agua flotando suavemente */
+        .wave-light {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transform: rotate(-35deg);
+            filter: blur(15px);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .wl1 { width: 120px; height: 200%; top: -50%; left: 15%; animation: waveLightFlow 14s infinite linear; }
+        .wl2 { width: 80px; height: 200%; top: -50%; left: 45%; animation: waveLightFlow 20s infinite linear; animation-delay: 2s; }
+        .wl3 { width: 140px; height: 200%; top: -50%; left: 75%; animation: waveLightFlow 17s infinite linear; animation-delay: 4s; }
+        @keyframes waveLightFlow {
+            0% { transform: translate(-150px, -150px) rotate(-35deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(150px, 150px) rotate(-35deg); opacity: 0; }
+        }
+
+        /* Destellos de agua adicionales */
+        .sparkle {
+            position: absolute; z-index: 1;
+            font-size: 1.4rem; color: rgba(255,255,255,0.45);
+            animation: sparkleAnim 3.5s ease-in-out infinite;
+        }
+        .sp1 { bottom: 18%; right: 8%;  animation-delay: 0s; }
+        .sp2 { bottom: 22%; right: 14%; animation-delay: 0.6s; font-size: 1rem; }
+        .sp3 { bottom: 14%; right: 5%;  animation-delay: 1.2s; font-size: .8rem; }
+        .sp4 { bottom: 20%; left: 6%;   animation-delay: 0.4s; }
+        @keyframes sparkleAnim {
+            0%,100% { opacity: 0.25; transform: scale(0.8); }
+            50%      { opacity: 0.65; transform: scale(1.15); }
+        }
+
+        /* ── CONTENIDO ── */
+        .portal-content {
+            position: relative; z-index: 10;
+            width: 92%; max-width: 900px;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 1.5vh;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        /* ── LOGO CIRCULAR (sin fondo a cuadros - ahora más grande) ── */
+        .logo-bubble {
+            position: relative;
+            width: clamp(260px, 36vw, 320px);
+            margin-bottom: 0.5vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .logo-bubble img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 12px 30px rgba(14,165,233,.25));
+            animation: float 5s ease-in-out infinite;
+            position: relative; z-index: 2;
+        }
+
+        /* ── TÍTULOS ── */
+        .portal-title {
+            font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+            font-weight: 700; color: #1c3e5e;
+            text-align: center; letter-spacing: -.5px;
+            margin-bottom: 0.2vh;
+        }
+        .portal-loc {
+            display: flex; align-items: center; gap: 6px;
+            font-size: .85rem; font-weight: 600; color: #4b6e8a;
+            margin-bottom: 1vh;
+        }
+        .portal-loc i { font-size: .85rem; color: #5c8bb0; }
+
+        /* ── TARJETAS DE CRISTAL DE VIEWPORT-FIT ── */
+        .portals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            gap: 20px; width: 100%; max-width: 800px;
+            margin-top: 0.5vh;
+        }
+        .portal-card {
+            background: rgba(255, 255, 255, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: 24px;
+            padding: 16px 20px 14px;
+            text-align: center;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 8px;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 10px 40px rgba(30, 90, 150, 0.05);
+            transition: transform .35s cubic-bezier(.165,.84,.44,1), box-shadow .35s;
+        }
+        .portal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 48px rgba(30, 90, 150, 0.12);
+        }
+
+        /* Ícono estilo cartoon sin fondo blanco - ahora de alta calidad y proporcional */
+        .card-icon-img {
+            width: 105px; height: 105px;
+            object-fit: contain;
+            margin-bottom: 2px;
+            transition: transform .35s cubic-bezier(.175,.885,.32,1.275);
+        }
+        .portal-card:hover .card-icon-img { transform: scale(1.1) translateY(-2px); }
+
+        .portal-card h3 {
+            font-size: 1.25rem; font-weight: 800;
+            color: #1a3a5c; letter-spacing: -.3px;
+        }
+        .portal-card p {
+            font-size: .85rem; color: #3b5c7e;
+            line-height: 1.4; flex-grow: 1;
+        }
+
+        /* ── BOTONES estilo pill azul/verde ── */
+        .btn-pill {
+            width: 100%; padding: 11px 22px; border-radius: 50px;
+            font-size: 0.98rem; font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer; border: none;
+            transition: all .3s ease; letter-spacing: .4px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        }
+        .btn-ocean {
+            background: linear-gradient(135deg, #45a2d8, #2a8bbb);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(42, 139, 187, 0.35);
+        }
+        .btn-ocean:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(42, 139, 187, 0.5); }
+        .btn-forest {
+            background: linear-gradient(135deg, #3f9d69, #298552);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(41, 133, 82, 0.35);
+        }
+        .btn-forest:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(41, 133, 82, 0.5); }
+
+        /* ── FOOTER ── */
+        .portal-footer {
+            position: relative; z-index: 10;
+            font-size: .8rem; color: #4b6e8a;
+            text-align: center; margin-top: 1.5vh;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+        }
+        .portal-footer-icons {
+            display: flex; gap: 8px; font-size: 1.25rem; color: #5c8bb0;
+            margin-bottom: 0px;
+        }
+
+        @keyframes float {
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(-8px); }
+        }
+        @media (max-width: 700px) {
+            .portals-grid { grid-template-columns: 1fr; }
+            .logo-bubble  { width: 240px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══ INTRO: video sin controles ══ -->
+<div id="intro">
+    <video id="intro-video"
+           autoplay muted playsinline
+           disablepictureinpicture
+           controlslist="nodownload nofullscreen noremoteplayback">
+        <source src="{{ url_for('static', filename='intro_video.mp4') }}" type="video/mp4">
+    </video>
+    <button id="skip" onclick="goPortal()">Saltar ›</button>
+</div>
+
+<!-- ══ PORTAL PRINCIPAL ══ -->
+<div id="portal">
+    <!-- Fondo visual -->
+    <div class="portal-bg">
+        <div class="wave-light wl1"></div>
+        <div class="wave-light wl2"></div>
+        <div class="wave-light wl3"></div>
+    </div>
+    <div class="sparkle sp1">✦</div>
+    <div class="sparkle sp2">✦</div>
+    <div class="sparkle sp3">✦</div>
+    <div class="sparkle sp4">✦</div>
+
+    <!-- Contenido principal -->
+    <div class="portal-content">
+        <!-- Logo transparente -->
+        <div class="logo-bubble">
+            <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}?v=4" alt="GO-A">
+        </div>
+
+        <!-- Título -->
+        <h1 class="portal-title">Guardianes del Océano y el Ambiente</h1>
+
+        <!-- Ubicación -->
+        <div class="portal-loc">
+            <i class="fa-solid fa-location-dot"></i> Cartagena de Indias
+        </div>
+
+        <!-- Tarjetas -->
+        <div class="portals-grid">
+            <div class="portal-card">
+                <img class="card-icon-img"
+                     src="{{ url_for('static', filename='icon_student.png') }}?v=4"
+                     alt="Estudiante"
+                     onerror="this.outerHTML='<div style=\'font-size:3.5rem\'>🎮</div>'">
+                <h3>Modo Estudiante</h3>
+                <p>Ingresa con tu código de clase, aprende sobre el ecosistema y conviértete en un Guardián Ambiental.</p>
+                <button class="btn-pill btn-ocean" onclick="alert('¡Próximamente!')">Comenzar Reto</button>
+            </div>
+            <div class="portal-card">
+                <img class="card-icon-img"
+                     src="{{ url_for('static', filename='icon_teacher.png') }}?v=4"
+                     alt="Docente"
+                     onerror="this.outerHTML='<div style=\'font-size:3.5rem\'>🏫</div>'">
+                <h3>Portal del Docente</h3>
+                <p>Genera códigos de acceso, descarga material y monitorea el puntaje de tus alumnos.</p>
+                <button class="btn-pill btn-forest" onclick="alert('¡Próximamente!')">Iniciar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="portal-footer">
+        <div class="portal-footer-icons">
+            <i class="fa-solid fa-seahorse"></i>
+            <span>🐚</span>
+        </div>
+        <div>© 2026 Proyecto GO-A · Alianza Ambiental de Cartagena</div>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('intro-video');
+    const skip  = document.getElementById('skip');
+    setTimeout(() => skip.classList.add('show'), 800);
+    video.addEventListener('ended', goPortal);
+    video.addEventListener('error', goPortal);
+    function goPortal() {
+        document.getElementById('intro').classList.add('out');
+        setTimeout(() => {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('portal').classList.add('in');
+        }, 700);
+    }
+</script>
+</body>
+</html>

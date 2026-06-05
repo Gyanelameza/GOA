@@ -1,0 +1,299 @@
+/* GOA Intro — basada en frames reales del video */
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background: #fff;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* ═══════════════════════════════════════
+   INTRO WRAPPER
+═══════════════════════════════════════ */
+#intro {
+    position: fixed; inset: 0; z-index: 200;
+    background: #f7fbff;   /* fondo blanco muy ligeramente azulado como el video */
+    overflow: hidden;
+    transition: opacity 0.5s ease;
+}
+#intro.out { opacity: 0; pointer-events: none; }
+
+/* Canvas lluvia */
+#rain-canvas {
+    position: absolute; inset: 0;
+    z-index: 1; pointer-events: none;
+}
+
+/* ─── PISO REFLECTANTE CON ONDAS ─────────────── */
+#floor {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 22%;
+    background: linear-gradient(to top,
+        rgba(180,225,255,0.35) 0%,
+        rgba(200,235,255,0.15) 60%,
+        transparent 100%);
+    z-index: 2;
+    transition: opacity 1.2s ease;
+}
+#floor.floor-fade { opacity: 0; }
+
+/* Ondas de agua en el piso */
+.ripple-ring {
+    position: absolute;
+    bottom: 30%; left: 50%;
+    transform: translateX(-50%) scale(0);
+    border: 1.5px solid rgba(100,190,240,0.4);
+    border-radius: 50%;
+    width: 80px; height: 22px;
+    animation: rippleWater 2.8s ease-out infinite;
+}
+.rr1 { animation-delay: 0s;    width: 60px;  height: 16px; }
+.rr2 { animation-delay: 0.9s;  width: 80px;  height: 20px; }
+.rr3 { animation-delay: 1.8s;  width: 100px; height: 26px; }
+
+@keyframes rippleWater {
+    0%   { transform: translateX(-50%) scale(0.2); opacity: 0.8; }
+    100% { transform: translateX(-50%) scale(4.5); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════
+   GOTITA — FASE 1: entra desde izquierda
+   Pequeña, camina al centro creciendo
+═══════════════════════════════════════ */
+#gotita-wrap {
+    position: absolute;
+    bottom: 14%;          /* pies tocan el piso */
+    z-index: 10;
+    /* empieza fuera de pantalla a la izquierda, pequeña */
+    left: -15%;
+    width: 160px;
+    transform: scale(0.55);
+    transform-origin: bottom center;
+    filter: drop-shadow(0 20px 30px rgba(14,165,233,0.2));
+}
+
+#gotita {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    transform-origin: bottom center;
+    /* Animación de caminar: ladeo izq/der alternado */
+    animation: walkLegs 0.5s ease-in-out infinite alternate;
+    transition: opacity 0.45s ease, transform 0.3s ease;
+}
+#gotita.fade-out {
+    opacity: 0;
+    transform: scale(1.06);
+}
+
+@keyframes walkLegs {
+    0%   { transform: rotate(-4deg) translateY(0px); }
+    100% { transform: rotate(4deg)  translateY(-4px); }
+}
+
+/* FASE 1: gotita camina de izquierda al centro creciendo */
+#gotita-wrap.phase1 {
+    animation: walkToCenterGrow 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes walkToCenterGrow {
+    /* Empieza: pequeña, izquierda */
+    0%   { left: -5%;  bottom: 14%; width: 160px; transform: scale(0.55); }
+    20%  { left: 10%;  bottom: 14%; width: 190px; transform: scale(0.65); }
+    40%  { left: 22%;  bottom: 14%; width: 230px; transform: scale(0.78); }
+    60%  { left: 30%;  bottom: 13%; width: 280px; transform: scale(0.90); }
+    75%  { left: 35%;  bottom: 13%; width: 320px; transform: scale(0.97); }
+    90%  { left: 37%;  bottom: 12%; width: 360px; transform: scale(1.01); }
+    /* Llega al centro: más grande */
+    100% { left: 38%;  bottom: 12%; width: 380px; transform: scale(1.0);  }
+}
+
+/* FASE 2: gotita ya en el centro, crece más (zoom hacia cámara) */
+#gotita-wrap.phase2 {
+    /* mantiene posición final de phase1 */
+    left: 38%; bottom: 12%; width: 380px;
+    animation: growToCamera 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes growToCamera {
+    0%   { transform: scale(1.0);  }
+    40%  { transform: scale(1.4);  }
+    70%  { transform: scale(1.9);  }
+    85%  { transform: scale(2.3);  }
+    100% { transform: scale(2.65); }
+}
+
+/* ═══════════════════════════════════════
+   LOGO GO-A — FASE 3-4
+═══════════════════════════════════════ */
+#logo-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+#logo-wrap.logo-appear { opacity: 1; }
+
+#logo {
+    width: 55vmin;
+    height: auto;
+    max-width: 520px;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 50px rgba(14,165,233,0.4));
+    transform: scale(0.6);
+    transform-origin: center center;
+    transition: transform 0.4s ease;
+}
+#logo-wrap.logo-appear #logo { transform: scale(1); }
+
+/* FASE 4: logo se expande rápido para llenar la pantalla */
+#logo-wrap.logo-zoom #logo {
+    animation: logoFill 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes logoFill {
+    0%   { transform: scale(1);   }
+    40%  { transform: scale(2.2); }
+    70%  { transform: scale(3.8); }
+    90%  { transform: scale(5.5); }
+    100% { transform: scale(7);   }
+}
+
+/* ═══════════════════════════════════════
+   SKIP BUTTON
+═══════════════════════════════════════ */
+#skip-btn {
+    position: absolute; top: 18px; right: 22px; z-index: 300;
+    background: rgba(14,165,233,0.1);
+    border: 1px solid rgba(14,165,233,0.3); border-radius: 30px;
+    padding: 7px 18px;
+    font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 600;
+    color: #0369a1; cursor: pointer;
+    opacity: 0; transform: translateY(-8px);
+    transition: opacity 0.4s, transform 0.4s, background 0.2s;
+}
+#skip-btn.show  { opacity: 1; transform: translateY(0); }
+#skip-btn:hover { background: rgba(14,165,233,0.22); }
+
+/* ═══════════════════════════════════════
+   PORTAL
+═══════════════════════════════════════ */
+#portal {
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 50% 15%,
+        #ffffff 0%, #e0f2fe 50%, #bae6fd 100%);
+    display: flex; align-items: center; justify-content: center;
+    overflow-y: auto;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.8s ease;
+}
+#portal.in { opacity: 1; pointer-events: all; }
+
+.portal-mascot {
+    position: fixed; top: 14px; left: 18px;
+    width: 78px; z-index: 50; pointer-events: none;
+    animation: float 5s ease-in-out infinite;
+}
+.portal-mascot img {
+    width: 100%;
+    filter: drop-shadow(0 6px 14px rgba(14,165,233,0.3));
+}
+@keyframes float {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    30%      { transform: translateY(-7px) rotate(-2deg); }
+    70%      { transform: translateY(-4px) rotate(2deg); }
+}
+
+.portal-container {
+    width: 90%; max-width: 980px;
+    padding: 28px 20px 40px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 14px;
+}
+
+.portal-header {
+    text-align: center;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+}
+.portal-logo {
+    width: 220px; height: auto; object-fit: contain;
+    filter: drop-shadow(0 8px 22px rgba(14,165,233,0.3));
+    animation: float 5s ease-in-out 0.5s infinite;
+}
+.portal-tagline {
+    font-size: 1.15rem; font-weight: 700; color: #0c4a6e;
+}
+.location-badge {
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(14,165,233,0.25); border-radius: 30px;
+    padding: 6px 18px; font-size: 0.85rem; font-weight: 600; color: #0369a1;
+    display: inline-flex; align-items: center; gap: 8px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(14,165,233,0.1);
+}
+
+.portals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 26px; width: 100%; max-width: 780px;
+}
+
+.portal-card {
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(14,165,233,0.12); border-radius: 24px;
+    padding: 36px 26px; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 30px rgba(14,165,233,0.07);
+    transition: transform 0.4s cubic-bezier(0.165,0.84,0.44,1), box-shadow 0.4s;
+    position: relative; overflow: hidden;
+}
+.portal-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 4px; border-radius: 24px 24px 0 0;
+}
+.student-card::before { background: linear-gradient(90deg,#38bdf8,#0284c7); }
+.teacher-card::before  { background: linear-gradient(90deg,#4ade80,#16a34a); }
+.portal-card:hover { transform: translateY(-10px) scale(1.01); box-shadow: 0 22px 50px rgba(14,165,233,0.14); }
+.teacher-card:hover { box-shadow: 0 22px 50px rgba(22,163,74,0.14); }
+
+.card-icon {
+    width: 70px; height: 70px; border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.85rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    transition: transform 0.3s;
+}
+.student-card .card-icon { color: #0284c7; }
+.teacher-card  .card-icon { color: #16a34a; }
+.portal-card:hover .card-icon { transform: scale(1.12) rotate(6deg); }
+.portal-card h3 { font-size: 1.4rem; font-weight: 800; color: #0c4a6e; }
+.portal-card p  { font-size: 0.95rem; color: #64748b; line-height: 1.65; flex-grow: 1; }
+
+.btn {
+    width: 100%; padding: 13px 28px; border-radius: 30px;
+    font-size: 1rem; font-weight: 700; font-family: 'Outfit', sans-serif;
+    cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 10px; border: none; transition: all 0.3s ease;
+}
+.btn-primary  { background: linear-gradient(135deg,#38bdf8,#0284c7); color:#fff; box-shadow: 0 4px 18px rgba(2,132,199,0.35); }
+.btn-secondary{ background: linear-gradient(135deg,#4ade80,#16a34a); color:#fff; box-shadow: 0 4px 18px rgba(22,163,74,0.35);  }
+.btn-primary:hover   { transform: scale(1.03); box-shadow: 0 6px 26px rgba(2,132,199,0.55); }
+.btn-secondary:hover { transform: scale(1.03); box-shadow: 0 6px 26px rgba(22,163,74,0.55);  }
+
+.portal-footer { font-size: 0.82rem; color: #94a3b8; text-align: center; }
+
+@media (max-width: 768px) {
+    .portals-grid { grid-template-columns: 1fr; }
+    .portal-card { padding: 28px 18px; }
+    .portal-logo { width: 160px; }
+}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOA Database Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" alt="GO-A Logo" style="width: 46px; height: 46px; object-fit: contain; margin-right: 12px; filter: drop-shadow(0 6px 12px rgba(42, 139, 187, 0.25));">
+                <div class="logo-text">
+                    <h1>GOA DB</h1>
+                    <span>Panel de Control</span>
+                </div>
+            </div>
+            
+            <div class="section-title">TABLAS</div>
+            <ul class="table-list" id="table-list">
+                <li class="loading-tables"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando tablas...</li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="connection-status">
+                    <span class="status-indicator"></span>
+                    <span>PostgreSQL (Cloud)</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="page-title">
+                    <h2 id="current-view-title">Tablas de la Base de Datos</h2>
+                    <p id="current-view-desc">Selecciona una tabla para explorar su estructura y contenido.</p>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="btn-show-console"><i class="fa-solid fa-terminal"></i> Consola SQL</button>
+                    <button class="btn btn-secondary" id="btn-refresh"><i class="fa-solid fa-arrows-rotate"></i> Actualizar</button>
+                </div>
+            </header>
+
+            <!-- Table View Container -->
+            <section class="content-body" id="table-view-container">
+                <!-- Info cards row -->
+                <div class="dashboard-cards" id="dashboard-summary">
+                    <!-- Cards will be populated dynamically -->
+                </div>
+
+                <!-- Data Table Panel -->
+                <div class="data-panel glass">
+                    <div class="panel-header">
+                        <h3><i class="fa-solid fa-table"></i> Contenido de la Tabla</h3>
+                        <span class="row-count-badge" id="row-count-badge">0 filas</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="data-table">
+                            <thead>
+                                <tr id="table-headers">
+                                    <th>Selecciona una tabla de la barra lateral</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-rows">
+                                <tr>
+                                    <td class="empty-state">
+                                        <i class="fa-solid fa-table-list"></i>
+                                        <p>No se ha seleccionado ninguna tabla</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Console Panel (Overlay/Collapsible) -->
+            <section class="console-panel glass" id="console-panel" style="display: none;">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-terminal"></i> Consola Ejecutora de Consultas SQL</h3>
+                    <button class="btn-close" id="btn-close-console"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="console-body">
+                    <div class="editor-container">
+                        <textarea id="sql-editor" placeholder="Escribe tu consulta SQL aquí...&#10;Ejemplo: SELECT * FROM profesores;&#10;Ejemplo: INSERT INTO banco_preguntas (problematica, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, respuesta_correcta) VALUES ('GESTIÓN DE RESIDUOS Y RECICLAJE', '¿Qué es reciclar?', 'Separar la basura', 'Correcta: ...', 'Quemarla', 'Incorrecta: ...', 'Separar la basura');"></textarea>
+                        <button class="btn btn-accent" id="btn-execute-query"><i class="fa-solid fa-play"></i> Ejecutar SQL</button>
+                    </div>
+                    
+                    <div class="console-output" id="console-output">
+                        <div class="output-placeholder">Las respuestas de tus consultas aparecerán aquí...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

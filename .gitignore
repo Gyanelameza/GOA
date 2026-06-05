@@ -1,0 +1,36 @@
+# Entornos Virtuales y Dependencias
+.venv/
+venv/
+ENV/
+env/
+/bin/
+/lib/
+/include/
+/pip-selfcheck.json
+
+# Cache de Python y Compilación
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Archivos de Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configuraciones de editores/IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Archivos de configuración local y logs
+*.log
+.env
+.env.local
