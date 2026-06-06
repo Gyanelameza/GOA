@@ -278,6 +278,7 @@ body {
     gap: 8px;
     transition: var(--transition-smooth);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -611,3 +612,15 @@ textarea#sql-editor:focus {
     padding: 10px 14px;
     border-bottom: 1px solid var(--border-color);
 }
+
+.btn-danger {
+    background: linear-gradient(135deg, #e11d48, #be123c);
+    color: white;
+    box-shadow: 0 4px 16px rgba(190, 18, 60, 0.3);
+}
+
+.btn-danger:hover {
+    box-shadow: 0 6px 22px rgba(190, 18, 60, 0.45);
+    transform: translateY(-2px);
+}
+

@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GO-A - Portal de Estudiantes</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Variables - Premium Oceanic Dark/Light Hybrid */
+        :root {
+            --bg-primary: radial-gradient(circle at 50% 30%, #e3f2fd 0%, #b3e0f9 40%, #7ec6ec 75%, #35a4db 100%);
+            --bg-card: rgba(255, 255, 255, 0.65);
+            --border-color: rgba(255, 255, 255, 0.7);
+            --text-primary: #1a3a5c;
+            --text-secondary: #3b5c7e;
+            --text-muted: #4b6e8a;
+            
+            --accent-blue: #2a8bbb;
+            --accent-light-blue: #45a2d8;
+            --accent-green: #298552;
+            --accent-rose: #be123c;
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --shadow-premium: 0 16px 48px rgba(30, 90, 150, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Ambient Wave Light Effect */
+        .portal-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .wave-light {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(-35deg);
+            filter: blur(20px);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .wl1 { width: 150px; height: 200%; top: -50%; left: 10%; animation: waveLightFlow 16s infinite linear; }
+        .wl2 { width: 100px; height: 200%; top: -50%; left: 40%; animation: waveLightFlow 22s infinite linear; animation-delay: 2s; }
+        .wl3 { width: 180px; height: 200%; top: -50%; left: 70%; animation: waveLightFlow 18s infinite linear; animation-delay: 4s; }
+        @keyframes waveLightFlow {
+            0% { transform: translate(-200px, -200px) rotate(-35deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(200px, 200px) rotate(-35deg); opacity: 0; }
+        }
+
+        /* Main Container Card */
+        .game-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 680px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 40px;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: var(--shadow-premium);
+            transition: var(--transition-smooth);
+            overflow: hidden;
+        }
+
+        /* Header Logo */
+        .header-logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .header-logo img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 16px rgba(42, 139, 187, 0.2));
+            animation: bounceLogo 4s ease-in-out infinite;
+        }
+        @keyframes bounceLogo {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        /* Step Wizard Layouts */
+        .step-panel {
+            display: none;
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        .step-panel.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typography & Elements */
+        h2 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        /* Inputs & Buttons */
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 16px;
+            color: #5c8bb0;
+            font-size: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            border-radius: 14px;
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.55);
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            color: var(--text-primary);
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        .form-input:focus {
+            background: #ffffff;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(42, 139, 187, 0.15);
+        }
+
+        .form-input.valid {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px rgba(41, 133, 130, 0.1);
+        }
+
+        .form-input.invalid {
+            border-color: var(--accent-rose);
+            box-shadow: 0 0 0 4px rgba(190, 18, 60, 0.1);
+        }
+
+        .input-feedback {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 6px;
+            padding-left: 4px;
+            display: none;
+        }
+
+        .input-feedback.error {
+            color: var(--accent-rose);
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 50px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition-smooth);
+            text-decoration: none;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #45a2d8, #2a8bbb);
+            color: white;
+            box-shadow: 0 6px 18px rgba(42, 139, 187, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 24px rgba(42, 139, 187, 0.45);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            background: #b0c9d9;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Teacher match info badge */
+        .teacher-info-badge {
+            background: rgba(41, 133, 82, 0.08);
+            border: 1px solid rgba(41, 133, 82, 0.25);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .teacher-info-badge i {
+            font-size: 24px;
+            color: var(--accent-green);
+        }
+        .teacher-info-badge div p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .teacher-info-badge div h4 {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--accent-green);
+            margin-top: 2px;
+        }
+
+        /* Progress Bar */
+        .game-progress-container {
+            margin-bottom: 24px;
+        }
+        .game-progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .game-progress-bar-bg {
+            height: 8px;
+            background: rgba(30, 90, 150, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .game-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #45a2d8, #2a8bbb);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Study Notes Cards (Fading Sequentially) */
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .note-card {
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            padding: 16px 20px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .note-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .note-card h4 {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .note-card h4 i {
+            color: #d97706;
+        }
+        .note-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        /* Question Panel (1 by 1) */
+        .question-box h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 24px;
+        }
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .option-btn {
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 14px;
+            padding: 14px 20px;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .option-btn:hover {
+            background: rgba(255, 255, 255, 0.75);
+            border-color: var(--accent-blue);
+            transform: translateX(4px);
+        }
+        .option-btn.selected {
+            background: linear-gradient(135deg, #45a2d8 0%, #2a8bbb 100%);
+            border-color: #2a8bbb;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(42, 139, 187, 0.2);
+        }
+        .option-btn .option-letter {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(30, 90, 150, 0.1);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+            transition: var(--transition-smooth);
+        }
+        .option-btn.selected .option-letter {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        /* Typewriter Narrator in Story */
+        .story-text-container {
+            background: rgba(26, 58, 92, 0.04);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0 16px 16px 0;
+            padding: 20px;
+            margin-bottom: 24px;
+            min-height: 120px;
+        }
+        .story-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            white-space: pre-line;
+            font-weight: 600;
+        }
+
+        /* Floating Treasure Chest Button */
+        .chest-floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(217, 119, 6, 0.35);
+            cursor: pointer;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 26px;
+            animation: chestFloat 3s ease-in-out infinite, pulseChest 2s infinite;
+            transition: var(--transition-smooth);
+        }
+
+        .chest-floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 14px 36px rgba(217, 119, 6, 0.5);
+        }
+
+        @keyframes chestFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes pulseChest {
+            0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(217, 119, 6, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); }
+        }
+
+        /* Drawer / Modal Sidebar for Notes */
+        .notes-drawer {
+            position: fixed;
+            top: 0;
+            right: -360px;
+            width: 340px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-left: 1px solid var(--border-color);
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+            z-index: 500;
+            padding: 30px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            transition: right 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .notes-drawer.open {
+            right: 0;
+        }
+
+        .notes-drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(30, 90, 150, 0.1);
+            padding-bottom: 12px;
+        }
+        .notes-drawer-header h3 {
+            font-size: 16px;
+            font-weight: 800;
+            color: #d97706;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .close-drawer-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+        }
+        .close-drawer-btn:hover {
+            color: var(--accent-rose);
+        }
+
+        /* Transition Screen Styles */
+        .transition-screen {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .transition-icon {
+            font-size: 70px;
+            background: linear-gradient(135deg, #35a4db, #2a8bbb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
+            animation: rotateGear 10s infinite linear;
+        }
+
+        @keyframes rotateGear {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Screen */
+        .result-circle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+        .result-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: white;
+            border: 8px solid var(--accent-blue);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 24px rgba(42, 139, 187, 0.15);
+        }
+        .result-score {
+            font-size: 38px;
+            font-weight: 900;
+            color: var(--text-primary);
+        }
+        .result-total {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: -4px;
+        }
+
+        .result-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 6px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .result-item-card {
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .result-item-card.correct {
+            background: rgba(34, 197, 94, 0.08);
+            border-color: rgba(34, 197, 94, 0.25);
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .result-item-card.incorrect {
+            background: rgba(244, 63, 94, 0.08);
+            border-color: rgba(244, 63, 94, 0.25);
+            border-left: 4px solid var(--accent-rose);
+        }
+
+        .result-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .result-item-text {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+        .result-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .result-badge.correct {
+            background: rgba(34, 197, 94, 0.12);
+            color: var(--accent-green);
+        }
+        .result-badge.incorrect {
+            background: rgba(244, 63, 94, 0.12);
+            color: var(--accent-rose);
+        }
+        .result-badge.type-inicial {
+            background: rgba(14, 165, 233, 0.12);
+            color: #0284c7;
+        }
+        .result-badge.type-historia {
+            background: rgba(245, 158, 11, 0.12);
+            color: #d97706;
+        }
+
+        .result-chosen {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .result-chosen strong {
+            color: var(--text-primary);
+        }
+
+        .result-feedback {
+            font-size: 12px;
+            font-style: italic;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.4);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        /* Drawer Overlay */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(2px);
+            z-index: 400;
+            display: none;
+        }
+        .drawer-overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient background animations -->
+    <div class="portal-bg">
+        <div class="wave-light wl1"></div>
+        <div class="wave-light wl2"></div>
+        <div class="wave-light wl3"></div>
+    </div>
+
+    <!-- Main Play Card -->
+    <div class="game-container">
+        <!-- Logo -->
+        <div class="header-logo">
+            <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" alt="GO-A Logo">
+        </div>
+
+        <!-- ================== STEP 1: VERIFICAR CÓDIGO ================== -->
+        <div class="step-panel active" id="step-code">
+            <h2>Acceso a la Partida</h2>
+            <p class="subtitle">Ingresa el código de 6 caracteres proporcionado por tu docente para comenzar la actividad.</p>
+            
+            <div class="input-group">
+                <label class="input-label" for="code-input">Código de Partida</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="text" id="code-input" class="form-input" maxlength="6" placeholder="Escribe el código aquí (ej. 4A8K9L)" style="text-transform: uppercase;">
+                </div>
+                <div class="input-feedback" id="code-feedback"></div>
+            </div>
+
+            <!-- Profesor match badge (dynamically revealed) -->
+            <div class="teacher-info-badge" id="teacher-badge" style="display: none;">
+                <i class="fa-solid fa-circle-check"></i>
+                <div>
+                    <p>¡Código verificado! Eres estudiante del profesor/a:</p>
+                    <h4 id="teacher-name-label">Nombre del Docente</h4>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-next-step-1" disabled>
+                Continuar <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- ================== STEP 2: REGISTRO DEL ESTUDIANTE ================== -->
+        <div class="step-panel" id="step-name">
+            <h2>Identifícate</h2>
+            <p class="subtitle">Ingresa tu Nombre y Apellido completo para guardar tu progreso de guardián ambiental.</p>
+            
+            <div class="input-group">
+                <label class="input-label" for="student-name-input">Nombre y Apellido</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <input type="text" id="student-name-input" class="form-input" placeholder="Ej. Andrés Mendoza" style="text-transform: capitalize;">
+                </div>
+                <div class="input-feedback" id="name-feedback"></div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-next-step-2">
+                Ingresar a la Actividad <i class="fa-solid fa-door-open"></i>
+            </button>
+        </div>
+
+        <!-- ================== STEP 3: REVELACIÓN SECUENCIAL DE NOTAS ================== -->
+        <div class="step-panel" id="step-notes">
+            <h2>Material de Estudio del Bloque</h2>
+            <p class="subtitle">Lee con atención estas tres notas de tu "Kit del Guardián". Te servirán para superar el reto escolar.</p>
+            
+            <div class="notes-list" id="notes-fading-container">
+                <!-- 3 notes will be dynamically injected here and faded in sequentially -->
+            </div>
+
+            <button class="btn btn-primary" id="btn-start-evaluation" style="display: none;">
+                Comenzar Evaluación <i class="fa-solid fa-clipboard-question"></i>
+            </button>
+        </div>
+
+        <!-- ================== STEP 4: EVALUACIÓN INICIAL (5 PREGUNTAS) ================== -->
+        <div class="step-panel" id="step-evaluation">
+            <div class="game-progress-container">
+                <div class="game-progress-labels">
+                    <span id="eval-progress-text">Pregunta 1 de 5</span>
+                    <span>Evaluación Inicial</span>
+                </div>
+                <div class="game-progress-bar-bg">
+                    <div class="game-progress-bar-fill" id="eval-progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="question-box" id="eval-question-container">
+                <!-- Injected dynamically -->
+            </div>
+
+            <button class="btn btn-primary" id="btn-next-eval-question" disabled style="margin-top: 10px;">
+                Siguiente Pregunta <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- ================== STEP 5: TRANSICIÓN A LA HISTORIA ================== -->
+        <div class="step-panel" id="step-transition">
+            <div class="transition-screen">
+                <div class="transition-icon"><i class="fa-solid fa-compass-drafting"></i></div>
+                <h2>¡Evaluación Inicial Superada!</h2>
+                <p class="subtitle" style="max-width: 460px; margin: 0 auto 28px;">Has respondido las 5 preguntas teóricas del bloque. Ahora, sumérgete en la historia interactiva y toma las decisiones correctas como líder ambiental.</p>
+                <button class="btn btn-primary" id="btn-start-story" style="max-width: 250px; margin: 0 auto;">
+                    Entrar a la Historia <i class="fa-solid fa-book-open-reader"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================== STEP 6: HISTORIA INTERACTIVA (3 NUDOS) ================== -->
+        <div class="step-panel" id="step-story">
+            <div class="game-progress-container">
+                <div class="game-progress-labels">
+                    <span id="story-progress-text">Nudo 1 de 3</span>
+                    <span style="color: #d97706; font-weight: 800;"><i class="fa-solid fa-scroll"></i> Historia Interactiva</span>
+                </div>
+                <div class="game-progress-bar-bg">
+                    <div class="game-progress-bar-fill" id="story-progress-fill" style="background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                </div>
+            </div>
+
+            <div class="question-box">
+                <h2 id="story-node-title" style="text-align: left; font-size: 20px; color: #1a3a5c; margin-bottom: 16px;">Nudo 1: El descarte tras el descanso</h2>
+                <div class="story-text-container">
+                    <p class="story-text" id="story-node-text"></p>
+                </div>
+                
+                <div class="options-list" id="story-options-container">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-next-story-node" disabled style="margin-top: 10px;">
+                Siguiente Escena <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- ================== STEP 7: RETROALIMENTACIÓN FINAL ================== -->
+        <div class="step-panel" id="step-results">
+            <h2>Resultados del Reto</h2>
+            <p class="subtitle" id="results-student-intro">Buen trabajo, Andrés. Aquí tienes tu reporte final de desempeño.</p>
+
+            <div class="result-circle-container">
+                <div class="result-circle" id="result-accent-circle">
+                    <span class="result-score" id="result-score-ratio">0/8</span>
+                    <span class="result-total">Aciertos</span>
+                </div>
+            </div>
+
+            <h3 style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-bottom: 12px;"><i class="fa-solid fa-clipboard-check"></i> Desglose Detallado</h3>
+            <div class="result-list" id="result-items-container">
+                <!-- Dynamically filled with green and red cards -->
+            </div>
+
+            <button class="btn btn-primary" id="btn-finish-challenge">
+                <i class="fa-solid fa-house"></i> Volver al Portal de Inicio
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Floating chest button for notes reference -->
+    <button class="chest-floating-btn" id="floating-chest-btn" title="Cofre de Notas / Kit de Estudio">
+        <i class="fa-solid fa-toolbox"></i>
+    </button>
+
+    <!-- Overlay back for drawer -->
+    <div class="drawer-overlay" id="drawer-overlay-back"></div>
+
+    <!-- Study notes side drawer -->
+    <div class="notes-drawer" id="notes-sidebar-drawer">
+        <div class="notes-drawer-header">
+            <h3><i class="fa-solid fa-toolbox"></i> Cofre de Notas</h3>
+            <button class="close-drawer-btn" id="close-drawer-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="notes-list" id="drawer-notes-list" style="margin-top: 10px;">
+            <!-- Injected on start -->
+        </div>
+    </div>
+
+    <!-- Page JavaScript Logic -->
+    <script>
+        // Session and Game variables
+        let gameCode = '';
+        let studentFullName = '';
+        let teacherPublicName = '';
+        let selectedBlock = 1;
+        let gameNotes = [];
+        let gameQuestions = []; // 5 bank questions
+        let gameNudos = []; // 3 story nodes
+        
+        let currentEvalIndex = 0;
+        let evalAnswers = []; // stores {questionId, chosenOptionText, correctOptionText, isCorrect, feedback}
+        
+        let currentStoryIndex = 0;
+        let storyAnswers = []; // stores {nodeId, chosenOptionText, correctOptionText, isCorrect, feedback}
+        
+        let typewriterTimeout = null;
+
+        // Elements
+        const stepCode = document.getElementById('step-code');
+        const stepName = document.getElementById('step-name');
+        const stepNotes = document.getElementById('step-notes');
+        const stepEvaluation = document.getElementById('step-evaluation');
+        const stepTransition = document.getElementById('step-transition');
+        const stepStory = document.getElementById('step-story');
+        const stepResults = document.getElementById('step-results');
+
+        const codeInput = document.getElementById('code-input');
+        const codeFeedback = document.getElementById('code-feedback');
+        const teacherBadge = document.getElementById('teacher-badge');
+        const teacherNameLabel = document.getElementById('teacher-name-label');
+        const btnNextStep1 = document.getElementById('btn-next-step-1');
+
+        const studentNameInput = document.getElementById('student-name-input');
+        const nameFeedback = document.getElementById('name-feedback');
+        const btnNextStep2 = document.getElementById('btn-next-step-2');
+
+        const notesFadingContainer = document.getElementById('notes-fading-container');
+        const btnStartEvaluation = document.getElementById('btn-start-evaluation');
+
+        const evalQuestionContainer = document.getElementById('eval-question-container');
+        const btnNextEvalQuestion = document.getElementById('btn-next-eval-question');
+        const evalProgressText = document.getElementById('eval-progress-text');
+        const evalProgressFill = document.getElementById('eval-progress-fill');
+
+        const btnStartStory = document.getElementById('btn-start-story');
+
+        const storyNodeTitle = document.getElementById('story-node-title');
+        const storyNodeText = document.getElementById('story-node-text');
+        const storyOptionsContainer = document.getElementById('story-options-container');
+        const btnNextStoryNode = document.getElementById('btn-next-story-node');
+        const storyProgressText = document.getElementById('story-progress-text');
+        const storyProgressFill = document.getElementById('story-progress-fill');
+
+        const resultsStudentIntro = document.getElementById('results-student-intro');
+        const resultScoreRatio = document.getElementById('result-score-ratio');
+        const resultAccentCircle = document.getElementById('result-accent-circle');
+        const resultItemsContainer = document.getElementById('result-items-container');
+        const btnFinishChallenge = document.getElementById('btn-finish-challenge');
+
+        const floatingChestBtn = document.getElementById('floating-chest-btn');
+        const notesSidebarDrawer = document.getElementById('notes-sidebar-drawer');
+        const closeDrawerBtn = document.getElementById('close-drawer-btn');
+        const drawerOverlayBack = document.getElementById('drawer-overlay-back');
+        const drawerNotesList = document.getElementById('drawer-notes-list');
+
+        // Drawer toggle logic
+        function toggleDrawer(open) {
+            if (open) {
+                notesSidebarDrawer.classList.add('open');
+                drawerOverlayBack.classList.add('active');
+            } else {
+                notesSidebarDrawer.classList.remove('open');
+                drawerOverlayBack.classList.remove('active');
+            }
+        }
+
+        floatingChestBtn.addEventListener('click', () => toggleDrawer(true));
+        closeDrawerBtn.addEventListener('click', () => toggleDrawer(false));
+        drawerOverlayBack.addEventListener('click', () => toggleDrawer(false));
+
+        // Step navigation helper
+        function showStep(targetStep) {
+            [stepCode, stepName, stepNotes, stepEvaluation, stepTransition, stepStory, stepResults].forEach(step => {
+                step.classList.remove('active');
+            });
+            targetStep.classList.add('active');
+        }
+
+        // ================== STEP 1: VERIFICAR CÓDIGO ==================
+        codeInput.addEventListener('input', async () => {
+            const code = codeInput.value.trim().toUpperCase();
+            if (code.length === 6) {
+                codeInput.disabled = true;
+                codeFeedback.className = 'input-feedback';
+                codeFeedback.style.display = 'none';
+                
+                try {
+                    const response = await fetch(`/api/estudiante/verificar-codigo?codigo=${encodeURIComponent(code)}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        gameCode = code;
+                        teacherPublicName = data.nombre_publico;
+                        
+                        codeInput.classList.remove('invalid');
+                        codeInput.classList.add('valid');
+                        
+                        teacherNameLabel.textContent = teacherPublicName;
+                        teacherBadge.style.display = 'flex';
+                        btnNextStep1.disabled = false;
+                    } else {
+                        codeInput.classList.remove('valid');
+                        codeInput.classList.add('invalid');
+                        codeFeedback.textContent = data.error || 'Código incorrecto.';
+                        codeFeedback.className = 'input-feedback error';
+                        teacherBadge.style.display = 'none';
+                        btnNextStep1.disabled = true;
+                        codeInput.disabled = false;
+                    }
+                } catch (e) {
+                    console.error("Error verifying code:", e);
+                    codeFeedback.textContent = 'Error al verificar con el servidor.';
+                    codeFeedback.className = 'input-feedback error';
+                    codeInput.disabled = false;
+                }
+            } else {
+                codeInput.classList.remove('valid', 'invalid');
+                codeFeedback.style.display = 'none';
+                teacherBadge.style.display = 'none';
+                btnNextStep1.disabled = true;
+            }
+        });
+
+        btnNextStep1.addEventListener('click', () => {
+            showStep(stepName);
+        });
+
+        // ================== STEP 2: REGISTRO DEL ESTUDIANTE ==================
+        studentNameInput.addEventListener('input', () => {
+            const nameVal = studentNameInput.value.trim();
+            // Regex to check only letters and spaces (accents, ñ, ü allowed)
+            const cleanLettersRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+            
+            if (nameVal === "") {
+                studentNameInput.classList.remove('valid', 'invalid');
+                nameFeedback.style.display = 'none';
+                return;
+            }
+
+            if (!cleanLettersRegex.test(nameVal)) {
+                studentNameInput.classList.remove('valid');
+                studentNameInput.classList.add('invalid');
+                nameFeedback.textContent = 'El nombre no debe contener números ni símbolos especiales.';
+                nameFeedback.className = 'input-feedback error';
+                return;
+            }
+
+            // Must contain at least name and surname (two words)
+            const words = nameVal.split(/\s+/).filter(w => w.length > 0);
+            if (words.length < 2) {
+                studentNameInput.classList.remove('valid');
+                studentNameInput.classList.add('invalid');
+                nameFeedback.textContent = 'Por favor ingresa al menos tu Nombre y Apellido (ej. Juan Pérez).';
+                nameFeedback.className = 'input-feedback error';
+                return;
+            }
+
+            studentNameInput.classList.remove('invalid');
+            studentNameInput.classList.add('valid');
+            nameFeedback.style.display = 'none';
+        });
+
+        btnNextStep2.addEventListener('click', async () => {
+            const nameVal = studentNameInput.value.trim();
+            const cleanLettersRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+            const words = nameVal.split(/\s+/).filter(w => w.length > 0);
+
+            if (!nameVal || !cleanLettersRegex.test(nameVal) || words.length < 2) {
+                studentNameInput.classList.add('invalid');
+                nameFeedback.textContent = 'Ingresa tu nombre y apellido válidos (sin números/símbolos).';
+                nameFeedback.className = 'input-feedback error';
+                return;
+            }
+
+            studentFullName = nameVal;
+            btnNextStep2.disabled = true;
+            btnNextStep2.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Cargando Actividad...';
+
+            try {
+                // Fetch random block data from backend
+                const response = await fetch('/api/estudiante/datos-bloque');
+                const data = await response.json();
+                
+                if (data.success) {
+                    selectedBlock = data.bloque;
+                    gameNotes = data.notas;
+                    gameQuestions = shuffleArray(data.preguntas); // Random order of bank questions
+                    gameNudos = data.nudos;
+
+                    // Populate floating notes drawer & sidebar
+                    populateNotesUI();
+
+                    // Advance to Notes view
+                    showStep(stepNotes);
+                    
+                    // Reveal notes sequentially
+                    startNotesReveal();
+                } else {
+                    alert('Error al obtener los datos de la partida: ' + (data.error || 'Desconocido'));
+                    btnNextStep2.disabled = false;
+                    btnNextStep2.innerHTML = 'Ingresar a la Actividad <i class="fa-solid fa-door-open"></i>';
+                }
+            } catch (error) {
+                console.error("Error loading block:", error);
+                alert('Error de conexión con el servidor.');
+                btnNextStep2.disabled = false;
+                btnNextStep2.innerHTML = 'Ingresar a la Actividad <i class="fa-solid fa-door-open"></i>';
+            }
+        });
+
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // ================== STEP 3: REVELACIÓN SECUENCIAL DE NOTAS ==================
+        function populateNotesUI() {
+            notesFadingContainer.innerHTML = '';
+            drawerNotesList.innerHTML = '';
+            
+            gameNotes.forEach((noteText, idx) => {
+                const noteTitle = `Nota ${idx + 1}`;
+                
+                // For Main Step Container
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <h4><i class="fa-solid fa-lightbulb"></i> ${noteTitle}</h4>
+                    <p>${noteText}</p>
+                `;
+                notesFadingContainer.appendChild(card);
+
+                // For sidebar Drawer
+                const drawerCard = document.createElement('div');
+                drawerCard.className = 'note-card visible';
+                drawerCard.style.background = 'rgba(251, 191, 36, 0.08)';
+                drawerCard.style.borderColor = 'rgba(251, 191, 36, 0.25)';
+                drawerCard.innerHTML = `
+                    <h4 style="color: #d97706;"><i class="fa-solid fa-lightbulb"></i> ${noteTitle}</h4>
+                    <p style="font-size: 12.5px;">${noteText}</p>
+                `;
+                drawerNotesList.appendChild(drawerCard);
+            });
+        }
+
+        function startNotesReveal() {
+            const cards = notesFadingContainer.querySelectorAll('.note-card');
+            let delay = 0;
+            
+            cards.forEach((card, idx) => {
+                setTimeout(() => {
+                    card.classList.add('visible');
+                    // If it is the last card, reveal the "Comenzar" button
+                    if (idx === cards.length - 1) {
+                        setTimeout(() => {
+                            btnStartEvaluation.style.display = 'inline-flex';
+                            btnStartEvaluation.scrollIntoView({ behavior: 'smooth' });
+                        }, 800);
+                    }
+                }, delay);
+                delay += 1200; // Reveal notes every 1.2s
+            });
+        }
+
+        btnStartEvaluation.addEventListener('click', () => {
+            showStep(stepEvaluation);
+            // Enable floating chest button
+            floatingChestBtn.style.display = 'flex';
+            // Render first question
+            renderEvalQuestion();
+        });
+
+        // ================== STEP 4: EVALUACIÓN INICIAL (5 PREGUNTAS) ==================
+        function renderEvalQuestion() {
+            const q = gameQuestions[currentEvalIndex];
+            
+            // Progress indicators
+            evalProgressText.textContent = `Pregunta ${currentEvalIndex + 1} de 5`;
+            evalProgressFill.style.width = `${((currentEvalIndex) / 5) * 100}%`;
+            btnNextEvalQuestion.disabled = true;
+
+            // Options mapping
+            const options = [
+                { text: q.opcion_1, feedback: q.feedback_1, letter: 'A' },
+                { text: q.opcion_2, feedback: q.feedback_2, letter: 'B' },
+                { text: q.opcion_3, feedback: q.feedback_3, letter: 'C' },
+                { text: q.opcion_4, feedback: q.feedback_4, letter: 'D' }
+            ].filter(o => o.text); // filter out empty options if any
+
+            // Render container html
+            evalQuestionContainer.innerHTML = `
+                <h3>${q.pregunta}</h3>
+                <div class="options-list">
+                    ${options.map(o => `
+                        <button class="option-btn" data-letter="${o.letter}" data-text="${o.text.replace(/"/g, '&quot;')}" data-feedback="${o.feedback.replace(/"/g, '&quot;')}">
+                            <span class="option-letter">${o.letter}</span>
+                            <span>${o.text}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            // Attach click listeners to option buttons
+            const optionBtns = evalQuestionContainer.querySelectorAll('.option-btn');
+            optionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    optionBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    btnNextEvalQuestion.disabled = false;
+                });
+            });
+        }
+
+        btnNextEvalQuestion.addEventListener('click', () => {
+            const selectedBtn = evalQuestionContainer.querySelector('.option-btn.selected');
+            const chosenText = selectedBtn.getAttribute('data-text');
+            const feedbackText = selectedBtn.getAttribute('data-feedback');
+            
+            const q = gameQuestions[currentEvalIndex];
+            const correctText = q.respuesta_correcta;
+            const isCorrect = (chosenText.trim() === correctText.trim());
+
+            // Save response details
+            evalAnswers.push({
+                pregunta: q.pregunta,
+                opcion_elegida: chosenText,
+                correcta: isCorrect,
+                feedback: feedbackText,
+                tipo: 'inicial'
+            });
+
+            currentEvalIndex++;
+            if (currentEvalIndex < 5) {
+                renderEvalQuestion();
+            } else {
+                // Done with initial evaluation, advance to transition screen
+                evalProgressFill.style.width = '100%';
+                setTimeout(() => {
+                    showStep(stepTransition);
+                }, 400);
+            }
+        });
+
+        // ================== STEP 5: TRANSICIÓN A LA HISTORIA ==================
+        btnStartStory.addEventListener('click', () => {
+            showStep(stepStory);
+            renderStoryNode();
+        });
+
+        // ================== STEP 6: HISTORIA INTERACTIVA (3 NUDOS) ==================
+        function renderStoryNode() {
+            const node = gameNudos[currentStoryIndex];
+            
+            // Progress indicators
+            storyProgressText.textContent = `Escena ${currentStoryIndex + 1} de 3`;
+            storyProgressFill.style.width = `${((currentStoryIndex) / 3) * 100}%`;
+            btnNextStoryNode.disabled = true;
+
+            // Update title
+            storyNodeTitle.textContent = node.escena_titulo || `Nudo ${currentStoryIndex + 1}`;
+
+            // Clean options mapping
+            const options = [
+                { text: node.opcion_1, feedback: node.feedback_1, letter: 'A' },
+                { text: node.opcion_2, feedback: node.feedback_2, letter: 'B' },
+                { text: node.opcion_3, feedback: node.feedback_3, letter: 'C' }
+            ].filter(o => o.text);
+
+            // Trigger Typewriter text animation
+            if (typewriterTimeout) clearTimeout(typewriterTimeout);
+            storyNodeText.textContent = '';
+            storyOptionsContainer.innerHTML = '';
+
+            let fullText = node.texto_situacion || '';
+            let charIndex = 0;
+
+            function typeWriter() {
+                if (charIndex < fullText.length) {
+                    storyNodeText.textContent += fullText.charAt(charIndex);
+                    charIndex++;
+                    // Speed of typing (approx 15ms per character for dynamic playability)
+                    typewriterTimeout = setTimeout(typeWriter, 15);
+                } else {
+                    // Typewriter finished, show option buttons beautifully
+                    renderStoryOptions(options);
+                }
+            }
+
+            typeWriter();
+        }
+
+        function renderStoryOptions(options) {
+            storyOptionsContainer.innerHTML = options.map(o => `
+                <button class="option-btn" data-letter="${o.letter}" data-text="${o.text.replace(/"/g, '&quot;')}" data-feedback="${o.feedback.replace(/"/g, '&quot;')}">
+                    <span class="option-letter">${o.letter}</span>
+                    <span>${o.text}</span>
+                </button>
+            `).join('');
+
+            // Attach selection listener
+            const optionBtns = storyOptionsContainer.querySelectorAll('.option-btn');
+            optionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    optionBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    btnNextStoryNode.disabled = false;
+                });
+            });
+        }
+
+        btnNextStoryNode.addEventListener('click', async () => {
+            const selectedBtn = storyOptionsContainer.querySelector('.option-btn.selected');
+            const chosenText = selectedBtn.getAttribute('data-text');
+            const feedbackText = selectedBtn.getAttribute('data-feedback');
+            
+            const node = gameNudos[currentStoryIndex];
+            const correctText = node.respuesta_correcta;
+            const isCorrect = (chosenText.trim() === correctText.trim());
+
+            // Save response details
+            storyAnswers.push({
+                pregunta: `${node.escena_titulo || `Nudo ${currentStoryIndex + 1}`}: ${node.texto_situacion}`,
+                opcion_elegida: chosenText,
+                correcta: isCorrect,
+                feedback: feedbackText,
+                tipo: 'historia'
+            });
+
+            currentStoryIndex++;
+            if (currentStoryIndex < 3) {
+                renderStoryNode();
+            } else {
+                // Done with both segments! Send results and display evaluation
+                storyProgressFill.style.width = '100%';
+                btnNextStoryNode.disabled = true;
+                btnNextStoryNode.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando resultados...';
+                
+                await submitAndShowResults();
+            }
+        });
+
+        // ================== STEP 7: EVALUACIÓN Y GUARDADO DE RESULTADOS ==================
+        async function submitAndShowResults() {
+            // Merge answers: 5 evaluation ones first, then 3 story ones
+            const allDetails = [...evalAnswers, ...storyAnswers];
+            
+            // Calculate scores
+            const totalCorrect = allDetails.filter(ans => ans.correcta).length;
+            const totalIncorrect = 8 - totalCorrect;
+            const finalScore = Math.round((totalCorrect / 8) * 100);
+
+            // Construct payload
+            const payload = {
+                codigo_acceso: gameCode,
+                nombre_alumno: studentFullName,
+                puntaje: finalScore,
+                correctas: totalCorrect,
+                incorrectas: totalIncorrect,
+                bloque: selectedBlock,
+                detalles: allDetails
+            };
+
+            try {
+                const response = await fetch('/api/estudiante/guardar-resultado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                if (!data.success) {
+                    console.warn("Failed to write result to database:", data.error);
+                }
+            } catch (err) {
+                console.error("Connection error saving results:", err);
+            }
+
+            // Setup Results view values
+            resultsStudentIntro.innerHTML = `¡Bien hecho, <strong>${studentFullName}</strong>! Has finalizado el reto del <strong>Bloque ${selectedBlock}</strong>. Revisa tus respuestas a continuación:`;
+            resultScoreRatio.textContent = `${totalCorrect}/8`;
+            
+            // Change result circle color depending on performance
+            if (totalCorrect >= 6) {
+                resultAccentCircle.style.borderColor = 'var(--accent-green)';
+            } else if (totalCorrect >= 4) {
+                resultAccentCircle.style.borderColor = 'var(--accent-blue)';
+            } else {
+                resultAccentCircle.style.borderColor = 'var(--accent-rose)';
+            }
+
+            // Populate list cards
+            resultItemsContainer.innerHTML = '';
+            allDetails.forEach((ans, idx) => {
+                const itemCard = document.createElement('div');
+                itemCard.className = `result-item-card ` + (ans.correcta ? 'correct' : 'incorrect');
+                
+                const typeText = ans.tipo === 'inicial' ? 'Pregunta Inicial' : 'Nudo de la Historia';
+                const typeClass = ans.tipo === 'inicial' ? 'type-inicial' : 'type-historia';
+                
+                const statusText = ans.correcta ? '¡Correcto!' : 'Incorrecto';
+                const statusClass = ans.correcta ? 'correct' : 'incorrect';
+                
+                // Format the question text nicely (e.g. cut nudo prefix if very long in header)
+                let headerText = ans.pregunta;
+                if (ans.tipo === 'historia' && headerText.includes(':')) {
+                    headerText = headerText.split(':')[0]; // Just show scene title
+                }
+
+                itemCard.innerHTML = `
+                    <div class="result-item-header">
+                        <span class="result-item-text">${idx + 1}. ${headerText}</span>
+                        <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                            <span class="result-badge ${typeClass}">${typeText}</span>
+                            <span class="result-badge ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+                    <div class="result-chosen">
+                        <strong>Tu elección:</strong> "${ans.opcion_elegida}"
+                    </div>
+                    <div class="result-feedback">
+                        ${ans.feedback || 'Sin retroalimentación adicional.'}
+                    </div>
+                `;
+                resultItemsContainer.appendChild(itemCard);
+            });
+
+            // Hide study notes chest on final report screen
+            floatingChestBtn.style.display = 'none';
+
+            // Show results step
+            showStep(stepResults);
+        }
+
+        btnFinishChallenge.addEventListener('click', () => {
+            // Redirect to main portal page
+            location.href = '/';
+        });
+    </script>
+</body>
+</html>

@@ -280,7 +280,7 @@
                      onerror="this.outerHTML='<div style=\'font-size:3.5rem\'>🎮</div>'">
                 <h3>Modo Estudiante</h3>
                 <p>Ingresa con tu código de clase, aprende sobre el ecosistema y conviértete en un Guardián Ambiental.</p>
-                <button class="btn-pill btn-ocean" onclick="alert('¡Próximamente!')">Comenzar Reto</button>
+                <button class="btn-pill btn-ocean" onclick="location.href='{{ url_for('estudiante_acceso') }}'">Comenzar Reto</button>
             </div>
             <div class="portal-card">
                 <img class="card-icon-img"
@@ -289,7 +289,7 @@
                      onerror="this.outerHTML='<div style=\'font-size:3.5rem\'>🏫</div>'">
                 <h3>Portal del Docente</h3>
                 <p>Genera códigos de acceso, descarga material y monitorea el puntaje de tus alumnos.</p>
-                <button class="btn-pill btn-forest" onclick="alert('¡Próximamente!')">Iniciar Sesión</button>
+                <button class="btn-pill btn-forest" onclick="location.href='{{ url_for('login') }}'">Iniciar Sesión</button>
             </div>
         </div>
     </div>

@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GO-A - Portal del Docente</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Sidebar Menu Styles */
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li {
+            padding: 14px 18px;
+            border-radius: 14px;
+            background-color: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-menu li:hover {
+            background-color: rgba(255, 255, 255, 0.65);
+            border-color: rgba(42, 139, 187, 0.5);
+            transform: translateX(4px);
+        }
+
+        .sidebar-menu li.active {
+            background: linear-gradient(135deg, #45a2d8 0%, #2a8bbb 100%);
+            border-color: #2a8bbb;
+            color: #ffffff;
+            box-shadow: 0 6px 18px rgba(42, 139, 187, 0.3);
+        }
+
+        .sidebar-menu li i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Tabs display control */
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 24px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Teacher Code Badge Styles */
+        .code-badge {
+            background: rgba(41, 133, 82, 0.12);
+            color: #298552;
+            border: 1px solid rgba(41, 133, 82, 0.3);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .code-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 14px;
+            padding: 12px 18px;
+            transition: all 0.2s ease;
+        }
+        
+        .code-item:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 90, 150, 0.05);
+        }
+
+        .codes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        /* Interactive table rows */
+        .interactive-row {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .interactive-row:hover td {
+            background-color: rgba(42, 139, 187, 0.08) !important;
+        }
+
+        /* Modal / Detail view popup */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 60, 90, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 28px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+            overflow: hidden;
+        }
+
+        .modal-overlay.show .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a3a5c;
+        }
+
+        .modal-body {
+            padding: 32px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .modal-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            text-align: center;
+        }
+
+        .modal-stat-box {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .modal-stat-box span {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .modal-stat-box p {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a3a5c;
+            margin-top: 4px;
+        }
+
+        /* Stats Progress Bar */
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar-bg {
+            height: 12px;
+            background: rgba(30, 90, 150, 0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .progress-fill-correct {
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill-incorrect {
+            background: linear-gradient(90deg, #f43f5e, #be123c);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        /* Q&A List in Modal */
+        .question-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .question-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a3a5c;
+            line-height: 1.4;
+        }
+
+        .answer-badge {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 30px;
+            white-space: nowrap;
+        }
+
+        .badge-correct {
+            background: rgba(34, 197, 94, 0.12);
+            color: #16a34a;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .badge-incorrect {
+            background: rgba(244, 63, 94, 0.12);
+            color: #be123c;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+
+        .answer-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .feedback-text {
+            font-size: 12px;
+            font-style: italic;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.35);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-top: 4px;
+            border-left: 3px solid #2a8bbb;
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(41, 133, 82, 0.4);
+            border-left: 5px solid #298552;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Used and Unused code colors */
+        .code-item.unused-code {
+            border: 1px solid rgba(239, 68, 68, 0.4) !important;
+            background: rgba(254, 242, 242, 0.65) !important;
+        }
+        .code-item.unused-code .code-badge {
+            background: rgba(239, 68, 68, 0.12) !important;
+            color: #dc2626 !important;
+            border: 1px solid rgba(239, 68, 68, 0.3) !important;
+        }
+        .code-item.unused-code .code-status-label {
+            color: #dc2626 !important;
+        }
+
+        .code-item.used-code {
+            border: 1px solid rgba(59, 130, 246, 0.4) !important;
+            background: rgba(239, 246, 255, 0.65) !important;
+        }
+        .code-item.used-code .code-badge {
+            background: rgba(59, 130, 246, 0.12) !important;
+            color: #2563eb !important;
+            border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        }
+        .code-item.used-code .code-status-label {
+            color: #2563eb !important;
+        }
+
+        /* Detailed View badges */
+        .badge-unanswered {
+            background: rgba(100, 116, 139, 0.12) !important;
+            color: #64748b !important;
+            border: 1px solid rgba(100, 116, 139, 0.3) !important;
+        }
+        .badge-type-inicial {
+            background: rgba(14, 165, 233, 0.12) !important;
+            color: #0284c7 !important;
+            border: 1px solid rgba(14, 165, 233, 0.3) !important;
+        }
+        .badge-type-historia {
+            background: rgba(245, 158, 11, 0.12) !important;
+            color: #d97706 !important;
+            border: 1px solid rgba(245, 158, 11, 0.3) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" alt="GO-A Logo" style="width: 46px; height: 46px; object-fit: contain; margin-right: 12px; filter: drop-shadow(0 6px 12px rgba(42, 139, 187, 0.25));">
+                <div class="logo-text">
+                    <h1>GOA Docente</h1>
+                    <span>{{ session.get('profesor_nombre', 'Docente') }}</span>
+                </div>
+            </div>
+            
+            <div class="section-title"><i class="fa-solid fa-bars"></i> Menú Docente</div>
+            <ul class="sidebar-menu">
+                <li id="menu-generate" class="active"><i class="fa-solid fa-key"></i> Generar Códigos</li>
+                <li id="menu-history"><i class="fa-solid fa-clock-rotate-left"></i> Historial de Partidas</li>
+                <li id="menu-profile"><i class="fa-solid fa-user-gear"></i> Mi Perfil</li>
+            </ul>
+
+            <div class="sidebar-footer" style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <div class="connection-status">
+                    <span class="status-indicator"></span>
+                    <span>Docente Conectado</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="page-title">
+                    <h2 id="view-title">Generar Códigos de Acceso</h2>
+                    <p id="view-desc">Administra el acceso a tus clases generando códigos de sesión aleatorios.</p>
+                </div>
+                <div class="actions">
+                    <a href="{{ url_for('logout') }}" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</a>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <section class="content-body">
+                
+                <!-- TAB 1: GENERAR CÓDIGOS -->
+                <div id="tab-generate-content" class="tab-content active">
+                    <div class="dashboard-cards">
+                        <div class="stat-card glass" style="grid-column: span 1;">
+                            <div class="stat-icon"><i class="fa-solid fa-key"></i></div>
+                            <div class="stat-info">
+                                <h4>Códigos Generados</h4>
+                                <p id="stat-codes-count">{{ codigos|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Gestión de Códigos -->
+<div class="data-panel glass">
+    <div class="panel-header">
+        <h3><i class="fa-solid fa-key"></i> Lista de Códigos Activos</h3>
+        <button class="btn btn-primary" id="btn-generate-code">
+            <i class="fa-solid fa-plus"></i> Generar Nuevo Código
+        </button>
+    </div>
+    <div class="content-body" style="padding: 24px; min-height: auto;">
+        <div class="codes-grid" id="docente-codes-list">
+            <!-- Dynamic list populated by JavaScript -->
+        </div>
+    </div>
+</div>
+                </div>
+
+                <!-- TAB 2: HISTORIAL DE PARTIDAS -->
+                <div id="tab-history-content" class="tab-content">
+                    <div class="dashboard-cards">
+                        <div class="stat-card glass">
+                            <div class="stat-icon" style="color: var(--accent-indigo); background-color: rgba(42, 139, 187, 0.1);"><i class="fa-solid fa-gamepad"></i></div>
+                            <div class="stat-info">
+                                <h4>Partidas Completadas</h4>
+                                <p id="stat-games-count">{{ historial|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla del Historial -->
+                    <div class="data-panel glass">
+                        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <h3><i class="fa-solid fa-list-check"></i> Registro de Actividad Estudiantil</h3>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <select id="filter-history-codigo" class="btn btn-secondary" style="padding: 6px 14px; font-size: 13px; border-radius: 10px; height: 38px; cursor: pointer; border: 1px solid var(--border-color); background: rgba(255,255,255,0.5);">
+                                    <option value="">Todos los códigos</option>
+                                </select>
+                                <span class="row-count-badge" id="games-badge">{{ historial|length }} partidas</span>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Estudiante</th>
+                                        <th>Código de Partida</th>
+                                        <th>Bloque Jugado</th>
+                                        <th>Respuestas Correctas</th>
+                                        <th>Respuestas Incorrectas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-rows-container">
+                                    {% if historial %}
+                                        {% for h in historial %}
+                                        <!-- pasamos los detalles como string JSON para cargarlos al hacer clic -->
+                                        <tr class="interactive-row" 
+                                            data-detalles='{{ h.detalles | tojson }}'
+                                            data-alumno="{{ h.alumno }}"
+                                            data-codigo="{{ h.codigo }}"
+                                            data-bloque="{{ h.bloque }}"
+                                            data-correctas="{{ h.correctas }}"
+                                            data-incorrectas="{{ h.incorrectas }}">
+                                            <td style="font-weight: 700;">{{ h.alumno }}</td>
+                                            <td><span class="code-badge" style="font-size: 12px; background: rgba(30, 90, 150, 0.08); border-color: rgba(30, 90, 150, 0.2); color: var(--accent-indigo);">{{ h.codigo }}</span></td>
+                                            <td style="font-weight: 600; color: var(--text-secondary);">
+                                                {% if h.bloque == 1 %}
+                                                    Bloque 1: Residuos y Reciclaje
+                                                {% elif h.bloque == 2 %}
+                                                    Bloque 2: Agua y Alcantarillado
+                                                {% elif h.bloque == 3 %}
+                                                    Bloque 3: Consumo y Energía
+                                                {% elif h.bloque == 4 %}
+                                                    Bloque 4: Liderazgo y Comunidad
+                                                {% else %}
+                                                    Bloque {{ h.bloque }}
+                                                {% endif %}
+                                            </td>
+                                            <td style="color: #298552; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> {{ h.correctas }}</td>
+                                            <td style="color: #be123c; font-weight: 700;"><i class="fa-solid fa-circle-xmark"></i> {{ h.incorrectas }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr id="empty-history-row">
+                                            <td colspan="5" class="empty-state">
+                                                <i class="fa-solid fa-graduation-cap"></i>
+                                                <p>Ningún estudiante ha completado una partida usando tus códigos aún.</p>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: MI PERFIL -->
+                <div id="tab-profile-content" class="tab-content">
+                    <div class="data-panel glass" style="max-width: 600px; margin: 0 auto; min-height: auto; width: 100%;">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-user-gear"></i> Mi Perfil de Docente</h3>
+                        </div>
+                        <div style="padding: 32px; display: flex; flex-direction: column; gap: 24px;">
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <label style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Nombre de Usuario Público:</label>
+                                <div style="position: relative; display: flex; align-items: center;">
+                                    <i class="fa-solid fa-user" style="position: absolute; left: 16px; color: #5c8bb0; font-size: 1rem;"></i>
+                                    <input type="text" id="input-nombre-publico" style="width: 100%; padding: 13px 16px 13px 44px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #1a3a5c; outline: none; transition: all 0.3s ease;" placeholder="Ej. Profe Lucas" value="{{ nombre_publico }}">
+                                </div>
+                                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">Este es el nombre visible que verán tus alumnos cuando ingresen tu código de partida. ¡Puedes editarlo cuando quieras!</p>
+                            </div>
+                            <button class="btn btn-primary" id="btn-save-profile" style="align-self: flex-start; justify-content: center; min-width: 150px; border-radius: 50px;">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal overlay for student details -->
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-graduate"></i> Detalles de la Partida</h3>
+                <button class="btn-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Informacion del alumno -->
+                <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5);">
+                    <h4 style="font-size: 18px; font-weight: 800; color: #1a3a5c;" id="modal-student-name">-</h4>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;" id="modal-game-info">-</p>
+                </div>
+
+                <!-- Estadisticas -->
+                <div class="modal-stats">
+                    <div class="modal-stat-box">
+                        <span>Preguntas Correctas</span>
+                        <p id="modal-stat-correct" style="color: #298552;">0</p>
+                    </div>
+                    <div class="modal-stat-box">
+                        <span>Preguntas Incorrectas</span>
+                        <p id="modal-stat-incorrect" style="color: #be123c;">0</p>
+                    </div>
+                    <div class="modal-stat-box">
+                        <span>Porcentaje de Éxito</span>
+                        <p id="modal-stat-percentage" style="color: #2a8bbb;">0%</p>
+                    </div>
+                </div>
+
+                <!-- Barra de Progreso Grafica -->
+                <div class="progress-container">
+                    <div class="progress-labels">
+                        <span>Aciertos vs Errores</span>
+                        <span id="modal-progress-ratio">0/0</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill-correct" id="modal-bar-correct" style="width: 0%;"></div>
+                        <div class="progress-fill-incorrect" id="modal-bar-incorrect" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Lista de preguntas contestadas -->
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px;"><i class="fa-solid fa-clipboard-question"></i> Respuestas Detalladas</h4>
+                    <div id="modal-questions-container" style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                        <!-- Se poblará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+<div class="toast-notification" id="toast-notif">
+        <i class="fa-solid fa-circle-check" style="color: #298552; font-size: 20px;"></i>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 800; color: #1a3a5c;">¡Código Creado!</h4>
+            <p style="font-size: 12px; color: #4b6e8a;" id="toast-msg">Se generó el código de acceso correctamente.</p>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal-card" style="max-width: 400px; border-radius: 24px; box-shadow: 0 16px 48px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.4);">
+                <h3 style="font-size: 16px; font-weight: 800; color: #1a3a5c;"><i class="fa-solid fa-triangle-exclamation" style="color: #ff4d4d; margin-right: 6px;"></i> Confirmar Acción</h3>
+                <button class="btn-close" id="btn-close-confirm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: center; display: flex; flex-direction: column; gap: 16px; align-items: center;">
+                <p id="confirm-modal-text" style="font-size: 14px; color: var(--text-primary); font-weight: 600; line-height: 1.5;"></p>
+                <div style="display: flex; gap: 12px; width: 100%; margin-top: 8px;">
+                    <button class="btn btn-secondary" id="btn-cancel-confirm" style="flex: 1; border-radius: 12px; padding: 10px 0; justify-content: center; font-size: 13px; font-weight: 700;">Cancelar</button>
+                    <button class="btn btn-danger" id="btn-agree-confirm" style="flex: 1; border-radius: 12px; padding: 10px 0; justify-content: center; font-size: 13px; font-weight: 700; background: linear-gradient(135deg, #f43f5e, #be123c); color: white; border: none; box-shadow: 0 4px 16px rgba(190, 18, 60, 0.3);">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Logic -->
+    <script>
+        // Declarations
+        const btnGenerateCode = document.getElementById('btn-generate-code');
+        const codesList = document.getElementById('docente-codes-list');
+        const statCodesCount = document.getElementById('stat-codes-count');
+        const filterHistorySelect = document.getElementById('filter-history-codigo');
+        const statGamesCount = document.getElementById('stat-games-count');
+        const gamesBadge = document.getElementById('games-badge');
+        const historyRowsContainer = document.getElementById('history-rows-container');
+
+        const toastNotif = document.getElementById('toast-notif');
+        const toastMsg = document.getElementById('toast-msg');
+
+        // Custom Confirm Modal Declarations
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmModalText = document.getElementById('confirm-modal-text');
+        const btnAgreeConfirm = document.getElementById('btn-agree-confirm');
+        const btnCancelConfirm = document.getElementById('btn-cancel-confirm');
+        const btnCloseConfirm = document.getElementById('btn-close-confirm');
+        let confirmCallback = null;
+
+        function showConfirm(message, onConfirm) {
+            confirmModalText.textContent = message;
+            confirmCallback = onConfirm;
+            confirmModal.classList.add('show');
+        }
+
+        function closeConfirm() {
+            confirmModal.classList.remove('show');
+            confirmCallback = null;
+        }
+
+        btnAgreeConfirm.addEventListener('click', () => {
+            if (confirmCallback) confirmCallback();
+            closeConfirm();
+        });
+
+        btnCancelConfirm.addEventListener('click', closeConfirm);
+        btnCloseConfirm.addEventListener('click', closeConfirm);
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) {
+                closeConfirm();
+            }
+        });
+
+        function showToast(title, message, iconClass = 'fa-circle-check', borderLeftColor = '#298552') {
+            const toastTitle = toastNotif.querySelector('h4');
+            const toastIcon = toastNotif.querySelector('i');
+            
+            toastTitle.textContent = title;
+            toastMsg.textContent = message;
+            toastIcon.className = 'fa-solid ' + iconClass;
+            toastIcon.style.color = borderLeftColor;
+            toastNotif.style.borderLeftColor = borderLeftColor;
+            
+            toastNotif.classList.add('show');
+            setTimeout(() => {
+                toastNotif.classList.remove('show');
+            }, 3500);
+        }
+
+        // Load codes with usage flag
+        async function loadCodes() {
+            try {
+                const response = await fetch('/api/docente/codigos');
+                const data = await response.json();
+                if (data.success) {
+                    codesList.innerHTML = '';
+                    
+                    const previousValue = filterHistorySelect.value;
+                    filterHistorySelect.innerHTML = '<option value="">Todos los códigos</option>';
+                    
+                    if (data.codigos.length === 0) {
+                        codesList.innerHTML = `
+                            <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px 0;" id="no-codes-msg">
+                                <i class="fa-solid fa-key" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+                                No has generado códigos de acceso todavía.
+                            </div>
+                        `;
+                    } else {
+                        data.codigos.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'code-item ' + (item.usado ? 'used-code' : 'unused-code');
+                            
+                            const badge = document.createElement('span');
+                            badge.className = 'code-badge';
+                            badge.textContent = item.codigo;
+                            
+                            const label = document.createElement('span');
+                            label.className = 'code-status-label';
+                            label.style = 'font-size: 13px; font-weight: 700;';
+                            if (item.usado) {
+                                label.textContent = 'Código Usado';
+                            } else {
+                                label.textContent = 'Código Sin Uso (Puede usarse)';
+                            }
+                            
+                            div.appendChild(label);
+                            div.appendChild(badge);
+                            
+                            if (!item.usado) {
+                                const delBtn = document.createElement('button');
+                                delBtn.className = 'btn btn-sm delete-code';
+                                delBtn.style = 'margin-left:auto; background:transparent; border:none; color:#ff4d4d; cursor:pointer; font-weight:700;';
+                                delBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Eliminar';
+                                delBtn.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    showConfirm('¿Estás seguro de que deseas eliminar el código ' + item.codigo + '? Esta acción no se puede deshacer.', async () => {
+                                        const delResp = await fetch(`/api/docente/eliminar-codigo/${item.codigo}`, {method: 'DELETE'});
+                                        const delData = await delResp.json();
+                                        if (delData.success) {
+                                            loadCodes();
+                                            showToast('¡Código Eliminado!', 'El código fue eliminado correctamente.', 'fa-trash-can', '#ff4d4d');
+                                            refreshHistory();
+                                        } else {
+                                            alert('Error al eliminar: ' + (delData.error || 'Desconocido'));
+                                        }
+                                    });
+                                });
+                                div.appendChild(delBtn);
+                            }
+                            codesList.appendChild(div);
+                            
+                            const opt = document.createElement('option');
+                            opt.value = item.codigo;
+                            opt.textContent = item.codigo + (item.usado ? ' (usado)' : ' (sin uso)');
+                            filterHistorySelect.appendChild(opt);
+                        });
+                    }
+                    
+                    if (previousValue && [...filterHistorySelect.options].some(o => o.value === previousValue)) {
+                        filterHistorySelect.value = previousValue;
+                    }
+                    statCodesCount.textContent = data.codigos.length;
+                }
+            } catch (err) {
+                console.error('Fetch error:', err);
+            }
+        }
+
+        // Generate Code
+        btnGenerateCode.addEventListener('click', async () => {
+            btnGenerateCode.disabled = true;
+            btnGenerateCode.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
+            try {
+                const response = await fetch('/api/docente/generar-codigo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    await loadCodes();
+                    showToast(`Código generado con éxito: ${data.codigo_acceso}`);
+                } else {
+                    alert('Error al generar código: ' + (data.error || 'Desconocido'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión al generar el código.');
+            } finally {
+                btnGenerateCode.disabled = false;
+                btnGenerateCode.innerHTML = '<i class="fa-solid fa-plus"></i> Generar Nuevo Código';
+            }
+        });
+
+        // History Refreshing (AJAX)
+        // Declaring btnRefresh safely (will be null since removed from HTML)
+        const btnRefresh = document.getElementById('btn-refresh');
+
+        // History Refreshing (AJAX)
+        async function refreshHistory() {
+            if (btnRefresh) {
+                btnRefresh.disabled = true;
+                btnRefresh.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...';
+            }
+            
+            try {
+                const selectedCode = filterHistorySelect.value;
+                const url = selectedCode ? `/api/docente/historial?codigo=${encodeURIComponent(selectedCode)}` : '/api/docente/historial';
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    statGamesCount.textContent = data.historial.length;
+                    gamesBadge.textContent = `${data.historial.length} partidas`;
+                    
+                    if (data.historial.length === 0) {
+                        historyRowsContainer.innerHTML = `
+                            <tr id="empty-history-row">
+                                <td colspan="5" class="empty-state">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                    <p>Ningún estudiante ha completado una partida usando tus códigos aún.</p>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+                    
+                    historyRowsContainer.innerHTML = '';
+                    data.historial.forEach(h => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'interactive-row';
+                        tr.setAttribute('data-detalles', JSON.stringify(h.detalles));
+                        tr.setAttribute('data-alumno', h.alumno);
+                        tr.setAttribute('data-codigo', h.codigo);
+                        tr.setAttribute('data-bloque', h.bloque);
+                        tr.setAttribute('data-correctas', h.correctas);
+                        tr.setAttribute('data-incorrectas', h.incorrectas);
+                        
+                        let blockText = `Bloque ${h.bloque}`;
+                        if (h.bloque === 1) blockText = 'Bloque 1: Residuos y Reciclaje';
+                        else if (h.bloque === 2) blockText = 'Bloque 2: Agua y Alcantarillado';
+                        else if (h.bloque === 3) blockText = 'Bloque 3: Consumo y Energía';
+                        else if (h.bloque === 4) blockText = 'Bloque 4: Liderazgo y Comunidad';
+
+                        tr.innerHTML = `
+                            <td style="font-weight: 700;">${h.alumno}</td>
+                            <td><span class="code-badge" style="font-size: 12px; background: rgba(30, 90, 150, 0.08); border-color: rgba(30, 90, 150, 0.2); color: var(--accent-indigo);">${h.codigo}</span></td>
+                            <td style="font-weight: 600; color: var(--text-secondary);">${blockText}</td>
+                            <td style="color: #298552; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> ${h.correctas}</td>
+                            <td style="color: #be123c; font-weight: 700;"><i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}</td>
+                        `;
+                        
+                        tr.addEventListener('click', () => openDetailModal(tr));
+                        historyRowsContainer.appendChild(tr);
+                    });
+                }
+            } catch (error) {
+                console.error('Error refreshing history:', error);
+            } finally {
+                if (btnRefresh) {
+                    btnRefresh.disabled = false;
+                    btnRefresh.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Actualizar';
+                }
+            }
+        }
+
+        if (btnRefresh) {
+            btnRefresh.addEventListener('click', refreshHistory);
+        }
+        filterHistorySelect.addEventListener('change', refreshHistory);
+
+        // Tab switching logic
+        const menuGenerate = document.getElementById('menu-generate');
+        const menuHistory = document.getElementById('menu-history');
+        const menuProfile = document.getElementById('menu-profile');
+        const tabGenerateContent = document.getElementById('tab-generate-content');
+        const tabHistoryContent = document.getElementById('tab-history-content');
+        const tabProfileContent = document.getElementById('tab-profile-content');
+        
+        const viewTitle = document.getElementById('view-title');
+        const viewDesc = document.getElementById('view-desc');
+
+        function switchTab(target) {
+            // Remove active classes
+            menuGenerate.classList.remove('active');
+            menuHistory.classList.remove('active');
+            if (menuProfile) menuProfile.classList.remove('active');
+            
+            tabGenerateContent.classList.remove('active');
+            tabHistoryContent.classList.remove('active');
+            if (tabProfileContent) tabProfileContent.classList.remove('active');
+            
+            if (target === 'generate') {
+                menuGenerate.classList.add('active');
+                tabGenerateContent.classList.add('active');
+                viewTitle.textContent = 'Generar Códigos de Acceso';
+                viewDesc.textContent = 'Administra el acceso a tus clases generando códigos de sesión aleatorios.';
+                if (btnRefresh) btnRefresh.style.display = 'none';
+            } else if (target === 'history') {
+                menuHistory.classList.add('active');
+                tabHistoryContent.classList.add('active');
+                viewTitle.textContent = 'Historial de Partidas';
+                viewDesc.textContent = 'Visualiza y analiza el desempeño en tiempo real de tus estudiantes en las distintas actividades.';
+                if (btnRefresh) btnRefresh.style.display = 'inline-flex';
+            } else if (target === 'profile') {
+                if (menuProfile) menuProfile.classList.add('active');
+                if (tabProfileContent) tabProfileContent.classList.add('active');
+                viewTitle.textContent = 'Mi Perfil de Docente';
+                viewDesc.textContent = 'Personaliza cómo te presentas ante tus estudiantes.';
+                if (btnRefresh) btnRefresh.style.display = 'none';
+            }
+        }
+
+        menuGenerate.addEventListener('click', () => switchTab('generate'));
+        menuHistory.addEventListener('click', () => switchTab('history'));
+        if (menuProfile) menuProfile.addEventListener('click', () => switchTab('profile'));
+
+        // Profile save logic
+        const btnSaveProfile = document.getElementById('btn-save-profile');
+        const inputNombrePublico = document.getElementById('input-nombre-publico');
+        
+        if (btnSaveProfile) {
+            btnSaveProfile.addEventListener('click', async () => {
+                const nombrePublico = inputNombrePublico.value.trim();
+                if (!nombrePublico) {
+                    showToast('Error', 'El nombre público no puede estar vacío.', 'fa-circle-xmark', '#ff4d4d');
+                    return;
+                }
+                
+                btnSaveProfile.disabled = true;
+                btnSaveProfile.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando...';
+                
+                try {
+                    const response = await fetch('/api/docente/perfil', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nombre_publico: nombrePublico })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('¡Perfil Actualizado!', 'Tu nombre de usuario público ha sido actualizado con éxito.', 'fa-circle-check', '#298552');
+                        // Update header display name
+                        const logoTextSpan = document.querySelector('.logo-text span');
+                        if (logoTextSpan) {
+                            logoTextSpan.textContent = nombrePublico;
+                        }
+                    } else {
+                        showToast('Error', data.error || 'No se pudo guardar el perfil.', 'fa-circle-xmark', '#ff4d4d');
+                    }
+                } catch (error) {
+                    console.error('Error guardando perfil:', error);
+                    showToast('Error', 'Error de conexión con el servidor.', 'fa-circle-xmark', '#ff4d4d');
+                } finally {
+                    btnSaveProfile.disabled = false;
+                    btnSaveProfile.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Cambios';
+                }
+            });
+        }
+
+        // Modal detailing logic
+        const detailModal = document.getElementById('detail-modal');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const modalStudentName = document.getElementById('modal-student-name');
+        const modalGameInfo = document.getElementById('modal-game-info');
+        const modalStatCorrect = document.getElementById('modal-stat-correct');
+        const modalStatIncorrect = document.getElementById('modal-stat-incorrect');
+        const modalStatPercentage = document.getElementById('modal-stat-percentage');
+        const modalProgressRatio = document.getElementById('modal-progress-ratio');
+        const modalBarCorrect = document.getElementById('modal-bar-correct');
+        const modalBarIncorrect = document.getElementById('modal-bar-incorrect');
+        const modalQuestionsContainer = document.getElementById('modal-questions-container');
+
+        function openDetailModal(row) {
+            const alumno = row.getAttribute('data-alumno');
+            const codigo = row.getAttribute('data-codigo');
+            const bloque = parseInt(row.getAttribute('data-bloque'));
+            const correctas = parseInt(row.getAttribute('data-correctas'));
+            const incorrectas = parseInt(row.getAttribute('data-incorrectas'));
+            const detallesRaw = row.getAttribute('data-detalles');
+            
+            let detalles = [];
+            try {
+                detalles = JSON.parse(detallesRaw);
+            } catch(e) {
+                console.error("Error parsing details JSON:", e);
+            }
+
+            let blockText = `Bloque ${bloque}`;
+            if (bloque === 1) blockText = 'Bloque 1: Residuos y Reciclaje';
+            else if (bloque === 2) blockText = 'Bloque 2: Agua y Alcantarillado';
+            else if (bloque === 3) blockText = 'Bloque 3: Consumo y Energía';
+            else if (bloque === 4) blockText = 'Bloque 4: Liderazgo y Comunidad';
+
+            // Populate Text values
+            modalStudentName.textContent = alumno;
+            modalGameInfo.innerHTML = `<i class="fa-solid fa-key"></i> Código: <strong>${codigo}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; <i class="fa-solid fa-book-open"></i> Actividad: <strong>${blockText}</strong>`;
+            
+            modalStatCorrect.textContent = correctas;
+            modalStatIncorrect.textContent = incorrectas;
+            
+            const total = correctas + incorrectas;
+            const percent = total > 0 ? Math.round((correctas / total) * 100) : 0;
+            modalStatPercentage.textContent = `${percent}%`;
+            
+            modalProgressRatio.textContent = `${correctas} aciertos / ${incorrectas} errores`;
+            
+            // Set progress bar fill ratios
+            if (total > 0) {
+                modalBarCorrect.style.width = `${(correctas / total) * 100}%`;
+                modalBarIncorrect.style.width = `${(incorrectas / total) * 100}%`;
+            } else {
+                modalBarCorrect.style.width = `0%`;
+                modalBarIncorrect.style.width = `0%`;
+            }
+
+            // Render questions list
+            modalQuestionsContainer.innerHTML = '';
+            if (detalles && detalles.length > 0) {
+                detalles.forEach((q, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'question-card';
+                    
+                    let badgeClass = 'badge-unanswered';
+                    let badgeText = '<i class="fa-solid fa-circle-minus"></i> No Respondida';
+                    if (q.correcta === true) {
+                        badgeClass = 'badge-correct';
+                        badgeText = '<i class="fa-solid fa-circle-check"></i> Correcta';
+                    } else if (q.correcta === false) {
+                        badgeClass = 'badge-incorrect';
+                        badgeText = '<i class="fa-solid fa-circle-xmark"></i> Incorrecta';
+                    }
+                    
+                    const typeClass = q.tipo === 'inicial' ? 'badge-type-inicial' : 'badge-type-historia';
+                    const typeText = q.tipo === 'inicial' ? 'Pregunta Inicial' : 'Nudo de la Historia';
+                    
+                    div.innerHTML = `
+                        <div class="question-header">
+                            <span class="question-text">${index + 1}. ${q.pregunta}</span>
+                            <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                                <span class="answer-badge ${typeClass}">${typeText}</span>
+                                <span class="answer-badge ${badgeClass}">${badgeText}</span>
+                            </div>
+                        </div>
+                        <div class="answer-text">
+                            <strong>Respuesta elegida:</strong> "${q.opcion_elegida}"
+                        </div>
+                        <div class="feedback-text">
+                            ${q.feedback}
+                        </div>
+                    `;
+                    modalQuestionsContainer.appendChild(div);
+                });
+            } else {
+                modalQuestionsContainer.innerHTML = `
+                    <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0;">
+                        No hay respuestas detalladas registradas para esta partida.
+                    </div>
+                `;
+            }
+
+            // Open modal
+            detailModal.classList.add('show');
+        }
+
+        // Bind click to existing table rows
+        document.querySelectorAll('.interactive-row').forEach(row => {
+            row.addEventListener('click', () => openDetailModal(row));
+        });
+
+        // Close modal events
+        btnCloseModal.addEventListener('click', () => {
+            detailModal.classList.remove('show');
+        });
+
+        detailModal.addEventListener('click', (e) => {
+            if (e.target === detailModal) {
+                detailModal.classList.remove('show');
+            }
+        });
+
+        // Initial setup on DOM load
+        loadCodes();
+    </script>
+</body>
+</html>
