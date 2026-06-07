@@ -63,10 +63,10 @@
         /* Fondo: cielo azul oceánico y agua con caústicas dinámicas */
         .portal-bg {
             position: absolute; inset: 0; z-index: 0;
-            background: 
-                radial-gradient(circle at 50% -20%, #e8f5fd 0%, #b8def3 45%, #8ecce9 75%, #59afd5 100%),
-                linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-            background-blend-mode: overlay;
+            background-image: url("{{ url_for('static', filename='ocean_bg.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             overflow: hidden;
         }
 

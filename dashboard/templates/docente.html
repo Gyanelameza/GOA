@@ -51,6 +51,36 @@
             box-shadow: 0 6px 18px rgba(42, 139, 187, 0.3);
         }
 
+        .sidebar-menu li.logout-item {
+            background-color: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #be123c;
+        }
+
+        .sidebar-menu li.logout-item:hover {
+            background-color: rgba(239, 68, 68, 0.18);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #991b1b;
+            transform: translateX(4px);
+        }
+
+        /* Collapsible Sidebar Styles */
+        .sidebar {
+            transition: margin-left 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .sidebar.collapsed {
+            margin-left: -280px;
+        }
+        .section-title {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .section-title:hover {
+            color: var(--accent-indigo);
+            transform: translateX(2px);
+        }
+
         .sidebar-menu li i {
             font-size: 16px;
             width: 20px;
@@ -95,6 +125,7 @@
             border: 1px solid rgba(255, 255, 255, 0.7);
             border-radius: 14px;
             padding: 12px 18px;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
         
@@ -145,16 +176,17 @@
         }
 
         .modal-card {
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.55);
             border-radius: 28px;
             width: 90%;
             max-width: 700px;
             max-height: 85vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(20px);
+            box-shadow: 0 24px 64px rgba(30, 90, 150, 0.12);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             transform: scale(0.9);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
             overflow: hidden;
@@ -166,7 +198,7 @@
 
         .modal-header {
             padding: 24px 32px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.55);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -194,10 +226,11 @@
         }
 
         .modal-stat-box {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.55);
             border-radius: 16px;
             padding: 16px;
+            box-shadow: 0 4px 12px rgba(30, 90, 150, 0.03);
         }
 
         .modal-stat-box span {
@@ -380,17 +413,160 @@
             color: #d97706 !important;
             border: 1px solid rgba(245, 158, 11, 0.3) !important;
         }
+
+        /* Prevent student column overlap */
+        th:first-child, td:first-child {
+            min-width: 150px !important;
+            max-width: 250px !important;
+        }
+
+        /* ── Wizard Panel Styles (Admin Creador de Historias) ── */
+        .wizard-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 16px 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .wizard-step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 2;
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .wizard-step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .wizard-step-item.active .wizard-step-number {
+            background: linear-gradient(135deg, #45a2d8, #2a8bbb);
+            border-color: #2a8bbb;
+            color: white;
+            box-shadow: 0 4px 12px rgba(42, 139, 187, 0.3);
+        }
+
+        .wizard-step-item.completed .wizard-step-number {
+            background: #298552;
+            border-color: #298552;
+            color: white;
+        }
+
+        .wizard-step-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .wizard-step-item.active .wizard-step-label {
+            color: #1a3a5c;
+            font-weight: 800;
+        }
+
+        .wizard-step-line {
+            position: absolute;
+            top: 34px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.4);
+            z-index: 1;
+        }
+
+        .wizard-step-line-progress {
+            height: 100%;
+            background: #2a8bbb;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .wizard-card {
+            background: rgba(255, 255, 255, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 12px 40px rgba(30, 90, 150, 0.05);
+            backdrop-filter: blur(25px);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .sub-card {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sub-card-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #1a3a5c;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 8px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
+    <!-- Fondo visual -->
+    <div class="portal-bg">
+        <div class="wave-light wl1"></div>
+        <div class="wave-light wl2"></div>
+        <div class="wave-light wl3"></div>
+        <div class="wave-light wl4"></div>
+    </div>
+    <div class="sparkle sp1">✦</div>
+    <div class="sparkle sp2">✦</div>
+    <div class="sparkle sp3">✦</div>
+    <div class="sparkle sp4">✦</div>
+
     <div class="app-container">
-        <!-- Sidebar -->
+         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" alt="GO-A Logo" style="width: 46px; height: 46px; object-fit: contain; margin-right: 12px; filter: drop-shadow(0 6px 12px rgba(42, 139, 187, 0.25));">
-                <div class="logo-text">
-                    <h1>GOA Docente</h1>
-                    <span>{{ session.get('profesor_nombre', 'Docente') }}</span>
+            <div class="logo-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; margin-bottom: 24px; overflow: visible; width: 100%;">
+                <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" alt="GO-A Logo" class="sidebar-logo" 
+                     style="width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.7); box-shadow: 0 8px 24px rgba(42, 139, 187, 0.2); filter: drop-shadow(0 6px 16px rgba(42, 139, 187, 0.15)); flex-shrink: 0; margin: 0 auto; display: block; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;"
+                     onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(255,255,255,1)'; this.style.boxShadow='0 12px 32px rgba(42,139,187,0.3)';"
+                     onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.boxShadow='0 8px 24px rgba(42, 139, 187, 0.2)';"
+                     onclick="toggleSidebar();">
+                <div class="logo-text" style="display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; width: 100%;">
+                    <h1 style="font-size: 22px; font-weight: 800; line-height: 1.2; color: #1a3a5c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">GOA Docente</h1>
+                    <span style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ session.get('profesor_nombre_publico', 'Docente') }}</span>
                 </div>
             </div>
             
@@ -399,12 +575,20 @@
                 <li id="menu-generate" class="active"><i class="fa-solid fa-key"></i> Generar Códigos</li>
                 <li id="menu-history"><i class="fa-solid fa-clock-rotate-left"></i> Historial de Partidas</li>
                 <li id="menu-profile"><i class="fa-solid fa-user-gear"></i> Mi Perfil</li>
+                {% if is_admin %}
+                <li id="menu-story-creator"><i class="fa-solid fa-feather-pointed" style="color: #298552;"></i> Creador de Historias</li>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" style="text-decoration: none; display: block; margin-top: auto;">
+                    <li class="logout-item" style="margin-top: 0;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+                    </li>
+                </a>
             </ul>
 
-            <div class="sidebar-footer" style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+            <div class="sidebar-footer" style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 16px;">
                 <div class="connection-status">
                     <span class="status-indicator"></span>
-                    <span>Docente Conectado</span>
+                    <span>{{ 'Administrador' if is_admin else 'Docente' }} Conectado</span>
                 </div>
             </div>
         </aside>
@@ -412,14 +596,22 @@
         <!-- Main Content -->
         <main class="main-content">
             <!-- Topbar -->
-            <header class="topbar">
+            <header class="topbar" style="padding: 20px 32px; min-height: 90px; display: flex; justify-content: flex-start; align-items: center; gap: 20px;">
+                <!-- Sidebar Toggle Button (Las rayitas) -->
+                <button id="sidebar-toggle" style="background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); cursor: pointer; color: #1a3a5c; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(30, 90, 150, 0.05); flex-shrink: 0;"
+                        onmouseover="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.borderColor='#2a8bbb'; this.style.color='#2a8bbb'; this.style.transform='scale(1.05)';"
+                        onmouseout="this.style.background='rgba(255, 255, 255, 0.45)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.color='#1a3a5c'; this.style.transform='scale(1)';">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <div class="page-title">
-                    <h2 id="view-title">Generar Códigos de Acceso</h2>
+                    <h2 id="view-title" style="font-size: 24px;">Generar Códigos de Acceso</h2>
                     <p id="view-desc">Administra el acceso a tus clases generando códigos de sesión aleatorios.</p>
                 </div>
-                <div class="actions">
-                    <a href="{{ url_for('logout') }}" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</a>
-                </div>
+                <button id="btn-refresh" class="btn btn-secondary" style="margin-left: auto; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); color: #1a3a5c; font-weight: 700; transition: all 0.2s ease;"
+                        onmouseover="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.borderColor='#2a8bbb'; this.style.color='#2a8bbb'; this.style.transform='scale(1.05)';"
+                        onmouseout="this.style.background='rgba(255, 255, 255, 0.45)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.color='#1a3a5c'; this.style.transform='scale(1)';">
+                    <i class="fa-solid fa-arrows-rotate"></i> Refrescar
+                </button>
             </header>
 
             <!-- Content Area -->
@@ -438,19 +630,45 @@
                     </div>
 
                     <!-- Panel de Gestión de Códigos -->
-<div class="data-panel glass">
-    <div class="panel-header">
-        <h3><i class="fa-solid fa-key"></i> Lista de Códigos Activos</h3>
-        <button class="btn btn-primary" id="btn-generate-code">
-            <i class="fa-solid fa-plus"></i> Generar Nuevo Código
-        </button>
-    </div>
-    <div class="content-body" style="padding: 24px; min-height: auto;">
-        <div class="codes-grid" id="docente-codes-list">
-            <!-- Dynamic list populated by JavaScript -->
-        </div>
-    </div>
-</div>
+                    <!-- Guía de Bloques / Actividades -->
+                    <div class="blocks-guide-section glass" style="margin-bottom: 24px; padding: 20px 24px; border-radius: 20px; background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255, 255, 255, 0.5);">
+                        <h3 style="font-size: 15px; font-weight: 800; color: #1a3a5c; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-circle-info" style="color: #2a8bbb; font-size: 16px;"></i> Guía de Bloques de Aprendizaje (Actividades)
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+                            {% set block_colors = ['#298552', '#2a8bbb', '#d97706', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'] %}
+                            {% set block_icons = ['fa-recycle', 'fa-droplet', 'fa-bolt', 'fa-users', 'fa-seedling', 'fa-circle-info', 'fa-lightbulb', 'fa-earth-americas'] %}
+                            {% for b in bloques_list %}
+                            {% set col_idx = (b.id - 1) % block_colors|length %}
+                            {% set icon_idx = (b.id - 1) % block_icons|length %}
+                            {% set col = block_colors[col_idx] %}
+                            {% set icon = block_icons[icon_idx] %}
+                            <div style="background: rgba(255,255,255,0.3); padding: 12px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.02);" onmouseover="this.style.background='rgba(255,255,255,0.6)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='none';">
+                                <div style="width: 38px; height: 38px; border-radius: 12px; background: {{ col }}1f; display: flex; align-items: center; justify-content: center; color: {{ col }}; font-size: 17px; flex-shrink: 0;"><i class="fa-solid {{ icon }}"></i></div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 13px; font-weight: 800; color: #1a3a5c;">Bloque {{ b.id }}</h4>
+                                    <p style="margin: 1px 0 0; font-size: 11.5px; color: var(--text-secondary); font-weight: 600;">{{ b.titulo }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Panel de Gestión de Códigos -->
+                    <div class="data-panel glass">
+                        <div class="panel-header">
+                            <h3><i class="fa-solid fa-key"></i> Lista de Códigos Activos</h3>
+                            <button class="btn btn-primary" id="btn-generate-code">
+                                <i class="fa-solid fa-plus"></i> Generar Nuevo Código
+                            </button>
+                        </div>
+                        <div class="content-body" style="padding: 24px 32px; min-height: auto;">
+                            <!-- Flat grid of codes -->
+                            <div class="codes-grid" id="docente-codes-list">
+                                <!-- Dynamic list populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- TAB 2: HISTORIAL DE PARTIDAS -->
@@ -467,61 +685,91 @@
 
                     <!-- Tabla del Historial -->
                     <div class="data-panel glass">
-                        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                            <h3><i class="fa-solid fa-list-check"></i> Registro de Actividad Estudiantil</h3>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <select id="filter-history-codigo" class="btn btn-secondary" style="padding: 6px 14px; font-size: 13px; border-radius: 10px; height: 38px; cursor: pointer; border: 1px solid var(--border-color); background: rgba(255,255,255,0.5);">
-                                    <option value="">Todos los códigos</option>
-                                </select>
-                                <span class="row-count-badge" id="games-badge">{{ historial|length }} partidas</span>
+                        <div class="panel-header" style="padding: 24px 24px 12px;">
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-list-check" style="color: #2a8bbb;"></i> Registro de Actividad Estudiantil
+                            </h3>
+                        </div>
+
+                        <!-- Panel de Filtros y Búsqueda Redistribuido -->
+                        <div style="padding: 12px 24px 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+                            <!-- Barra de búsqueda principal (más amplia y espaciosa) -->
+                            <div style="position: relative; flex: 1; max-width: 480px; min-width: 280px;">
+                                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #2a8bbb; font-size: 1rem;"></i>
+                                <input type="text" id="search-history" placeholder="Buscar por estudiante o código..." autocomplete="off"
+                                       style="width: 100%; padding: 12px 16px 12px 48px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.6); font-family: 'Outfit', sans-serif; font-size: 0.92rem; color: #1a3a5c; outline: none; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(30, 90, 150, 0.03);"
+                                       onfocus="this.style.borderColor='#2a8bbb'; this.style.boxShadow='0 4px 16px rgba(42, 139, 187, 0.15)';"
+                                       onblur="this.style.borderColor='rgba(255,255,255,0.7)'; this.style.boxShadow='0 4px 12px rgba(30, 90, 150, 0.03)';">
+                            </div>
+                            
+                            <!-- Filtros y Contadores (derecha) -->
+                            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                                <span id="search-count-badge" style="font-size: 0.88rem; color: #2a8bbb; font-weight: 700; transition: all 0.3s ease; white-space: nowrap;"></span>
+                                
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap;">Filtrar:</span>
+                                    <select id="filter-history-codigo" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px; border-radius: 12px; height: 42px; cursor: pointer; border: 1px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; color: #1a3a5c; font-weight: 700;">
+                                        <option value="">Todos los códigos</option>
+                                    </select>
+                                </div>
+                                
+                                <span class="row-count-badge" id="games-badge" style="background: rgba(42, 139, 187, 0.12); color: #2a8bbb; border: 1px solid rgba(42, 139, 187, 0.25); padding: 8px 16px; border-radius: 12px; font-weight: 700; font-size: 13px; height: 42px; display: inline-flex; align-items: center; white-space: nowrap;">{{ historial|length }} partidas</span>
                             </div>
                         </div>
-                        <div class="table-wrapper">
+
+                        <!-- Contenedor plano de códigos con historial -->
+                        <div id="history-codes-container" style="padding: 24px;">
+                            <div class="codes-grid" id="history-all-codes"></div>
+                        </div>
+
+                        <div class="table-wrapper" style="display: none;">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Estudiante</th>
                                         <th>Código de Partida</th>
                                         <th>Bloque Jugado</th>
-                                        <th>Respuestas Correctas</th>
-                                        <th>Respuestas Incorrectas</th>
+                                        <th>Resp. Correctas</th>
+                                        <th>Resp. Incorrectas</th>
+                                        <th style="width:60px;"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="history-rows-container">
+
                                     {% if historial %}
                                         {% for h in historial %}
-                                        <!-- pasamos los detalles como string JSON para cargarlos al hacer clic -->
-                                        <tr class="interactive-row" 
+                                        <tr class="interactive-row"
                                             data-detalles='{{ h.detalles | tojson }}'
                                             data-alumno="{{ h.alumno }}"
                                             data-codigo="{{ h.codigo }}"
                                             data-bloque="{{ h.bloque }}"
                                             data-correctas="{{ h.correctas }}"
                                             data-incorrectas="{{ h.incorrectas }}">
-                                            <td style="font-weight: 700;">{{ h.alumno }}</td>
-                                            <td><span class="code-badge" style="font-size: 12px; background: rgba(30, 90, 150, 0.08); border-color: rgba(30, 90, 150, 0.2); color: var(--accent-indigo);">{{ h.codigo }}</span></td>
-                                            <td style="font-weight: 600; color: var(--text-secondary);">
-                                                {% if h.bloque == 1 %}
-                                                    Bloque 1: Residuos y Reciclaje
-                                                {% elif h.bloque == 2 %}
-                                                    Bloque 2: Agua y Alcantarillado
-                                                {% elif h.bloque == 3 %}
-                                                    Bloque 3: Consumo y Energía
-                                                {% elif h.bloque == 4 %}
-                                                    Bloque 4: Liderazgo y Comunidad
-                                                {% else %}
-                                                    Bloque {{ h.bloque }}
-                                                {% endif %}
+                                            <td style="font-weight:700;">{{ h.alumno }}</td>
+                                            <td><span class="code-badge" style="font-size:12px; background:rgba(30,90,150,0.08); border-color:rgba(30,90,150,0.2); color:var(--accent-indigo);">{{ h.codigo }}</span></td>
+                                            <td style="font-weight:600; color:var(--text-secondary);">
+                                                {% if h.bloque == 1 %}Bloque 1: Residuos y Reciclaje
+                                                {% elif h.bloque == 2 %}Bloque 2: Agua y Alcantarillado
+                                                {% elif h.bloque == 3 %}Bloque 3: Consumo y Energía
+                                                {% elif h.bloque == 4 %}Bloque 4: Liderazgo y Comunidad
+                                                {% else %}Bloque {{ h.bloque }}{% endif %}
                                             </td>
-                                            <td style="color: #298552; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> {{ h.correctas }}</td>
-                                            <td style="color: #be123c; font-weight: 700;"><i class="fa-solid fa-circle-xmark"></i> {{ h.incorrectas }}</td>
+                                            <td style="color:#298552; font-weight:700;"><i class="fa-solid fa-circle-check"></i> {{ h.correctas }}</td>
+                                            <td style="color:#be123c; font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> {{ h.incorrectas }}</td>
+                                            <td>
+                                                <button class="btn-del-partida" title="Eliminar partida"
+                                                        data-codigo="{{ h.codigo }}" data-alumno="{{ h.alumno }}"
+                                                        style="background:none; border:none; cursor:pointer; color:#be123c; font-size:.95rem; padding:4px 8px; border-radius:8px; transition:background .2s;">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr id="empty-history-row">
-                                            <td colspan="5" class="empty-state">
-                                                <i class="fa-solid fa-graduation-cap"></i>
-                                                <p>Ningún estudiante ha completado una partida usando tus códigos aún.</p>
+                                            <td colspan="6" class="empty-state" style="padding:48px 24px; text-align:center;">
+                                                <img src="{{ url_for('static', filename='gotita_corriendo.png') }}" alt="Gotita Corriendo" style="width:100px; height:auto; margin-bottom:12px; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+                                                <p style="font-weight:600; font-size:15px; color:var(--text-secondary);">Ningún estudiante ha completado una partida usando tus códigos aún.</p>
                                             </td>
                                         </tr>
                                     {% endif %}
@@ -531,27 +779,376 @@
                     </div>
                 </div>
 
+
                 <!-- TAB 3: MI PERFIL -->
                 <div id="tab-profile-content" class="tab-content">
-                    <div class="data-panel glass" style="max-width: 600px; margin: 0 auto; min-height: auto; width: 100%;">
-                        <div class="panel-header">
-                            <h3><i class="fa-solid fa-user-gear"></i> Mi Perfil de Docente</h3>
-                        </div>
-                        <div style="padding: 32px; display: flex; flex-direction: column; gap: 24px;">
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <label style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Nombre de Usuario Público:</label>
-                                <div style="position: relative; display: flex; align-items: center;">
-                                    <i class="fa-solid fa-user" style="position: absolute; left: 16px; color: #5c8bb0; font-size: 1rem;"></i>
-                                    <input type="text" id="input-nombre-publico" style="width: 100%; padding: 13px 16px 13px 44px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #1a3a5c; outline: none; transition: all 0.3s ease;" placeholder="Ej. Profe Lucas" value="{{ nombre_publico }}">
-                                </div>
-                                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">Este es el nombre visible que verán tus alumnos cuando ingresen tu código de partida. ¡Puedes editarlo cuando quieras!</p>
+                    <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; width: 100%;">
+
+                        <!-- Card: Nombre Público -->
+                        <div class="data-panel glass" style="min-height: auto; width: 100%;">
+                            <div class="panel-header">
+                                <h3><i class="fa-solid fa-user-gear"></i> Mi Perfil de Docente</h3>
                             </div>
-                            <button class="btn btn-primary" id="btn-save-profile" style="align-self: flex-start; justify-content: center; min-width: 150px; border-radius: 50px;">
-                                <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
-                            </button>
+                            <div style="padding: 28px 32px; display: flex; flex-direction: column; gap: 20px;">
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Nombre de Usuario Público:</label>
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <i class="fa-solid fa-user" style="position: absolute; left: 16px; color: #5c8bb0; font-size: 1rem;"></i>
+                                        <input type="text" id="input-nombre-publico" style="width: 100%; padding: 13px 16px 13px 44px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #1a3a5c; outline: none; transition: all 0.3s ease;" placeholder="Ej. Profe Lucas" value="{{ nombre_publico }}">
+                                    </div>
+                                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">Este es el nombre visible que verán tus alumnos cuando ingresen tu código de partida. ¡Puedes editarlo cuando quieras!</p>
+                                </div>
+                                <button class="btn btn-primary" id="btn-save-profile" style="align-self: flex-start; justify-content: center; min-width: 150px; border-radius: 50px;">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                                </button>
+                            </div>
                         </div>
+
+                        <!-- Card: Cambiar Contraseña -->
+                        <div class="data-panel glass" style="min-height: auto; width: 100%;">
+                            <div class="panel-header">
+                                <h3><i class="fa-solid fa-lock"></i> Cambiar Contraseña</h3>
+                            </div>
+                            <div style="padding: 28px 32px; display: flex; flex-direction: column; gap: 16px;">
+
+                                <!-- Alert box -->
+                                <div id="pwd-alert" style="display:none; align-items:center; gap:10px; padding:12px 16px; border-radius:14px; font-size:.88rem; font-weight:600; text-align:left;"></div>
+
+                                <!-- Contraseña actual -->
+                                <div style="display:flex; flex-direction:column; gap:6px;">
+                                    <label style="font-weight:700; font-size:14px; color:var(--text-primary);">Contraseña Actual:</label>
+                                    <div style="position:relative; display:flex; align-items:center;">
+                                        <i class="fa-solid fa-lock" style="position:absolute; left:16px; color:#5c8bb0; font-size:1rem;"></i>
+                                        <input type="password" id="pwd-actual" autocomplete="current-password"
+                                               style="width:100%; padding:13px 16px 13px 44px; border-radius:14px; border:1px solid rgba(255,255,255,0.6); background:rgba(255,255,255,0.65); font-family:'Outfit',sans-serif; font-size:.95rem; color:#1a3a5c; outline:none; transition:all .3s;"
+                                               placeholder="Tu contraseña actual">
+                                        <button type="button" onclick="togglePwd('pwd-actual', this)" style="position:absolute; right:14px; background:none; border:none; cursor:pointer; color:#5c8bb0; font-size:.95rem;">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Nueva contraseña -->
+                                <div style="display:flex; flex-direction:column; gap:6px;">
+                                    <label style="font-weight:700; font-size:14px; color:var(--text-primary);">Nueva Contraseña:</label>
+                                    <div style="position:relative; display:flex; align-items:center;">
+                                        <i class="fa-solid fa-key" style="position:absolute; left:16px; color:#5c8bb0; font-size:1rem;"></i>
+                                        <input type="password" id="pwd-nueva" autocomplete="new-password"
+                                               style="width:100%; padding:13px 16px 13px 44px; border-radius:14px; border:1px solid rgba(255,255,255,0.6); background:rgba(255,255,255,0.65); font-family:'Outfit',sans-serif; font-size:.95rem; color:#1a3a5c; outline:none; transition:all .3s;"
+                                               placeholder="Mínimo 6 caracteres">
+                                        <button type="button" onclick="togglePwd('pwd-nueva', this)" style="position:absolute; right:14px; background:none; border:none; cursor:pointer; color:#5c8bb0; font-size:.95rem;">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Confirmar nueva contraseña -->
+                                <div style="display:flex; flex-direction:column; gap:6px;">
+                                    <label style="font-weight:700; font-size:14px; color:var(--text-primary);">Confirmar Nueva Contraseña:</label>
+                                    <div style="position:relative; display:flex; align-items:center;">
+                                        <i class="fa-solid fa-shield-halved" style="position:absolute; left:16px; color:#5c8bb0; font-size:1rem;"></i>
+                                        <input type="password" id="pwd-confirmar" autocomplete="new-password"
+                                               style="width:100%; padding:13px 16px 13px 44px; border-radius:14px; border:1px solid rgba(255,255,255,0.6); background:rgba(255,255,255,0.65); font-family:'Outfit',sans-serif; font-size:.95rem; color:#1a3a5c; outline:none; transition:all .3s;"
+                                               placeholder="Repite la nueva contraseña">
+                                        <button type="button" onclick="togglePwd('pwd-confirmar', this)" style="position:absolute; right:14px; background:none; border:none; cursor:pointer; color:#5c8bb0; font-size:.95rem;">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary" id="btn-cambiar-pwd"
+                                        style="align-self:flex-start; min-width:180px; border-radius:50px; background:linear-gradient(135deg,#298552,#1e6b40); box-shadow:0 4px 14px rgba(41,133,82,.3);">
+                                    <i class="fa-solid fa-shield-check"></i> Cambiar Contraseña
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+
+                {% if is_admin %}
+                <!-- TAB 4: CREADOR DE HISTORIAS -->
+                <div id="tab-story-creator-content" class="tab-content" style="display: none; flex-direction: column; gap: 24px; animation: fadeIn 0.4s ease-out;">
+                    <!-- Step Progress bar -->
+                    <div class="wizard-steps">
+                        <div class="wizard-step-line">
+                            <div class="wizard-step-line-progress" id="wizard-progress-bar"></div>
+                        </div>
+                        <div class="wizard-step-item active" data-step="1">
+                            <div class="wizard-step-number">1</div>
+                            <div class="wizard-step-label">Bloque y Notas</div>
+                        </div>
+                        <div class="wizard-step-item" data-step="2">
+                            <div class="wizard-step-number">2</div>
+                            <div class="wizard-step-label">Evaluación</div>
+                        </div>
+                        <div class="wizard-step-item" data-step="3">
+                            <div class="wizard-step-number">3</div>
+                            <div class="wizard-step-label">Historia</div>
+                        </div>
+                        <div class="wizard-step-item" data-step="4">
+                            <div class="wizard-step-number">4</div>
+                            <div class="wizard-step-label">Guardar</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 1: Selection & Notes -->
+                    <div class="wizard-card" id="wizard-step-1-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid rgba(255, 255, 255, 0.4); padding-bottom: 12px; margin-bottom: 8px; flex-wrap: wrap; gap: 12px;">
+                            <h3 style="font-size: 18px; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px; margin: 0;">
+                                <i class="fa-solid fa-book-open"></i> Configuración de Bloque y Material
+                            </h3>
+                            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-bottom: 0;">
+                                <label style="margin: 0; white-space: nowrap;">Seleccionar Bloque:</label>
+                                <select id="wizard-select-bloque" class="form-control" style="width: 150px; font-weight: 700; height: 42px; border-radius: 12px;">
+                                    {% for b in bloques_list %}
+                                    <option value="{{ b.id }}">Bloque {{ b.id }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" id="btn-add-new-block" class="btn btn-secondary" style="height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); color: #1a3a5c; font-weight: 700; padding: 0 16px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;"
+                                        onmouseover="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.borderColor='#2a8bbb'; this.style.color='#2a8bbb'; this.style.transform='scale(1.05)';"
+                                        onmouseout="this.style.background='rgba(255, 255, 255, 0.45)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.color='#1a3a5c'; this.style.transform='scale(1)';">
+                                    <i class="fa-solid fa-plus"></i> Crear Nuevo Bloque
+                                </button>
+                                <button type="button" id="btn-delete-block" class="btn btn-danger" style="height: 42px; border-radius: 12px; background: rgba(220, 38, 38, 0.85); border: 1px solid rgba(220, 38, 38, 0.9); color: white; font-weight: 700; padding: 0 16px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;"
+                                        onmouseover="this.style.background='rgba(220, 38, 38, 0.95)'; this.style.borderColor='#dc2626'; this.style.transform='scale(1.05)';"
+                                        onmouseout="this.style.background='rgba(220, 38, 38, 0.85)'; this.style.borderColor='rgba(220,38,38,0.9)'; this.style.transform='scale(1)';">
+                                    <i class="fa-solid fa-trash"></i> Eliminar Bloque
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Título del Bloque / Actividad:</label>
+                            <input type="text" id="wizard-block-title" class="form-control" placeholder="Ej. GESTIÓN DE RESIDUOS Y RECICLAJE" value="">
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Nota 1 -->
+                            <div class="sub-card">
+                                <div class="sub-card-title"><i class="fa-solid fa-bookmark" style="color: #298552;"></i> Nota 1</div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Título / Concepto:</label>
+                                        <input type="text" id="wizard-note1-title" class="form-control" placeholder="Ej. La jerarquía de la materia">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Contenido de la Nota:</label>
+                                        <textarea id="wizard-note1-text" class="form-control" placeholder="Escribe la explicación de la nota..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nota 2 -->
+                            <div class="sub-card">
+                                <div class="sub-card-title"><i class="fa-solid fa-bookmark" style="color: #2a8bbb;"></i> Nota 2</div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Título / Concepto:</label>
+                                        <input type="text" id="wizard-note2-title" class="form-control" placeholder="Ej. Principio de la Fuente">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Contenido de la Nota:</label>
+                                        <textarea id="wizard-note2-text" class="form-control" placeholder="Escribe la explicación de la nota..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Nota 3 -->
+                            <div class="sub-card">
+                                <div class="sub-card-title"><i class="fa-solid fa-bookmark" style="color: #d97706;"></i> Nota 3</div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Título / Concepto:</label>
+                                        <input type="text" id="wizard-note3-title" class="form-control" placeholder="Ej. Regla de la 'No-Generación'">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Contenido de la Nota:</label>
+                                        <textarea id="wizard-note3-text" class="form-control" placeholder="Escribe la explicación de la nota..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Evaluation (5 Questions) -->
+                    <div class="wizard-card" id="wizard-step-2-card" style="display: none;">
+                        <div style="border-bottom: 1.5px solid rgba(255, 255, 255, 0.4); padding-bottom: 12px; margin-bottom: 8px;">
+                            <h3 style="font-size: 18px; font-weight: 800; color: #1a3a5c; margin: 0;"><i class="fa-solid fa-clipboard-question"></i> Banco de Preguntas (Evaluación Inicial)</h3>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Ingresa las 5 preguntas que los estudiantes responderán al iniciar la evaluación.</p>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            {% for i in range(1, 6) %}
+                            <div class="sub-card">
+                                <div class="sub-card-title"><i class="fa-solid fa-circle-question" style="color: #2a8bbb;"></i> Pregunta {{ i }}</div>
+                                <div class="form-group">
+                                    <label>Texto de la Pregunta:</label>
+                                    <input type="text" id="wizard-q{{ i }}-text" class="form-control" placeholder="Ej. ¿Qué significan las 3R?">
+                                </div>
+                                
+                                <!-- Opciones y Feedbacks -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                    <!-- Opción 1 -->
+                                    <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+                                        <div class="form-group">
+                                            <label style="color: #298552;">Opción A (1):</label>
+                                            <input type="text" id="wizard-q{{ i }}-opt1" class="form-control" placeholder="Texto de la opción A">
+                                        </div>
+                                        <div class="form-group" style="margin-top: 8px;">
+                                            <label>Feedback Opción A:</label>
+                                            <input type="text" id="wizard-q{{ i }}-fb1" class="form-control" placeholder="Feedback si eligen esta opción">
+                                        </div>
+                                    </div>
+                                    <!-- Opción 2 -->
+                                    <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+                                        <div class="form-group">
+                                            <label style="color: #be123c;">Opción B (2):</label>
+                                            <input type="text" id="wizard-q{{ i }}-opt2" class="form-control" placeholder="Texto de la opción B">
+                                        </div>
+                                        <div class="form-group" style="margin-top: 8px;">
+                                            <label>Feedback Opción B:</label>
+                                            <input type="text" id="wizard-q{{ i }}-fb2" class="form-control" placeholder="Feedback si eligen esta opción">
+                                        </div>
+                                    </div>
+                                    <!-- Opción 3 -->
+                                    <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+                                        <div class="form-group">
+                                            <label style="color: #d97706;">Opción C (3):</label>
+                                            <input type="text" id="wizard-q{{ i }}-opt3" class="form-control" placeholder="Texto de la opción C">
+                                        </div>
+                                        <div class="form-group" style="margin-top: 8px;">
+                                            <label>Feedback Opción C:</label>
+                                            <input type="text" id="wizard-q{{ i }}-fb3" class="form-control" placeholder="Feedback si eligen esta opción">
+                                        </div>
+                                    </div>
+                                    <!-- Opción 4 -->
+                                    <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+                                        <div class="form-group">
+                                            <label style="color: #6b7280;">Opción D (4):</label>
+                                            <input type="text" id="wizard-q{{ i }}-opt4" class="form-control" placeholder="Texto de la opción D">
+                                        </div>
+                                        <div class="form-group" style="margin-top: 8px;">
+                                            <label>Feedback Opción D:</label>
+                                            <input type="text" id="wizard-q{{ i }}-fb4" class="form-control" placeholder="Feedback si eligen esta opción">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="width: 250px; margin-top: 8px; margin-bottom: 0;">
+                                    <label style="font-weight: 800; color: #1a3a5c;">Respuesta Correcta:</label>
+                                    <select id="wizard-q{{ i }}-correct" class="form-control" style="font-weight: 700;">
+                                        <option value="1">Opción A (1)</option>
+                                        <option value="2">Opción B (2)</option>
+                                        <option value="3">Opción C (3)</option>
+                                        <option value="4">Opción D (4)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Interactive Story (3 Nodes) -->
+                    <div class="wizard-card" id="wizard-step-3-card" style="display: none;">
+                        <div style="border-bottom: 1.5px solid rgba(255, 255, 255, 0.4); padding-bottom: 12px; margin-bottom: 8px;">
+                            <h3 style="font-size: 18px; font-weight: 800; color: #1a3a5c; margin: 0;"><i class="fa-solid fa-feather-pointed"></i> Nudos de la Historia Interactiva</h3>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Ingresa los 3 nudos/escenas que forman el flujo narrativo del bloque, indicando la situación (contexto) y decisiones.</p>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            {% for i in range(1, 4) %}
+                            <div class="sub-card">
+                                <div class="sub-card-title"><i class="fa-solid fa-book-open-reader" style="color: #298552;"></i> Nudo {{ i }} / Escena {{ i }}</div>
+                                
+                                <div class="form-group">
+                                    <label>Título de la Escena:</label>
+                                    <input type="text" id="wizard-node{{ i }}-title" class="form-control" placeholder="Ej. Nudo {{ i }}: El descarte tras el descanso">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Contexto / Situación (Texto narrativo):</label>
+                                    <textarea id="wizard-node{{ i }}-context" class="form-control" style="min-height: 100px;" placeholder="Describe la situación en la que se encuentra el personaje..."></textarea>
+                                </div>
+
+                                <!-- Opciones y Feedbacks (3 opciones para la historia) -->
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <!-- Opción A (1) -->
+                                    <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label style="color: #298552;">Decisión A (1):</label>
+                                                <input type="text" id="wizard-node{{ i }}-opt1" class="form-control" placeholder="Texto de la decisión A">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Feedback Decisión A:</label>
+                                                <input type="text" id="wizard-node{{ i }}-fb1" class="form-control" placeholder="Feedback/Consecuencia de la decisión A">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Opción B (2) -->
+                                    <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label style="color: #be123c;">Decisión B (2):</label>
+                                                <input type="text" id="wizard-node{{ i }}-opt2" class="form-control" placeholder="Texto de la decisión B">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Feedback Decisión B:</label>
+                                                <input type="text" id="wizard-node{{ i }}-fb2" class="form-control" placeholder="Feedback/Consecuencia de la decisión B">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Opción C (3) -->
+                                    <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label style="color: #d97706;">Decisión C (3):</label>
+                                                <input type="text" id="wizard-node{{ i }}-opt3" class="form-control" placeholder="Texto de la decisión C">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Feedback Decisión C:</label>
+                                                <input type="text" id="wizard-node{{ i }}-fb3" class="form-control" placeholder="Feedback/Consecuencia de la decisión C">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="width: 250px; margin-top: 8px; margin-bottom: 0;">
+                                    <label style="font-weight: 800; color: #1a3a5c;">Decisión Correcta:</label>
+                                    <select id="wizard-node{{ i }}-correct" class="form-control" style="font-weight: 700;">
+                                        <option value="1">Decisión A (1)</option>
+                                        <option value="2">Decisión B (2)</option>
+                                        <option value="3">Decisión C (3)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Confirm & Save -->
+                    <div class="wizard-card" id="wizard-step-4-card" style="display: none; align-items: center; justify-content: center; min-height: 300px; text-align: center;">
+                        <div style="width: 72px; height: 72px; background: rgba(34, 197, 94, 0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="color: #298552; font-size: 2.2rem;"></i>
+                        </div>
+                        <h3 style="font-size: 22px; font-weight: 800; color: #1a3a5c; margin-bottom: 8px;">¡Todo listo para actualizar!</h3>
+                        <p style="font-size: 14px; color: var(--text-secondary); max-width: 450px; line-height: 1.6; margin-bottom: 24px;">
+                            Has configurado exitosamente todo el contenido para el <strong>Bloque <span id="confirm-block-num">1</span></strong>.<br>
+                            Al presionar el botón de abajo, se guardará el material de estudio, las 5 preguntas y las 3 escenas en la base de datos en la nube.
+                        </p>
+                        <button class="btn btn-accent" id="btn-save-wizard" style="padding: 14px 40px; font-size: 15px; border-radius: 50px; background: linear-gradient(135deg, #298552, #1e6b40); color: white; border: none; box-shadow: 0 4px 16px rgba(41, 133, 82, 0.3);">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar y Aplicar Cambios
+                        </button>
+                    </div>
+
+                    <!-- Wizard Navigation Buttons -->
+                    <div class="wizard-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+                        <button class="btn btn-secondary" id="btn-wizard-prev" style="visibility: hidden;"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+                        <button class="btn btn-primary" id="btn-wizard-next">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+                {% endif %}
 
             </section>
         </main>
@@ -610,6 +1207,122 @@
         </div>
     </div>
 
+    <!-- Modal overlay for code details -->
+    <div class="modal-overlay" id="code-detail-modal">
+        <div class="modal-card" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-key"></i> Detalles del Código</h3>
+                <button class="btn-close" id="btn-close-code-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- Info del codigo -->
+                <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Código de Acceso</span>
+                        <h4 style="font-size: 24px; font-weight: 800; color: #1a3a5c; margin-top: 4px;" id="code-modal-value">-</h4>
+                    </div>
+                    <div id="code-modal-teacher-section" style="display: none;">
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Docente</span>
+                        <div style="display: flex; align-items: center; gap: 7px; margin-top: 6px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #45a2d8, #2a8bbb); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fa-solid fa-chalkboard-user" style="font-size: 13px; color: white;"></i>
+                            </div>
+                            <span id="code-modal-teacher-name" style="font-size: 15px; font-weight: 800; color: #1a3a5c;">-</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Estado del Código</span>
+                        <div style="margin-top: 6px;" id="code-modal-status-badge">
+                            <!-- Status badge -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de alumnos / respuestas -->
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fa-solid fa-user-graduate"></i> Respuestas de Estudiantes</span>
+                        <span class="row-count-badge" id="code-modal-student-count">0 alumnos</span>
+                    </h4>
+                    
+                    <div class="table-wrapper" style="max-height: 280px; overflow-y: auto; background: rgba(255,255,255,0.35); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4);">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: rgba(255,255,255,0.5); text-align: left;">
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 25%;">Estudiante</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 35%;">Bloque Jugado</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 15%;">Correctas</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 15%;">Incorrectas</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 10%;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="code-modal-students-list">
+                                <!-- Se poblará dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Botón de eliminación en el footer del modal -->
+                <div style="border-top: 1px solid rgba(255,255,255,0.4); padding-top: 16px; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-danger" id="btn-delete-code-modal" style="border-radius: 50px; font-weight: 700; background: linear-gradient(135deg, #f43f5e, #be123c); color: white; border: none; box-shadow: 0 4px 16px rgba(190, 18, 60, 0.3); padding: 10px 24px;">
+                        <i class="fa-solid fa-trash"></i> Eliminar Código
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal overlay for code details by block (Historial de Partidas) -->
+    <div class="modal-overlay" id="history-code-modal">
+        <div class="modal-card" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gamepad"></i> Partidas del código <span id="history-modal-code-title" style="font-family: monospace; background: rgba(42,139,187,0.12); padding: 2px 10px; border-radius: 8px; font-size: 1rem;">-</span></h3>
+                <button class="btn-close" id="btn-close-history-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+
+                <!-- Info del codigo + botón eliminar todo -->
+                <div style="background: rgba(255,255,255,0.4); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Código de Acceso</span>
+                        <h4 style="font-size: 22px; font-weight: 800; color: #1a3a5c; margin-top: 4px; font-family: monospace; letter-spacing: 1px;" id="history-modal-code-value">-</h4>
+                    </div>
+                    <button id="btn-del-codigo-modal" title="Eliminar todo el código" style="display:flex; align-items:center; gap:7px; padding:9px 18px; border-radius:50px; border:none; background:linear-gradient(135deg,#f43f5e,#be123c); color:#fff; font-family:'Outfit',sans-serif; font-size:0.85rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(190,18,60,0.25); transition:opacity .2s;" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">
+                        <i class="fa-solid fa-trash-can"></i> Eliminar Código Completo
+                    </button>
+                </div>
+
+                <!-- Lista de alumnos / respuestas -->
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fa-solid fa-user-graduate"></i> Estudiantes que Jugaron</span>
+                        <span class="row-count-badge" id="history-modal-student-count">0 alumnos</span>
+                    </h4>
+                    
+                    <div class="table-wrapper" style="max-height: 300px; overflow-y: auto; background: rgba(255,255,255,0.35); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4);">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: rgba(255,255,255,0.5); text-align: left;">
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 25%;">Estudiante</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 33%;">Bloque Jugado</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 13%;">Correctas</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 13%;">Incorrectas</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 16%;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-modal-students-list">
+                                <!-- Se poblará dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
 <div class="toast-notification" id="toast-notif">
         <i class="fa-solid fa-circle-check" style="color: #298552; font-size: 20px;"></i>
@@ -639,6 +1352,8 @@
     <!-- Page Logic -->
     <script>
         // Declarations
+        const IS_ADMIN = {{ 'true' if is_admin else 'false' }};
+        const BLOQUES_MAP = {{ bloques_map | tojson if bloques_map else '{}' }};
         const btnGenerateCode = document.getElementById('btn-generate-code');
         const codesList = document.getElementById('docente-codes-list');
         const statCodesCount = document.getElementById('stat-codes-count');
@@ -698,7 +1413,7 @@
             }, 3500);
         }
 
-        // Load codes with usage flag
+        // Load codes flat
         async function loadCodes() {
             try {
                 const response = await fetch('/api/docente/codigos');
@@ -711,15 +1426,19 @@
                     
                     if (data.codigos.length === 0) {
                         codesList.innerHTML = `
-                            <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px 0;" id="no-codes-msg">
-                                <i class="fa-solid fa-key" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
-                                No has generado códigos de acceso todavía.
+                            <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px 20px;" id="no-codes-msg">
+                                <img src="/static/gotita_estudiando.png" alt="Gotita" style="width: 80px; height: auto; margin-bottom: 12px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+                                <p style="font-weight: 600; font-size: 14px; color: var(--text-secondary);">No has generado códigos de acceso todavía. Genera uno nuevo arriba.</p>
                             </div>
                         `;
                     } else {
                         data.codigos.forEach(item => {
                             const div = document.createElement('div');
                             div.className = 'code-item ' + (item.usado ? 'used-code' : 'unused-code');
+                            div.style.display = 'flex';
+                            div.style.flexDirection = 'column';
+                            div.style.gap = '4px';
+                            div.style.alignItems = 'flex-start';
                             
                             const badge = document.createElement('span');
                             badge.className = 'code-badge';
@@ -729,40 +1448,33 @@
                             label.className = 'code-status-label';
                             label.style = 'font-size: 13px; font-weight: 700;';
                             if (item.usado) {
-                                label.textContent = 'Código Usado';
+                                label.textContent = 'Activo';
                             } else {
-                                label.textContent = 'Código Sin Uso (Puede usarse)';
+                                label.textContent = 'Sin Uso';
                             }
                             
-                            div.appendChild(label);
                             div.appendChild(badge);
+                            div.appendChild(label);
                             
-                            if (!item.usado) {
-                                const delBtn = document.createElement('button');
-                                delBtn.className = 'btn btn-sm delete-code';
-                                delBtn.style = 'margin-left:auto; background:transparent; border:none; color:#ff4d4d; cursor:pointer; font-weight:700;';
-                                delBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Eliminar';
-                                delBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    showConfirm('¿Estás seguro de que deseas eliminar el código ' + item.codigo + '? Esta acción no se puede deshacer.', async () => {
-                                        const delResp = await fetch(`/api/docente/eliminar-codigo/${item.codigo}`, {method: 'DELETE'});
-                                        const delData = await delResp.json();
-                                        if (delData.success) {
-                                            loadCodes();
-                                            showToast('¡Código Eliminado!', 'El código fue eliminado correctamente.', 'fa-trash-can', '#ff4d4d');
-                                            refreshHistory();
-                                        } else {
-                                            alert('Error al eliminar: ' + (delData.error || 'Desconocido'));
-                                        }
-                                    });
-                                });
-                                div.appendChild(delBtn);
+                            // Admin: show teacher name
+                            if (IS_ADMIN && item.profesor) {
+                                const teacherTag = document.createElement('span');
+                                teacherTag.style.cssText = 'display:flex; align-items:center; gap:5px; margin-top:2px; font-size:11px; font-weight:700; color:#2a8bbb; background:rgba(42,139,187,0.1); border:1px solid rgba(42,139,187,0.2); border-radius:8px; padding:2px 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;';
+                                teacherTag.innerHTML = `<i class="fa-solid fa-chalkboard-user" style="font-size:10px;"></i> ${item.profesor}`;
+                                div.appendChild(teacherTag);
                             }
+                            
+                            div.addEventListener('click', () => {
+                                openCodeDetailsModal(item);
+                            });
+                            
                             codesList.appendChild(div);
                             
                             const opt = document.createElement('option');
                             opt.value = item.codigo;
-                            opt.textContent = item.codigo + (item.usado ? ' (usado)' : ' (sin uso)');
+                            opt.textContent = IS_ADMIN && item.profesor
+                                ? item.codigo + ' — ' + item.profesor + (item.usado ? ' (usado)' : ' (sin uso)')
+                                : item.codigo + (item.usado ? ' (usado)' : ' (sin uso)');
                             filterHistorySelect.appendChild(opt);
                         });
                     }
@@ -802,90 +1514,278 @@
             }
         });
 
-        // History Refreshing (AJAX)
-        // Declaring btnRefresh safely (will be null since removed from HTML)
+        // History and Codes Refreshing (AJAX)
         const btnRefresh = document.getElementById('btn-refresh');
 
-        // History Refreshing (AJAX)
-        async function refreshHistory() {
-            if (btnRefresh) {
-                btnRefresh.disabled = true;
-                btnRefresh.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...';
+        if (btnRefresh) {
+            btnRefresh.addEventListener('click', () => {
+                location.reload();
+            });
+        }
+
+        // ── elements for history code details modal ──
+        const historyCodeModal = document.getElementById('history-code-modal');
+        const btnCloseHistoryModal = document.getElementById('btn-close-history-modal');
+        const historyModalCodeValue = document.getElementById('history-modal-code-value');
+        const historyModalStudentCount = document.getElementById('history-modal-student-count');
+        const historyModalStudentsList = document.getElementById('history-modal-students-list');
+
+        function openHistoryCodeModal(code, studentsList) {
+            // Set code title in header + info bar
+            document.getElementById('history-modal-code-title').textContent = code;
+            historyModalCodeValue.textContent = code;
+            historyModalStudentCount.textContent = `${studentsList.length} estudiante${studentsList.length !== 1 ? 's' : ''}`;
+
+            // Wire up the delete-all-code button
+            const btnDelCodigo = document.getElementById('btn-del-codigo-modal');
+            if (btnDelCodigo) {
+                const freshBtn = btnDelCodigo.cloneNode(true);
+                btnDelCodigo.parentNode.replaceChild(freshBtn, btnDelCodigo);
+                freshBtn.addEventListener('click', () => {
+                    showDangerConfirm(
+                        `⚠️ Eliminar código <strong>${code}</strong>`,
+                        `Esta acción eliminará <strong>todas las partidas</strong> registradas bajo el código <strong>${code}</strong>, incluyendo los resultados de todos los estudiantes.<br><br>Los datos <strong>no se pueden recuperar</strong>.`,
+                        'Eliminar Todo',
+                        async () => {
+                            const res = await fetch(`/api/docente/eliminar-codigo/${encodeURIComponent(code)}`, { method: 'DELETE' });
+                            const d = await res.json();
+                            if (d.success) {
+                                showToast('¡Código eliminado!', `Se borraron ${d.partidas_eliminadas || 0} partida(s) del código ${code}.`, 'fa-trash-can', '#ff4d4d');
+                                historyCodeModal.classList.remove('show');
+                                refreshHistory();
+                                loadCodes();
+                            } else {
+                                showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
+                            }
+                        }
+                    );
+                });
+            }
+
+            historyModalStudentsList.innerHTML = '';
+            studentsList.forEach(h => {
+                const tr = document.createElement('tr');
+                tr.className = 'interactive-row';
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.3)';
+                
+                let blockText = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
+
+                tr.innerHTML = `
+                    <td style="padding: 8px 10px; font-weight: 700; color: #1a3a5c; font-size: 13px;">${h.alumno}</td>
+                    <td style="padding: 8px 10px; font-weight: 600; color: var(--text-secondary); font-size: 12px;">${blockText}</td>
+                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #298552; font-weight: 700; white-space: nowrap;">
+                        <i class="fa-solid fa-circle-check"></i> ${h.correctas}
+                    </td>
+                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #be123c; font-weight: 700; white-space: nowrap;">
+                        <i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}
+                    </td>
+                    <td style="padding: 8px 10px; text-align: center; white-space: nowrap;">
+                        <button class="btn btn-secondary btn-sm btn-view-ans" style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;">
+                            <i class="fa-solid fa-eye"></i> Ver
+                        </button>
+                        <button class="btn-del-partida-modal" title="Eliminar partida"
+                                style="background: rgba(239, 68, 68, 0.1); border: none; cursor: pointer; color: #dc2626; font-size: .85rem; padding: 6px 8px; border-radius: 8px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;"
+                                onmouseenter="this.style.background='rgba(239, 68, 68, 0.2)'"
+                                onmouseleave="this.style.background='rgba(239, 68, 68, 0.1)'">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tr.querySelector('.btn-view-ans').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    historyCodeModal.classList.remove('show');
+                    openDetailModal(h);
+                });
+                
+                tr.querySelector('.btn-del-partida-modal').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showDangerConfirm(
+                        `⚠️ Eliminar partida de <strong>${h.alumno}</strong>`,
+                        `Esta acción borrará permanentemente el registro de la partida del código <strong>${h.codigo}</strong> para este estudiante.<br><br>Los datos <strong>no se pueden recuperar</strong>.`,
+                        'Eliminar Partida',
+                        async () => {
+                            const res = await fetch('/api/docente/eliminar-partida', {
+                                method: 'DELETE',
+                                headers: {'Content-Type':'application/json'},
+                                body: JSON.stringify({codigo: h.codigo, alumno: h.alumno})
+                            });
+                            const d = await res.json();
+                            if (d.success) {
+                                showToast('¡Partida eliminada!', 'El registro fue borrado de la base de datos.', 'fa-trash-can', '#ff4d4d');
+                                historyCodeModal.classList.remove('show');
+                                refreshHistory();
+                                loadCodes();
+                            } else {
+                                showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
+                            }
+                        }
+                    );
+                });
+                
+                tr.addEventListener('click', () => {
+                    historyCodeModal.classList.remove('show');
+                    openDetailModal(h);
+                });
+                
+                historyModalStudentsList.appendChild(tr);
+            });
+            
+            historyCodeModal.classList.add('show');
+        }
+
+        if (btnCloseHistoryModal) {
+            btnCloseHistoryModal.addEventListener('click', () => {
+                historyCodeModal.classList.remove('show');
+            });
+        }
+        if (historyCodeModal) {
+            historyCodeModal.addEventListener('click', (e) => {
+                if (e.target === historyCodeModal) {
+                    historyCodeModal.classList.remove('show');
+                }
+            });
+        }
+
+        function createHistoryCodeCard(code, studentsList) {
+            const div = document.createElement('div');
+            div.className = 'code-item used-code';
+            div.style.cursor = 'pointer';
+            div.style.display = 'flex';
+            div.style.flexDirection = 'column';
+            div.style.gap = '4px';
+            div.style.alignItems = 'flex-start';
+            
+            const badge = document.createElement('span');
+            badge.className = 'code-badge';
+            badge.textContent = code;
+            
+            const countLabel = document.createElement('span');
+            countLabel.style = 'font-size: 12px; font-weight: 700; color: #2563eb; display: flex; align-items: center; gap: 4px;';
+            countLabel.innerHTML = `<i class="fa-solid fa-user-graduate"></i> ${studentsList.length} alumno${studentsList.length !== 1 ? 's' : ''}`;
+            
+            div.appendChild(badge);
+            div.appendChild(countLabel);
+
+            // Admin: show teacher name if available from studentsList
+            if (IS_ADMIN && studentsList.length > 0 && studentsList[0].profesor) {
+                const teacherTag = document.createElement('span');
+                teacherTag.style.cssText = 'display:flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:#2a8bbb; background:rgba(42,139,187,0.1); border:1px solid rgba(42,139,187,0.2); border-radius:8px; padding:2px 8px; white-space:nowrap; max-width:100%;';
+                teacherTag.innerHTML = `<i class="fa-solid fa-chalkboard-user" style="font-size:10px;"></i> ${studentsList[0].profesor}`;
+                div.appendChild(teacherTag);
             }
             
+            div.addEventListener('click', () => {
+                openHistoryCodeModal(code, studentsList);
+            });
+            
+            return div;
+        }
+
+        // ── refreshHistory: lista plana de códigos ──
+        async function refreshHistory() {
             try {
                 const selectedCode = filterHistorySelect.value;
-                const url = selectedCode ? `/api/docente/historial?codigo=${encodeURIComponent(selectedCode)}` : '/api/docente/historial';
+                const url = selectedCode
+                    ? `/api/docente/historial?codigo=${encodeURIComponent(selectedCode)}`
+                    : '/api/docente/historial';
                 const response = await fetch(url);
                 const data = await response.json();
-                
+
                 if (data.success) {
-                    statGamesCount.textContent = data.historial.length;
-                    gamesBadge.textContent = `${data.historial.length} partidas`;
-                    
-                    if (data.historial.length === 0) {
-                        historyRowsContainer.innerHTML = `
-                            <tr id="empty-history-row">
-                                <td colspan="5" class="empty-state">
-                                    <i class="fa-solid fa-graduation-cap"></i>
-                                    <p>Ningún estudiante ha completado una partida usando tus códigos aún.</p>
-                                </td>
-                            </tr>
-                        `;
+                    const searchTerm = (document.getElementById('search-history')?.value || '').toLowerCase().trim();
+                    const filtered = searchTerm
+                        ? data.historial.filter(h =>
+                            h.alumno.toLowerCase().includes(searchTerm) ||
+                            h.codigo.toLowerCase().includes(searchTerm)
+                          )
+                        : data.historial;
+
+                    statGamesCount.textContent = filtered.length;
+                    gamesBadge.textContent = `${data.historial.length} partida${data.historial.length !== 1 ? 's' : ''}`;
+                    const searchBadge = document.getElementById('search-count-badge');
+                    if (searchBadge) searchBadge.textContent = searchTerm ? `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}` : '';
+
+                    const codesContainer = document.getElementById('history-all-codes');
+                    if (!codesContainer) return;
+                    codesContainer.innerHTML = '';
+
+                    if (filtered.length === 0) {
+                        codesContainer.innerHTML = `
+                            <div style="grid-column: 1/-1; text-align:center; padding: 48px 24px;">
+                                <img src="/static/gotita_corriendo.png" alt="Gotita" style="width:100px; height:auto; margin-bottom:12px; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+                                <p style="font-weight:600; font-size:15px; color:var(--text-secondary);">${searchTerm ? 'No se encontraron resultados para tu búsqueda.' : 'Ningún estudiante ha completado una partida usando tus códigos aún.'}</p>
+                            </div>`;
                         return;
                     }
-                    
-                    historyRowsContainer.innerHTML = '';
-                    data.historial.forEach(h => {
-                        const tr = document.createElement('tr');
-                        tr.className = 'interactive-row';
-                        tr.setAttribute('data-detalles', JSON.stringify(h.detalles));
-                        tr.setAttribute('data-alumno', h.alumno);
-                        tr.setAttribute('data-codigo', h.codigo);
-                        tr.setAttribute('data-bloque', h.bloque);
-                        tr.setAttribute('data-correctas', h.correctas);
-                        tr.setAttribute('data-incorrectas', h.incorrectas);
-                        
-                        let blockText = `Bloque ${h.bloque}`;
-                        if (h.bloque === 1) blockText = 'Bloque 1: Residuos y Reciclaje';
-                        else if (h.bloque === 2) blockText = 'Bloque 2: Agua y Alcantarillado';
-                        else if (h.bloque === 3) blockText = 'Bloque 3: Consumo y Energía';
-                        else if (h.bloque === 4) blockText = 'Bloque 4: Liderazgo y Comunidad';
 
-                        tr.innerHTML = `
-                            <td style="font-weight: 700;">${h.alumno}</td>
-                            <td><span class="code-badge" style="font-size: 12px; background: rgba(30, 90, 150, 0.08); border-color: rgba(30, 90, 150, 0.2); color: var(--accent-indigo);">${h.codigo}</span></td>
-                            <td style="font-weight: 600; color: var(--text-secondary);">${blockText}</td>
-                            <td style="color: #298552; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> ${h.correctas}</td>
-                            <td style="color: #be123c; font-weight: 700;"><i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}</td>
-                        `;
-                        
-                        tr.addEventListener('click', () => openDetailModal(tr));
-                        historyRowsContainer.appendChild(tr);
+                    // Group by code
+                    const gamesByCode = {};
+                    filtered.forEach(h => {
+                        if (!gamesByCode[h.codigo]) gamesByCode[h.codigo] = [];
+                        gamesByCode[h.codigo].push(h);
+                    });
+
+                    Object.keys(gamesByCode).sort().forEach(code => {
+                        codesContainer.appendChild(createHistoryCodeCard(code, gamesByCode[code]));
                     });
                 }
             } catch (error) {
                 console.error('Error refreshing history:', error);
-            } finally {
-                if (btnRefresh) {
-                    btnRefresh.disabled = false;
-                    btnRefresh.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Actualizar';
-                }
             }
         }
 
-        if (btnRefresh) {
-            btnRefresh.addEventListener('click', refreshHistory);
-        }
+        if (btnRefresh) btnRefresh.addEventListener('click', refreshHistory);
         filterHistorySelect.addEventListener('change', refreshHistory);
+
+        // Search bar
+        const searchHistoryInput = document.getElementById('search-history');
+        if (searchHistoryInput) {
+            searchHistoryInput.addEventListener('input', refreshHistory);
+        }
+
+        // ── showDangerConfirm: modal de advertencia fuerte ──
+        function showDangerConfirm(title, body, actionLabel, onConfirm) {
+            // Remove any existing danger modal
+            const old = document.getElementById('danger-confirm-modal');
+            if (old) old.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'danger-confirm-modal';
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(14,30,60,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;animation:fadeIn .25s ease;';
+
+            overlay.innerHTML = `
+                <div style="background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.6);border-radius:24px;padding:32px;max-width:420px;width:90%;backdrop-filter:blur(24px);box-shadow:0 20px 60px rgba(14,30,60,0.18);text-align:center;">
+                    <div style="width:52px;height:52px;background:rgba(239,68,68,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#dc2626;font-size:1.4rem;"></i>
+                    </div>
+                    <h3 style="font-size:1.15rem;font-weight:800;color:#7f1d1d;margin-bottom:10px;">${title}</h3>
+                    <p style="font-size:.88rem;color:#4b6e8a;line-height:1.6;margin-bottom:24px;">${body}</p>
+                    <div style="display:flex;gap:12px;justify-content:center;">
+                        <button id="danger-cancel" style="padding:10px 24px;border-radius:50px;border:1.5px solid rgba(42,139,187,0.35);background:rgba(255,255,255,0.6);color:#1a5a8c;font-family:'Outfit',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;">Cancelar</button>
+                        <button id="danger-ok" style="padding:10px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;font-family:'Outfit',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,0.3);">${actionLabel}</button>
+                    </div>
+                </div>`;
+
+            document.body.appendChild(overlay);
+            overlay.querySelector('#danger-cancel').addEventListener('click', () => overlay.remove());
+            overlay.querySelector('#danger-ok').addEventListener('click', () => {
+                overlay.remove();
+                onConfirm();
+            });
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+        window.showDangerConfirm = showDangerConfirm;
 
         // Tab switching logic
         const menuGenerate = document.getElementById('menu-generate');
         const menuHistory = document.getElementById('menu-history');
         const menuProfile = document.getElementById('menu-profile');
+        const menuStoryCreator = document.getElementById('menu-story-creator');
         const tabGenerateContent = document.getElementById('tab-generate-content');
         const tabHistoryContent = document.getElementById('tab-history-content');
         const tabProfileContent = document.getElementById('tab-profile-content');
+        const tabStoryCreatorContent = document.getElementById('tab-story-creator-content');
         
         const viewTitle = document.getElementById('view-title');
         const viewDesc = document.getElementById('view-desc');
@@ -895,35 +1795,50 @@
             menuGenerate.classList.remove('active');
             menuHistory.classList.remove('active');
             if (menuProfile) menuProfile.classList.remove('active');
+            if (menuStoryCreator) menuStoryCreator.classList.remove('active');
             
             tabGenerateContent.classList.remove('active');
             tabHistoryContent.classList.remove('active');
             if (tabProfileContent) tabProfileContent.classList.remove('active');
+            if (tabStoryCreatorContent) {
+                tabStoryCreatorContent.classList.remove('active');
+                tabStoryCreatorContent.style.display = 'none';
+            }
             
             if (target === 'generate') {
                 menuGenerate.classList.add('active');
                 tabGenerateContent.classList.add('active');
                 viewTitle.textContent = 'Generar Códigos de Acceso';
                 viewDesc.textContent = 'Administra el acceso a tus clases generando códigos de sesión aleatorios.';
-                if (btnRefresh) btnRefresh.style.display = 'none';
             } else if (target === 'history') {
                 menuHistory.classList.add('active');
                 tabHistoryContent.classList.add('active');
                 viewTitle.textContent = 'Historial de Partidas';
                 viewDesc.textContent = 'Visualiza y analiza el desempeño en tiempo real de tus estudiantes en las distintas actividades.';
-                if (btnRefresh) btnRefresh.style.display = 'inline-flex';
             } else if (target === 'profile') {
                 if (menuProfile) menuProfile.classList.add('active');
                 if (tabProfileContent) tabProfileContent.classList.add('active');
                 viewTitle.textContent = 'Mi Perfil de Docente';
                 viewDesc.textContent = 'Personaliza cómo te presentas ante tus estudiantes.';
-                if (btnRefresh) btnRefresh.style.display = 'none';
+            } else if (target === 'story-creator') {
+                if (menuStoryCreator) menuStoryCreator.classList.add('active');
+                if (tabStoryCreatorContent) {
+                    tabStoryCreatorContent.classList.add('active');
+                    tabStoryCreatorContent.style.display = 'flex';
+                }
+                viewTitle.textContent = 'Creador de Historias y Contenido';
+                viewDesc.textContent = 'Administra el material de estudio, preguntas de evaluación e historias por bloque.';
+                
+                // Initialize block data fetch if not loaded
+                const selectedBlock = document.getElementById('wizard-select-bloque').value;
+                cargarDatosBloque(selectedBlock);
             }
         }
 
         menuGenerate.addEventListener('click', () => switchTab('generate'));
         menuHistory.addEventListener('click', () => switchTab('history'));
         if (menuProfile) menuProfile.addEventListener('click', () => switchTab('profile'));
+        if (menuStoryCreator) menuStoryCreator.addEventListener('click', () => switchTab('story-creator'));
 
         // Profile save logic
         const btnSaveProfile = document.getElementById('btn-save-profile');
@@ -943,19 +1858,14 @@
                 try {
                     const response = await fetch('/api/docente/perfil', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ nombre_publico: nombrePublico })
                     });
                     const data = await response.json();
                     if (data.success) {
                         showToast('¡Perfil Actualizado!', 'Tu nombre de usuario público ha sido actualizado con éxito.', 'fa-circle-check', '#298552');
-                        // Update header display name
                         const logoTextSpan = document.querySelector('.logo-text span');
-                        if (logoTextSpan) {
-                            logoTextSpan.textContent = nombrePublico;
-                        }
+                        if (logoTextSpan) logoTextSpan.textContent = nombrePublico;
                     } else {
                         showToast('Error', data.error || 'No se pudo guardar el perfil.', 'fa-circle-xmark', '#ff4d4d');
                     }
@@ -969,7 +1879,81 @@
             });
         }
 
-        // Modal detailing logic
+        // ── Cambiar Contraseña ──
+        function togglePwd(inputId, btn) {
+            const inp = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+        window.togglePwd = togglePwd;
+
+        const btnCambiarPwd = document.getElementById('btn-cambiar-pwd');
+        if (btnCambiarPwd) {
+            btnCambiarPwd.addEventListener('click', async () => {
+                const actual   = document.getElementById('pwd-actual').value.trim();
+                const nueva    = document.getElementById('pwd-nueva').value.trim();
+                const confirmar= document.getElementById('pwd-confirmar').value.trim();
+                const alertEl  = document.getElementById('pwd-alert');
+
+                const showPwdAlert = (msg, isError = true) => {
+                    alertEl.style.cssText = isError
+                        ? 'display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;font-size:.88rem;font-weight:600;text-align:left;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#b91c1c;'
+                        : 'display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;font-size:.88rem;font-weight:600;text-align:left;background:rgba(34,197,94,0.10);border:1px solid rgba(34,197,94,0.28);color:#166534;';
+                    alertEl.innerHTML = `<i class="fa-solid ${isError ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i><span>${msg}</span>`;
+                };
+
+                // Client-side validation
+                if (!actual || !nueva || !confirmar) {
+                    showPwdAlert('Por favor completa todos los campos.');
+                    return;
+                }
+                if (nueva.length < 6) {
+                    showPwdAlert('La nueva contraseña debe tener al menos 6 caracteres.');
+                    return;
+                }
+                if (nueva !== confirmar) {
+                    showPwdAlert('La nueva contraseña y su confirmación no coinciden.');
+                    return;
+                }
+
+                btnCambiarPwd.disabled = true;
+                btnCambiarPwd.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando...';
+                alertEl.style.display = 'none';
+
+                try {
+                    const res  = await fetch('/api/docente/cambiar-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password_actual: actual, password_nuevo: nueva, password_confirm: confirmar })
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        showPwdAlert(data.message, false);
+                        // Clear fields
+                        document.getElementById('pwd-actual').value = '';
+                        document.getElementById('pwd-nueva').value = '';
+                        document.getElementById('pwd-confirmar').value = '';
+                        showToast('¡Contraseña Actualizada!', 'Tu contraseña ha sido cambiada con éxito.', 'fa-shield-check', '#298552');
+                    } else {
+                        showPwdAlert(data.error || 'No se pudo cambiar la contraseña.');
+                    }
+                } catch (err) {
+                    showPwdAlert('Error de conexión. Intenta de nuevo.');
+                } finally {
+                    btnCambiarPwd.disabled = false;
+                    btnCambiarPwd.innerHTML = '<i class="fa-solid fa-shield-check"></i> Cambiar Contraseña';
+                }
+            });
+        }
+
+
         const detailModal = document.getElementById('detail-modal');
         const btnCloseModal = document.getElementById('btn-close-modal');
         const modalStudentName = document.getElementById('modal-student-name');
@@ -982,26 +1966,32 @@
         const modalBarIncorrect = document.getElementById('modal-bar-incorrect');
         const modalQuestionsContainer = document.getElementById('modal-questions-container');
 
-        function openDetailModal(row) {
-            const alumno = row.getAttribute('data-alumno');
-            const codigo = row.getAttribute('data-codigo');
-            const bloque = parseInt(row.getAttribute('data-bloque'));
-            const correctas = parseInt(row.getAttribute('data-correctas'));
-            const incorrectas = parseInt(row.getAttribute('data-incorrectas'));
-            const detallesRaw = row.getAttribute('data-detalles');
+        function openDetailModal(rowOrData) {
+            let alumno, codigo, bloque, correctas, incorrectas, detalles;
             
-            let detalles = [];
-            try {
-                detalles = JSON.parse(detallesRaw);
-            } catch(e) {
-                console.error("Error parsing details JSON:", e);
+            if (rowOrData instanceof HTMLElement) {
+                alumno = rowOrData.getAttribute('data-alumno');
+                codigo = rowOrData.getAttribute('data-codigo');
+                bloque = parseInt(rowOrData.getAttribute('data-bloque'));
+                correctas = parseInt(rowOrData.getAttribute('data-correctas'));
+                incorrectas = parseInt(rowOrData.getAttribute('data-incorrectas'));
+                const detallesRaw = rowOrData.getAttribute('data-detalles');
+                try {
+                    detalles = JSON.parse(detallesRaw);
+                } catch(e) {
+                    console.error("Error parsing details JSON:", e);
+                    detalles = [];
+                }
+            } else {
+                alumno = rowOrData.alumno;
+                codigo = rowOrData.codigo;
+                bloque = parseInt(rowOrData.bloque);
+                correctas = parseInt(rowOrData.correctas);
+                incorrectas = parseInt(rowOrData.incorrectas);
+                detalles = rowOrData.detalles || [];
             }
 
-            let blockText = `Bloque ${bloque}`;
-            if (bloque === 1) blockText = 'Bloque 1: Residuos y Reciclaje';
-            else if (bloque === 2) blockText = 'Bloque 2: Agua y Alcantarillado';
-            else if (bloque === 3) blockText = 'Bloque 3: Consumo y Energía';
-            else if (bloque === 4) blockText = 'Bloque 4: Liderazgo y Comunidad';
+            let blockText = BLOQUES_MAP[bloque] || `Bloque ${bloque}`;
 
             // Populate Text values
             modalStudentName.textContent = alumno;
@@ -1090,8 +2080,503 @@
             }
         });
 
+        // Code Details Modal Logic
+        const codeDetailModal = document.getElementById('code-detail-modal');
+        const btnCloseCodeModal = document.getElementById('btn-close-code-modal');
+        const codeModalValue = document.getElementById('code-modal-value');
+        const codeModalStatusBadge = document.getElementById('code-modal-status-badge');
+        const codeModalStudentCount = document.getElementById('code-modal-student-count');
+        const codeModalStudentsList = document.getElementById('code-modal-students-list');
+        const btnDeleteCodeModal = document.getElementById('btn-delete-code-modal');
+
+        let currentActiveCodeItem = null;
+
+        async function openCodeDetailsModal(item) {
+            currentActiveCodeItem = item;
+            codeModalValue.textContent = item.codigo;
+            
+            // Show teacher name if admin and data is available
+            const teacherSection = document.getElementById('code-modal-teacher-section');
+            const teacherNameEl = document.getElementById('code-modal-teacher-name');
+            if (IS_ADMIN && item.profesor && teacherSection && teacherNameEl) {
+                teacherNameEl.textContent = item.profesor;
+                teacherSection.style.display = 'block';
+            } else if (teacherSection) {
+                teacherSection.style.display = 'none';
+            }
+            
+            if (item.usado) {
+                codeModalStatusBadge.innerHTML = `<span class="code-badge" style="font-size:12px; background:rgba(59, 130, 246, 0.12); border-color:rgba(59, 130, 246, 0.3); color:#2563eb;">Usado</span>`;
+            } else {
+                codeModalStatusBadge.innerHTML = `<span class="code-badge" style="font-size:12px; background:rgba(239, 68, 68, 0.12); border-color:rgba(239, 68, 68, 0.3); color:#dc2626;">Sin Uso</span>`;
+            }
+            
+            codeModalStudentsList.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Cargando respuestas...
+                    </td>
+                </tr>`;
+            codeModalStudentCount.textContent = 'Cargando...';
+            
+            codeDetailModal.classList.add('show');
+            
+            try {
+                const response = await fetch(`/api/docente/historial?codigo=${encodeURIComponent(item.codigo)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const list = data.historial || [];
+                    codeModalStudentCount.textContent = `${list.length} estudiante${list.length !== 1 ? 's' : ''}`;
+                    
+                    if (list.length === 0) {
+                        codeModalStudentsList.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="empty-state" style="padding: 32px 16px; text-align: center;">
+                                    <img src="/static/gotita_corriendo.png" alt="Gotita" style="width: 70px; height: auto; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+                                    <p style="font-weight: 600; font-size: 13px; color: var(--text-secondary);">Nadie ha jugado con este código aún.</p>
+                                </td>
+                            </tr>`;
+                    } else {
+                        codeModalStudentsList.innerHTML = '';
+                        list.forEach(h => {
+                            const tr = document.createElement('tr');
+                            tr.className = 'interactive-row';
+                            tr.style.borderBottom = '1px solid rgba(255,255,255,0.3)';
+                            
+                            let blockText = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
+                            
+                            tr.innerHTML = `
+                                <td style="padding: 8px 10px; font-weight: 700; color: #1a3a5c; font-size: 13px;">${h.alumno}</td>
+                                <td style="padding: 8px 10px; font-weight: 600; color: var(--text-secondary); font-size: 12px;">${blockText}</td>
+                                <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #298552; font-weight: 700; white-space: nowrap;">
+                                    <i class="fa-solid fa-circle-check"></i> ${h.correctas}
+                                </td>
+                                <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #be123c; font-weight: 700; white-space: nowrap;">
+                                    <i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}
+                                </td>
+                                <td style="padding: 8px 10px; text-align: center; white-space: nowrap;">
+                                    <button class="btn btn-secondary btn-sm btn-view-ans" style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fa-solid fa-eye"></i> Ver
+                                    </button>
+                                </td>
+                            `;
+                            
+                            tr.querySelector('.btn-view-ans').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                codeDetailModal.classList.remove('show');
+                                openDetailModal(h);
+                            });
+                            
+                            tr.addEventListener('click', () => {
+                                codeDetailModal.classList.remove('show');
+                                openDetailModal(h);
+                            });
+                            
+                            codeModalStudentsList.appendChild(tr);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading code student history:", err);
+                codeModalStudentsList.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 24px; color: #be123c; font-weight: 600;">
+                            Error de conexión al cargar las respuestas.
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        btnCloseCodeModal.addEventListener('click', () => {
+            codeDetailModal.classList.remove('show');
+        });
+        codeDetailModal.addEventListener('click', (e) => {
+            if (e.target === codeDetailModal) {
+                codeDetailModal.classList.remove('show');
+            }
+        });
+
+        btnDeleteCodeModal.addEventListener('click', () => {
+            if (!currentActiveCodeItem) return;
+            const item = currentActiveCodeItem;
+            
+            if (item.usado) {
+                showDangerConfirm(
+                    '⚠️ Eliminar código y TODOS sus datos',
+                    `El código <strong>${item.codigo}</strong> tiene partidas registradas. Si lo eliminas, se borrarán <strong>todos los resultados de los estudiantes</strong> asociados a él.<br><br>Esta acción es <strong>irreversible</strong> y los datos no se pueden recuperar.`,
+                    'Sí, eliminar todo',
+                    async () => {
+                        codeDetailModal.classList.remove('show');
+                        const r = await fetch(`/api/docente/eliminar-codigo/${item.codigo}`, {method:'DELETE'});
+                        const d = await r.json();
+                        if (d.success) {
+                            showToast('¡Código eliminado!', `Se borraron ${d.partidas_eliminadas} partida${d.partidas_eliminadas !== 1 ? 's' : ''} junto con el código.`, 'fa-trash-can', '#ff4d4d');
+                            loadCodes(); refreshHistory();
+                        } else {
+                            showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
+                        }
+                    }
+                );
+            } else {
+                showConfirm('¿Eliminar el código ' + item.codigo + '? Esta acción no se puede deshacer.', async () => {
+                    codeDetailModal.classList.remove('show');
+                    const r = await fetch(`/api/docente/eliminar-codigo/${item.codigo}`, {method:'DELETE'});
+                    const d = await r.json();
+                    if (d.success) {
+                        loadCodes(); refreshHistory();
+                        showToast('¡Código Eliminado!', 'El código fue eliminado correctamente.', 'fa-trash-can', '#ff4d4d');
+                    } else {
+                        showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
+                    }
+                });
+            }
+        });
+
+        // Collapsible Sidebar logic
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sectionTitle = document.querySelector('.section-title');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+        }
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        sectionTitle.addEventListener('click', toggleSidebar);
+
         // Initial setup on DOM load
         loadCodes();
+        refreshHistory();
     </script>
+
+    {% if is_admin %}
+    <script>
+        // Wizard Navigation Logic
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        const btnWizardPrev = document.getElementById('btn-wizard-prev');
+        const btnWizardNext = document.getElementById('btn-wizard-next');
+        const progressBar = document.getElementById('wizard-progress-bar');
+        const wizardSelectBloque = document.getElementById('wizard-select-bloque');
+        const confirmBlockNum = document.getElementById('confirm-block-num');
+
+        function updateStepView() {
+            // Hide all cards
+            document.getElementById('wizard-step-1-card').style.display = 'none';
+            document.getElementById('wizard-step-2-card').style.display = 'none';
+            document.getElementById('wizard-step-3-card').style.display = 'none';
+            document.getElementById('wizard-step-4-card').style.display = 'none';
+
+            // Show current step card
+            document.getElementById(`wizard-step-${currentStep}-card`).style.display = currentStep === 4 ? 'flex' : 'block';
+
+            // Update step indicators
+            document.querySelectorAll('.wizard-step-item').forEach(item => {
+                const stepNum = parseInt(item.getAttribute('data-step'));
+                item.classList.remove('active', 'completed');
+                if (stepNum === currentStep) {
+                    item.classList.add('active');
+                } else if (stepNum < currentStep) {
+                    item.classList.add('completed');
+                }
+            });
+
+            // Update progress bar line
+            const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 80; // keep it centered
+            progressBar.style.width = `${progressPercent}%`;
+
+            // Update buttons visibility
+            if (currentStep === 1) {
+                btnWizardPrev.style.visibility = 'hidden';
+            } else {
+                btnWizardPrev.style.visibility = 'visible';
+            }
+
+            if (currentStep === totalSteps) {
+                btnWizardNext.style.display = 'none';
+                if (confirmBlockNum) {
+                    confirmBlockNum.textContent = wizardSelectBloque.value;
+                }
+            } else {
+                btnWizardNext.style.display = 'inline-flex';
+                btnWizardNext.innerHTML = 'Siguiente <i class="fa-solid fa-arrow-right"></i>';
+            }
+        }
+
+        if (btnWizardPrev && btnWizardNext) {
+            btnWizardPrev.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateStepView();
+                }
+            });
+
+            btnWizardNext.addEventListener('click', () => {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    updateStepView();
+                }
+            });
+            
+            // Let steps themselves be clickable to jump directly!
+            document.querySelectorAll('.wizard-step-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const targetStep = parseInt(item.getAttribute('data-step'));
+                    currentStep = targetStep;
+                    updateStepView();
+                });
+            });
+        }
+
+        if (wizardSelectBloque) {
+            wizardSelectBloque.addEventListener('change', () => {
+                cargarDatosBloque(wizardSelectBloque.value);
+            });
+
+            const btnAddNewBlock = document.getElementById('btn-add-new-block');
+            if (btnAddNewBlock) {
+                btnAddNewBlock.addEventListener('click', () => {
+                    const inputNum = prompt("Ingrese el número del nuevo bloque (ej. 5):");
+                    if (inputNum === null) return;
+                    
+                    const blockNum = parseInt(inputNum.trim());
+                    if (isNaN(blockNum) || blockNum <= 0) {
+                        alert("Por favor ingrese un número de bloque válido (entero positivo).");
+                        return;
+                    }
+                    
+                    let exists = false;
+                    for (let i = 0; i < wizardSelectBloque.options.length; i++) {
+                        if (parseInt(wizardSelectBloque.options[i].value) === blockNum) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    
+                    if (exists) {
+                        alert(`El Bloque ${blockNum} ya existe.`);
+                        wizardSelectBloque.value = blockNum;
+                        cargarDatosBloque(blockNum);
+                        return;
+                    }
+                    
+                    const option = document.createElement('option');
+                    option.value = blockNum;
+                    option.textContent = `Bloque ${blockNum}`;
+                    
+                    let inserted = false;
+                    for (let i = 0; i < wizardSelectBloque.options.length; i++) {
+                        if (parseInt(wizardSelectBloque.options[i].value) > blockNum) {
+                            wizardSelectBloque.insertBefore(option, wizardSelectBloque.options[i]);
+                            inserted = true;
+                            break;
+                        }
+                    }
+                    if (!inserted) {
+                        wizardSelectBloque.appendChild(option);
+                    }
+                    
+                    wizardSelectBloque.value = blockNum;
+                    cargarDatosBloque(blockNum);
+                    showToast('¡Nuevo Bloque Creado!', `Ahora puedes configurar el Bloque ${blockNum}.`, 'fa-plus', '#2a8bbb');
+                });
+            }
+            
+            // Delete block action handler
+            const btnDeleteBlock = document.getElementById('btn-delete-block');
+            if (btnDeleteBlock) {
+                btnDeleteBlock.addEventListener('click', async () => {
+                    const blockNum = parseInt(wizardSelectBloque.value);
+                    if (isNaN(blockNum) || blockNum <= 0) {
+                        alert("Por favor seleccione un bloque válido para eliminar.");
+                        return;
+                    }
+                    
+                    if (!confirm(`¿Estás seguro de que deseas eliminar por completo el Bloque ${blockNum}? Esta acción borrará el material de estudio, preguntas y escenas de la historia en la base de datos, y no se puede deshacer.`)) {
+                        return;
+                    }
+                    
+                    btnDeleteBlock.disabled = true;
+                    try {
+                        const response = await fetch(`/api/admin/eliminar-bloque/${blockNum}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            showToast('¡Bloque Eliminado!', data.message, 'fa-trash', '#dc2626');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            alert('Error al eliminar bloque: ' + (data.error || 'Desconocido'));
+                            btnDeleteBlock.disabled = false;
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Error de conexión al eliminar el bloque.');
+                        btnDeleteBlock.disabled = false;
+                    }
+                });
+            }
+        }
+
+        // Load data from DB into wizard fields
+        async function cargarDatosBloque(bloqueId) {
+            try {
+                const response = await fetch(`/api/admin/obtener-bloque/${bloqueId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Step 1 Notes
+                    document.getElementById('wizard-block-title').value = data.block_title || '';
+                    document.getElementById('wizard-note1-title').value = data.notes.note1_title || '';
+                    document.getElementById('wizard-note1-text').value = data.notes.note1_text || '';
+                    document.getElementById('wizard-note2-title').value = data.notes.note2_title || '';
+                    document.getElementById('wizard-note2-text').value = data.notes.note2_text || '';
+                    document.getElementById('wizard-note3-title').value = data.notes.note3_title || '';
+                    document.getElementById('wizard-note3-text').value = data.notes.note3_text || '';
+
+                    // Step 2 Questions (1 to 5)
+                    const defaultPreguntas = Array.from({length: 5}, (_, i) => ({
+                        pregunta: '', opcion_1: '', feedback_1: '', opcion_2: '', feedback_2: '',
+                        opcion_3: '', feedback_3: '', opcion_4: '', feedback_4: '', correcta: '1'
+                    }));
+                    const preguntas = data.preguntas && data.preguntas.length > 0 ? data.preguntas : defaultPreguntas;
+                    
+                    preguntas.forEach((q, idx) => {
+                        const i = idx + 1;
+                        if (document.getElementById(`wizard-q${i}-text`)) {
+                            document.getElementById(`wizard-q${i}-text`).value = q.pregunta || '';
+                            document.getElementById(`wizard-q${i}-opt1`).value = q.opcion_1 || '';
+                            document.getElementById(`wizard-q${i}-fb1`).value = q.feedback_1 || '';
+                            document.getElementById(`wizard-q${i}-opt2`).value = q.opcion_2 || '';
+                            document.getElementById(`wizard-q${i}-fb2`).value = q.feedback_2 || '';
+                            document.getElementById(`wizard-q${i}-opt3`).value = q.opcion_3 || '';
+                            document.getElementById(`wizard-q${i}-fb3`).value = q.feedback_3 || '';
+                            document.getElementById(`wizard-q${i}-opt4`).value = q.opcion_4 || '';
+                            document.getElementById(`wizard-q${i}-fb4`).value = q.feedback_4 || '';
+                            document.getElementById(`wizard-q${i}-correct`).value = q.correcta || '1';
+                        }
+                    });
+
+                    // Step 3 Nudos (1 to 3)
+                    const defaultNudos = Array.from({length: 3}, (_, i) => ({
+                        escena_titulo: '', texto_situacion: '', opcion_1: '', feedback_1: '',
+                        opcion_2: '', feedback_2: '', opcion_3: '', feedback_3: '', correcta: '1'
+                    }));
+                    const nudos = data.nudos && data.nudos.length > 0 ? data.nudos : defaultNudos;
+                    
+                    nudos.forEach((n, idx) => {
+                        const i = idx + 1;
+                        if (document.getElementById(`wizard-node${i}-title`)) {
+                            document.getElementById(`wizard-node${i}-title`).value = n.escena_titulo || '';
+                            document.getElementById(`wizard-node${i}-context`).value = n.texto_situacion || '';
+                            document.getElementById(`wizard-node${i}-opt1`).value = n.opcion_1 || '';
+                            document.getElementById(`wizard-node${i}-fb1`).value = n.feedback_1 || '';
+                            document.getElementById(`wizard-node${i}-opt2`).value = n.opcion_2 || '';
+                            document.getElementById(`wizard-node${i}-fb2`).value = n.feedback_2 || '';
+                            document.getElementById(`wizard-node${i}-opt3`).value = n.opcion_3 || '';
+                            document.getElementById(`wizard-node${i}-fb3`).value = n.feedback_3 || '';
+                            document.getElementById(`wizard-node${i}-correct`).value = n.correcta || '1';
+                        }
+                    });
+                } else {
+                    alert("Error al cargar los datos del bloque: " + data.error);
+                }
+            } catch (e) {
+                console.error("Error fetching block data:", e);
+            }
+        }
+
+        // Save wizard content to database
+        const btnSaveWizard = document.getElementById('btn-save-wizard');
+        if (btnSaveWizard) {
+            btnSaveWizard.addEventListener('click', async () => {
+                const bloque = parseInt(wizardSelectBloque.value);
+                
+                // Gather Notes
+                const payload = {
+                    bloque: bloque,
+                    block_title: document.getElementById('wizard-block-title').value.trim(),
+                    notes: {
+                        note1_title: document.getElementById('wizard-note1-title').value.trim(),
+                        note1_text: document.getElementById('wizard-note1-text').value.trim(),
+                        note2_title: document.getElementById('wizard-note2-title').value.trim(),
+                        note2_text: document.getElementById('wizard-note2-text').value.trim(),
+                        note3_title: document.getElementById('wizard-note3-title').value.trim(),
+                        note3_text: document.getElementById('wizard-note3-text').value.trim(),
+                    },
+                    preguntas: [],
+                    nudos: []
+                };
+
+                // Gather Questions
+                for (let i = 1; i <= 5; i++) {
+                    payload.preguntas.push({
+                        id_pregunta: i,
+                        pregunta: document.getElementById(`wizard-q${i}-text`).value.trim(),
+                        opcion_1: document.getElementById(`wizard-q${i}-opt1`).value.trim(),
+                        feedback_1: document.getElementById(`wizard-q${i}-fb1`).value.trim(),
+                        opcion_2: document.getElementById(`wizard-q${i}-opt2`).value.trim(),
+                        feedback_2: document.getElementById(`wizard-q${i}-fb2`).value.trim(),
+                        opcion_3: document.getElementById(`wizard-q${i}-opt3`).value.trim(),
+                        feedback_3: document.getElementById(`wizard-q${i}-fb3`).value.trim(),
+                        opcion_4: document.getElementById(`wizard-q${i}-opt4`).value.trim(),
+                        feedback_4: document.getElementById(`wizard-q${i}-fb4`).value.trim(),
+                        correcta: document.getElementById(`wizard-q${i}-correct`).value
+                    });
+                }
+
+                // Gather Nudos
+                for (let i = 1; i <= 3; i++) {
+                    payload.nudos.push({
+                        id_nodo: i,
+                        escena_titulo: document.getElementById(`wizard-node${i}-title`).value.trim(),
+                        texto_situacion: document.getElementById(`wizard-node${i}-context`).value.trim(),
+                        opcion_1: document.getElementById(`wizard-node${i}-opt1`).value.trim(),
+                        feedback_1: document.getElementById(`wizard-node${i}-fb1`).value.trim(),
+                        opcion_2: document.getElementById(`wizard-node${i}-opt2`).value.trim(),
+                        feedback_2: document.getElementById(`wizard-node${i}-fb2`).value.trim(),
+                        opcion_3: document.getElementById(`wizard-node${i}-opt3`).value.trim(),
+                        feedback_3: document.getElementById(`wizard-node${i}-fb3`).value.trim(),
+                        correcta: document.getElementById(`wizard-node${i}-correct`).value
+                    });
+                }
+
+                // Perform Save
+                btnSaveWizard.disabled = true;
+                btnSaveWizard.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Guardando cambios...';
+
+                try {
+                    const response = await fetch('/api/admin/guardar-bloque', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('¡Guardado!', 'El contenido del bloque se ha actualizado correctamente.', 'fa-cloud-arrow-up', '#298552');
+                        currentStep = 1;
+                        updateStepView();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showToast('Error', data.error || 'No se pudo guardar.', 'fa-circle-xmark', '#ff4d4d');
+                    }
+                } catch (err) {
+                    console.error("Error saving block data:", err);
+                    showToast('Error de Conexión', 'No se pudo guardar el bloque.', 'fa-circle-xmark', '#ff4d4d');
+                } finally {
+                    btnSaveWizard.disabled = false;
+                    btnSaveWizard.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar y Aplicar Cambios';
+                }
+            });
+        }
+    </script>
+    {% endif %}
 </body>
 </html>

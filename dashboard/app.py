@@ -29,10 +29,55 @@ def docente_required(f):
     def decorated_function(*args, **kwargs):
         if 'profesor_id' not in session:
             if request.path.startswith('/api/'):
-                return jsonify({'error': 'No autorizado. Inicie sesión.'}), 401
+                return jsonify({'error': 'No autorizado. Inicie sesión como docente.'}), 401
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('admin_logged_in'):
+            if request.path.startswith('/api/'):
+                return jsonify({'error': 'No autorizado. Inicie sesión como administrador.'}), 401
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def obtener_info_bloques():
+    connection = get_db_connection()
+    if not connection:
+        return {}
+    cursor = connection.cursor()
+    try:
+        cursor.execute("""
+            SELECT DISTINCT bloque FROM (
+                SELECT bloque FROM material_estudio
+                UNION
+                SELECT bloque FROM banco_preguntas
+                UNION
+                SELECT bloque FROM historia_interactiva
+            ) as all_blocks ORDER BY bloque;
+        """)
+        bloques = [row[0] for row in cursor.fetchall()]
+        
+        info = {}
+        for b in bloques:
+            cursor.execute("SELECT contenido FROM material_estudio WHERE bloque = %s;", (b,))
+            row = cursor.fetchone()
+            title = ""
+            if row and row[0]:
+                lines = row[0].split('\n')
+                if lines:
+                    title = lines[0].strip()
+            info[b] = title or f"Bloque {b}"
+        return info
+    except Exception as e:
+        print(f"Error al obtener info de bloques: {e}")
+        return {}
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.route('/')
 def index():
@@ -47,37 +92,79 @@ def login():
     if request.method == 'POST':
         if request.is_json:
             data = request.json
-            email = data.get('email', '').strip()
+            email = data.get('usuario', data.get('email', '')).strip()
             password = data.get('password', '').strip()
+            role = data.get('role', 'docente').strip()
         else:
-            email = request.form.get('email', '').strip()
+            email = request.form.get('usuario', request.form.get('email', '')).strip()
             password = request.form.get('password', '').strip()
+            role = request.form.get('role', 'docente').strip()
             
         if not email or not password:
             error = "Por favor, llene todos los campos."
         else:
-            connection = get_db_connection()
-            if not connection:
-                error = "No se pudo conectar a la base de datos."
-            else:
-                cursor = connection.cursor()
-                try:
-                    cursor.execute("SELECT id_profesor, nombre, email FROM profesores WHERE email = %s AND nombre = %s;", (email, password))
-                    profesor = cursor.fetchone()
-                    if profesor:
-                        session['profesor_id'] = profesor[0]
-                        session['profesor_nombre'] = profesor[1]
-                        session['profesor_email'] = profesor[2]
-                        if request.is_json:
-                            return jsonify({'success': True, 'redirect': url_for('docente_panel')})
-                        return redirect(url_for('docente_panel'))
+            if role == 'admin':
+                if email.lower() in ['admin', 'admin.goa'] and password in ['admin', 'AdminGOA', 'goa2026']:
+                    connection = get_db_connection()
+                    if not connection:
+                        error = "No se pudo conectar a la base de datos."
                     else:
-                        error = "Correo o contraseña incorrectos."
-                except Exception as e:
-                    error = f"Error en el servidor: {str(e)}"
-                finally:
-                    cursor.close()
-                    connection.close()
+                        cursor = connection.cursor()
+                        try:
+                            cursor.execute("SELECT id_profesor, contrasena, username FROM profesores WHERE username = %s;", ('admin.goa',))
+                            admin_row = cursor.fetchone()
+                            if not admin_row:
+                                cursor.execute(
+                                    "INSERT INTO profesores (contrasena, username, nombre) VALUES (%s, %s, %s) RETURNING id_profesor;",
+                                    ('admin', 'admin.goa', 'Administrador')
+                                )
+                                admin_id = cursor.fetchone()[0]
+                                connection.commit()
+                            else:
+                                admin_id = admin_row[0]
+                                
+                            session['profesor_id'] = admin_id
+                            session['profesor_nombre'] = 'Administrador'
+                            session['profesor_email'] = 'admin.goa'
+                            session['profesor_nombre_publico'] = 'Administrador'
+                            session['admin_logged_in'] = True
+                            
+                            if request.is_json:
+                                return jsonify({'success': True, 'redirect': url_for('docente_panel')})
+                            return redirect(url_for('docente_panel'))
+                        except Exception as e:
+                            if connection:
+                                connection.rollback()
+                            error = f"Error al iniciar sesión de administrador: {str(e)}"
+                        finally:
+                            cursor.close()
+                            connection.close()
+                else:
+                    error = "Usuario o contraseña de administrador incorrectos."
+            else:
+                connection = get_db_connection()
+                if not connection:
+                    error = "No se pudo conectar a la base de datos."
+                else:
+                    cursor = connection.cursor()
+                    try:
+                        cursor.execute("SELECT id_profesor, contrasena, username, nombre FROM profesores WHERE username = %s AND contrasena = %s;", (email, password))
+                        profesor = cursor.fetchone()
+                        if profesor:
+                            session['profesor_id'] = profesor[0]
+                            session['profesor_nombre'] = profesor[1]
+                            session['profesor_email'] = profesor[2]
+                            session['profesor_nombre_publico'] = profesor[3] if (profesor[3] and profesor[3].strip()) else profesor[2]
+                            if request.is_json:
+                                return jsonify({'success': True, 'redirect': url_for('docente_panel')})
+                            return redirect(url_for('docente_panel'))
+                        else:
+                            error = "Correo o contraseña incorrectos."
+                    except Exception as e:
+                        error = f"Error en el servidor: {str(e)}"
+                    finally:
+                        cursor.close()
+                        connection.close()
         
         if request.is_json:
             return jsonify({'success': False, 'error': error}), 401
@@ -88,6 +175,82 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+MAX_PROFESORES = 5
+
+@app.route('/api/registro-docente', methods=['POST'])
+def registro_docente():
+    """Register a new teacher. Max 5 teachers total in the system.
+    Username (stored in email column) is auto-generated as nombre.profesor.
+    """
+    data = request.json or {}
+    nombre         = (data.get('nombre',   '') or '').strip()
+    password       = (data.get('password', '') or '').strip()
+    nombre_publico = (data.get('nombre_publico', '') or nombre).strip()
+
+    if not nombre or not password:
+        return jsonify({'success': False, 'error': 'Por favor completa todos los campos.'}), 400
+    if len(password) < 6:
+        return jsonify({'success': False, 'error': 'La contraseña debe tener al menos 6 caracteres.'}), 400
+
+    # Auto-generate username: "laura gomez" -> "laura.gomez.profesor"
+    import re, unicodedata
+    def normalize(s):
+        s = unicodedata.normalize('NFD', s)
+        s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+        s = s.lower().strip()
+        s = re.sub(r'[^a-z0-9 ]', '', s)
+        s = re.sub(r' +', '.', s)
+        return s
+    usuario = normalize(nombre) + '.profesor'
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+
+    cursor = connection.cursor()
+    try:
+        # 1. Check total professor count
+        cursor.execute("SELECT COUNT(*) FROM profesores;")
+        total = cursor.fetchone()[0]
+        if total >= MAX_PROFESORES:
+            return jsonify({'success': False, 'error': f'Se ha alcanzado el límite máximo de {MAX_PROFESORES} docentes registrados en el sistema.'}), 403
+
+        # 2. Check username uniqueness (stored in username column)
+        cursor.execute("SELECT id_profesor FROM profesores WHERE username = %s;", (usuario,))
+        if cursor.fetchone():
+            return jsonify({'success': False, 'error': f'El usuario "{usuario}" ya está en uso. Prueba con un nombre diferente.'}), 409
+
+        # 3. Insert new teacher (username col = auto-generated username; contrasena col = password; nombre col = display name)
+        cursor.execute(
+            "INSERT INTO profesores (contrasena, username, nombre) VALUES (%s, %s, %s);",
+            (password, usuario, nombre_publico)
+        )
+        connection.commit()
+        return jsonify({'success': True, 'usuario': usuario, 'message': '¡Registro exitoso! Ya puedes iniciar sesión.'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': f'Error en el servidor: {str(e)}'}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/cupos-docente', methods=['GET'])
+def cupos_docente():
+    """Return current and max teacher count (public endpoint for registration form)."""
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'total': 0, 'maximo': MAX_PROFESORES}), 200
+    cursor = connection.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM profesores;")
+        total = cursor.fetchone()[0]
+        return jsonify({'total': total, 'maximo': MAX_PROFESORES})
+    except Exception as e:
+        return jsonify({'total': 0, 'maximo': MAX_PROFESORES, 'error': str(e)}), 200
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.route('/admin-db')
 def admin_db():
@@ -339,6 +502,7 @@ def obtener_detalles_completos(cursor, bloque, detalles_estudiante):
 @docente_required
 def docente_panel():
     profesor_id = session.get('profesor_id')
+    is_admin = session.get('admin_logged_in', False)
     connection = get_db_connection()
     if not connection:
         return "Error de conexión a la base de datos", 500
@@ -346,23 +510,34 @@ def docente_panel():
     cursor = connection.cursor()
     try:
         # Get profesor public name
-        cursor.execute("SELECT nombre_publico FROM profesores WHERE id_profesor = %s;", (profesor_id,))
+        cursor.execute("SELECT nombre FROM profesores WHERE id_profesor = %s;", (profesor_id,))
         row_prof = cursor.fetchone()
-        nombre_publico = row_prof[0] if (row_prof and row_prof[0]) else session.get('profesor_nombre')
+        nombre_publico = row_prof[0] if (row_prof and row_prof[0]) else session.get('profesor_email', 'Docente')
         session['profesor_nombre_publico'] = nombre_publico
 
-        # 1. Obtener códigos de acceso generados por el docente
-        cursor.execute("SELECT codigo_acceso FROM sesiones WHERE id_profesor = %s ORDER BY codigo_acceso;", (profesor_id,))
+        # 1. Obtener códigos de acceso
+        if is_admin:
+            cursor.execute("SELECT codigo_acceso FROM sesiones ORDER BY codigo_acceso;")
+        else:
+            cursor.execute("SELECT codigo_acceso FROM sesiones WHERE id_profesor = %s ORDER BY codigo_acceso;", (profesor_id,))
         codigos = [row[0] for row in cursor.fetchall()]
         
-        # 2. Obtener historial de partidas de los estudiantes para los códigos del docente
-        cursor.execute("""
-            SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
-            FROM resultados_estudiantes re
-            JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
-            WHERE s.id_profesor = %s
-            ORDER BY re.id_resultado DESC;
-        """, (profesor_id,))
+        # 2. Obtener historial de partidas de los estudiantes
+        if is_admin:
+            cursor.execute("""
+                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
+                FROM resultados_estudiantes re
+                JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
+                ORDER BY re.id_resultado DESC;
+            """)
+        else:
+            cursor.execute("""
+                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
+                FROM resultados_estudiantes re
+                JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
+                WHERE s.id_profesor = %s
+                ORDER BY re.id_resultado DESC;
+            """, (profesor_id,))
         historial_raw = cursor.fetchall()
         
         historial = []
@@ -379,8 +554,24 @@ def docente_panel():
                 'bloque': bloque,
                 'detalles': detalles_completos
             })
+        # Obtener bloques dinámicos
+        bloques_map = obtener_info_bloques()
+        default_titles = {
+            1: 'Residuos y Reciclaje',
+            2: 'Agua y Alcantarillado',
+            3: 'Consumo y Energía',
+            4: 'Liderazgo y Comunidad'
+        }
+        for b, title in list(bloques_map.items()):
+            if not title.startswith(f"Bloque {b}:"):
+                bloques_map[b] = f"Bloque {b}: {title}"
+        for b, title in default_titles.items():
+            if b not in bloques_map:
+                bloques_map[b] = f"Bloque {b}: {title}"
+                
+        bloques_list = [{'id': b, 'titulo': t.replace(f"Bloque {b}:", "").strip()} for b, t in sorted(bloques_map.items())]
             
-        return render_template('docente.html', codigos=codigos, historial=historial, nombre_publico=nombre_publico)
+        return render_template('docente.html', codigos=codigos, historial=historial, nombre_publico=nombre_publico, is_admin=is_admin, bloques_map=bloques_map, bloques_list=bloques_list)
     except Exception as e:
         return f"Error en el servidor: {str(e)}", 500
     finally:
@@ -403,12 +594,57 @@ def update_profile():
         
     cursor = connection.cursor()
     try:
-        cursor.execute("UPDATE profesores SET nombre_publico = %s WHERE id_profesor = %s;", (nombre_publico, profesor_id))
+        cursor.execute("UPDATE profesores SET nombre = %s WHERE id_profesor = %s;", (nombre_publico, profesor_id))
         connection.commit()
         session['profesor_nombre_publico'] = nombre_publico
         return jsonify({'success': True, 'nombre_publico': nombre_publico}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/docente/cambiar-password', methods=['POST'])
+@docente_required
+def cambiar_password():
+    """Change teacher password. Verifies current password before updating."""
+    profesor_id = session.get('profesor_id')
+    data = request.json or {}
+    password_actual  = (data.get('password_actual',  '') or '').strip()
+    password_nuevo   = (data.get('password_nuevo',   '') or '').strip()
+    password_confirm = (data.get('password_confirm', '') or '').strip()
+
+    if not password_actual or not password_nuevo or not password_confirm:
+        return jsonify({'success': False, 'error': 'Por favor completa todos los campos.'}), 400
+    if len(password_nuevo) < 6:
+        return jsonify({'success': False, 'error': 'La nueva contraseña debe tener al menos 6 caracteres.'}), 400
+    if password_nuevo != password_confirm:
+        return jsonify({'success': False, 'error': 'La nueva contraseña y su confirmación no coinciden.'}), 400
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+
+    cursor = connection.cursor()
+    try:
+        # Verify current password (stored in 'contrasena' column)
+        cursor.execute(
+            "SELECT id_profesor FROM profesores WHERE id_profesor = %s AND contrasena = %s;",
+            (profesor_id, password_actual)
+        )
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'error': 'La contraseña actual es incorrecta.'}), 401
+
+        # Update password
+        cursor.execute(
+            "UPDATE profesores SET contrasena = %s WHERE id_profesor = %s;",
+            (password_nuevo, profesor_id)
+        )
+        connection.commit()
+        return jsonify({'success': True, 'message': '¡Contraseña actualizada correctamente!'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': f'Error en el servidor: {str(e)}'}), 500
     finally:
         cursor.close()
         connection.close()
@@ -443,6 +679,7 @@ def generar_codigo():
 @docente_required
 def api_historial():
     profesor_id = session.get('profesor_id')
+    is_admin = session.get('admin_logged_in', False)
     codigo_filtro = request.args.get('codigo', '').strip()
     
     connection = get_db_connection()
@@ -452,21 +689,40 @@ def api_historial():
     cursor = connection.cursor()
     try:
         if codigo_filtro:
-            cursor.execute("""
-                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
-                FROM resultados_estudiantes re
-                JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
-                WHERE s.id_profesor = %s AND s.codigo_acceso = %s
-                ORDER BY re.id_resultado DESC;
-            """, (profesor_id, codigo_filtro))
+            if is_admin:
+                cursor.execute("""
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre
+                    FROM resultados_estudiantes re
+                    JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
+                    JOIN profesores p ON s.id_profesor = p.id_profesor
+                    WHERE s.codigo_acceso = %s
+                    ORDER BY re.id_resultado DESC;
+                """, (codigo_filtro,))
+            else:
+                cursor.execute("""
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL
+                    FROM resultados_estudiantes re
+                    JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
+                    WHERE s.id_profesor = %s AND s.codigo_acceso = %s
+                    ORDER BY re.id_resultado DESC;
+                """, (profesor_id, codigo_filtro))
         else:
-            cursor.execute("""
-                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
-                FROM resultados_estudiantes re
-                JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
-                WHERE s.id_profesor = %s
-                ORDER BY re.id_resultado DESC;
-            """, (profesor_id,))
+            if is_admin:
+                cursor.execute("""
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre
+                    FROM resultados_estudiantes re
+                    JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
+                    JOIN profesores p ON s.id_profesor = p.id_profesor
+                    ORDER BY re.id_resultado DESC;
+                """)
+            else:
+                cursor.execute("""
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL
+                    FROM resultados_estudiantes re
+                    JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
+                    WHERE s.id_profesor = %s
+                    ORDER BY re.id_resultado DESC;
+                """, (profesor_id,))
         historial_raw = cursor.fetchall()
         
         historial = []
@@ -474,7 +730,7 @@ def api_historial():
             bloque = row[5] if row[5] is not None else 1
             detalles_raw = row[6] if row[6] is not None else []
             detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw)
-            historial.append({
+            entry = {
                 'alumno': row[0],
                 'codigo': row[1],
                 'puntaje': row[2],
@@ -482,7 +738,10 @@ def api_historial():
                 'incorrectas': row[4],
                 'bloque': bloque,
                 'detalles': detalles_completos
-            })
+            }
+            if is_admin and row[7]:
+                entry['profesor'] = row[7]
+            historial.append(entry)
         return jsonify({'success': True, 'historial': historial})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -495,24 +754,65 @@ def api_historial():
 @docente_required
 def get_codigos():
     profesor_id = session.get('profesor_id')
+    is_admin = session.get('admin_logged_in', False)
     connection = get_db_connection()
     if not connection:
         return jsonify({'error': 'No se pudo conectar a la base de datos.'}), 500
     cursor = connection.cursor()
     try:
-        cursor.execute(
-            """
-            SELECT s.codigo_acceso, COUNT(r.id_resultado) AS usos
-            FROM sesiones s
-            LEFT JOIN resultados_estudiantes r ON s.codigo_acceso = r.codigo_acceso
-            WHERE s.id_profesor = %s
-            GROUP BY s.codigo_acceso
-            ORDER BY s.codigo_acceso;
-            """,
-            (profesor_id,)
-        )
-        rows = cursor.fetchall()
-        codigos = [{'codigo': row[0], 'usado': row[1] > 0} for row in rows]
+        # 1. Fetch codes (with teacher info for admin)
+        if is_admin:
+            cursor.execute("""
+                SELECT s.codigo_acceso, p.nombre, p.username
+                FROM sesiones s
+                JOIN profesores p ON s.id_profesor = p.id_profesor
+                ORDER BY s.codigo_acceso;
+            """)
+        else:
+            cursor.execute("SELECT codigo_acceso, NULL, NULL FROM sesiones WHERE id_profesor = %s ORDER BY codigo_acceso;", (profesor_id,))
+        sesiones = cursor.fetchall()
+        
+        # 2. Fetch blocks played for each code
+        if is_admin:
+            cursor.execute("""
+                SELECT re.codigo_acceso, re.bloque 
+                FROM resultados_estudiantes re
+                JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso;
+            """)
+        else:
+            cursor.execute("""
+                SELECT re.codigo_acceso, re.bloque 
+                FROM resultados_estudiantes re
+                JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
+                WHERE s.id_profesor = %s;
+            """, (profesor_id,))
+        resultados = cursor.fetchall()
+        
+        # Map outcomes and teacher info in Python
+        code_to_blocks = {}
+        code_to_teacher = {}
+        for code_row in sesiones:
+            code_to_blocks[code_row[0]] = set()
+            # nombre_publico or email as fallback
+            teacher_name = code_row[1] if code_row[1] else (code_row[2] if code_row[2] else 'Docente')
+            code_to_teacher[code_row[0]] = teacher_name
+            
+        for res_row in resultados:
+            c = res_row[0]
+            b = res_row[1] if res_row[1] is not None else 1
+            if c in code_to_blocks:
+                code_to_blocks[c].add(b)
+                
+        codigos = []
+        for c, b_set in code_to_blocks.items():
+            entry = {
+                'codigo': c,
+                'usado': len(b_set) > 0,
+                'bloques': list(b_set)
+            }
+            if is_admin:
+                entry['profesor'] = code_to_teacher.get(c, 'Docente')
+            codigos.append(entry)
         return jsonify({'success': True, 'codigos': codigos})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -520,37 +820,345 @@ def get_codigos():
         cursor.close()
         connection.close()
 
-# New endpoint: delete an unused code
+# Endpoint: delete a code and ALL its associated results (with confirmation required from client)
 @app.route('/api/docente/eliminar-codigo/<codigo>', methods=['DELETE'])
 @docente_required
 def eliminar_codigo(codigo):
     profesor_id = session.get('profesor_id')
+    is_admin = session.get('admin_logged_in', False)
     connection = get_db_connection()
     if not connection:
         return jsonify({'error': 'No se pudo conectar a la base de datos.'}), 500
     cursor = connection.cursor()
     try:
-        # Verify the code belongs to this professor
+        # Verify ownership
         cursor.execute("SELECT id_profesor FROM sesiones WHERE codigo_acceso = %s;", (codigo,))
         row = cursor.fetchone()
         if not row:
             return jsonify({'error': 'Código no encontrado.'}), 404
-        if row[0] != profesor_id:
+        if not is_admin and row[0] != profesor_id:
             return jsonify({'error': 'No autorizado a eliminar este código.'}), 403
-        # Check if code has any associated results
+
+        # Count results that will be deleted
         cursor.execute("SELECT COUNT(*) FROM resultados_estudiantes WHERE codigo_acceso = %s;", (codigo,))
-        usos = cursor.fetchone()[0]
-        if usos > 0:
-            return jsonify({'error': 'Código ya utilizado, no se puede eliminar.'}), 400
-        # Delete the code
+        n_resultados = cursor.fetchone()[0]
+
+        # Delete results first (FK constraint), then the code
+        cursor.execute("DELETE FROM resultados_estudiantes WHERE codigo_acceso = %s;", (codigo,))
         cursor.execute("DELETE FROM sesiones WHERE codigo_acceso = %s;", (codigo,))
         connection.commit()
-        return jsonify({'success': True}), 200
+        return jsonify({'success': True, 'partidas_eliminadas': n_resultados})
     except Exception as e:
+        connection.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
         cursor.close()
         connection.close()
+
+# Endpoint: delete a single student game result by student name + codigo
+@app.route('/api/docente/eliminar-partida', methods=['DELETE'])
+@docente_required
+def eliminar_partida():
+    """Delete a single student result row. Verifies the code belongs to this professor (if not admin)."""
+    profesor_id = session.get('profesor_id')
+    is_admin = session.get('admin_logged_in', False)
+    data = request.json or {}
+    codigo       = (data.get('codigo',  '') or '').strip()
+    nombre_alumno= (data.get('alumno',  '') or '').strip()
+    id_resultado = data.get('id_resultado')
+
+    if not codigo:
+        return jsonify({'success': False, 'error': 'Faltan datos.'}), 400
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+    cursor = connection.cursor()
+    try:
+        # Ownership check
+        cursor.execute("SELECT id_profesor FROM sesiones WHERE codigo_acceso = %s;", (codigo,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'success': False, 'error': 'Código no encontrado.'}), 404
+        if not is_admin and row[0] != profesor_id:
+            return jsonify({'success': False, 'error': 'No autorizado.'}), 403
+
+        if id_resultado:
+            cursor.execute("DELETE FROM resultados_estudiantes WHERE id_resultado = %s AND codigo_acceso = %s;", (id_resultado, codigo))
+        else:
+            cursor.execute("DELETE FROM resultados_estudiantes WHERE codigo_acceso = %s AND nombre_alumno = %s;", (codigo, nombre_alumno))
+        deleted = cursor.rowcount
+        connection.commit()
+        return jsonify({'success': True, 'eliminadas': deleted})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/admin/bloques', methods=['GET'])
+@admin_required
+def admin_list_bloques():
+    info = obtener_info_bloques()
+    list_bloques = [{'id': b, 'titulo': t.replace(f"Bloque {b}:", "").strip()} for b, t in sorted(info.items())]
+    # Asegurar que los bloques por defecto 1, 2, 3 y 4 siempre aparezcan
+    default_titles = {
+        1: 'Residuos y Reciclaje',
+        2: 'Agua y Alcantarillado',
+        3: 'Consumo y Energía',
+        4: 'Liderazgo y Comunidad'
+    }
+    existing_ids = {item['id'] for item in list_bloques}
+    for b, title in default_titles.items():
+        if b not in existing_ids:
+            list_bloques.append({'id': b, 'titulo': title})
+            
+    list_bloques.sort(key=lambda x: x['id'])
+    return jsonify({'success': True, 'bloques': list_bloques})
+
+@app.route('/api/admin/obtener-bloque/<int:bloque>', methods=['GET'])
+@admin_required
+def admin_obtener_bloque(bloque):
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+        
+    cursor = connection.cursor()
+    try:
+        # 1. Fetch material de estudio
+        cursor.execute("SELECT contenido FROM material_estudio WHERE bloque = %s;", (bloque,))
+        row_material = cursor.fetchone()
+        material_content = row_material[0] if row_material else ""
+        
+        # Parse notes
+        block_title = ""
+        note1_title, note1_text = "", ""
+        note2_title, note2_text = "", ""
+        note3_title, note3_text = "", ""
+        
+        if material_content:
+            lines = material_content.split('\n')
+            if lines:
+                block_title = lines[0].strip()
+            
+            idx1 = material_content.find("Nota 1")
+            idx2 = material_content.find("Nota 2")
+            idx3 = material_content.find("Nota 3")
+            
+            if idx1 != -1 and idx2 != -1 and idx3 != -1:
+                nota1 = material_content[idx1:idx2].strip()
+                nota2 = material_content[idx2:idx3].strip()
+                nota3 = material_content[idx3:].strip()
+                
+                # Extract Title & Text for Nota 1
+                if "(" in nota1 and ")" in nota1:
+                    note1_title = nota1[nota1.find("(")+1 : nota1.find(")")]
+                    note1_text = nota1[nota1.find("):")+2:].strip()
+                else:
+                    note1_text = nota1
+                    
+                if "(" in nota2 and ")" in nota2:
+                    note2_title = nota2[nota2.find("(")+1 : nota2.find(")")]
+                    note2_text = nota2[nota2.find("):")+2:].strip()
+                else:
+                    note2_text = nota2
+                    
+                if "(" in nota3 and ")" in nota3:
+                    note3_title = nota3[nota3.find("(")+1 : nota3.find(")")]
+                    note3_text = nota3[nota3.find("):")+2:].strip()
+                else:
+                    note3_text = nota3
+        
+        # 2. Fetch evaluation questions (5 questions)
+        cursor.execute("""
+            SELECT id_pregunta, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
+                   opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta 
+            FROM banco_preguntas 
+            WHERE bloque = %s 
+            ORDER BY id_pregunta;
+        """, (bloque,))
+        q_rows = cursor.fetchall()
+        preguntas = []
+        for r in q_rows:
+            correct_val = r[10]
+            correct_idx = "1"
+            if correct_val == r[2]: correct_idx = "1"
+            elif correct_val == r[4]: correct_idx = "2"
+            elif correct_val == r[6]: correct_idx = "3"
+            elif correct_val == r[8]: correct_idx = "4"
+            
+            preguntas.append({
+                'id_pregunta': r[0],
+                'pregunta': r[1],
+                'opcion_1': r[2],
+                'feedback_1': r[3],
+                'opcion_2': r[4],
+                'feedback_2': r[5],
+                'opcion_3': r[6],
+                'feedback_3': r[7],
+                'opcion_4': r[8],
+                'feedback_4': r[9],
+                'correcta': correct_idx
+            })
+            
+        # 3. Fetch story nudos (3 nodes)
+        cursor.execute("""
+            SELECT id_nodo, escena_titulo, texto_situacion, opcion_1, feedback_1, 
+                   opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta 
+            FROM historia_interactiva 
+            WHERE bloque = %s 
+            ORDER BY id_nodo;
+        """, (bloque,))
+        n_rows = cursor.fetchall()
+        nudos = []
+        for r in n_rows:
+            correct_val = r[9]
+            correct_idx = "1"
+            if correct_val == r[3]: correct_idx = "1"
+            elif correct_val == r[5]: correct_idx = "2"
+            elif correct_val == r[7]: correct_idx = "3"
+            
+            nudos.append({
+                'id_nodo': r[0],
+                'escena_titulo': r[1],
+                'texto_situacion': r[2],
+                'opcion_1': r[3],
+                'feedback_1': r[4],
+                'opcion_2': r[5],
+                'feedback_2': r[6],
+                'opcion_3': r[7],
+                'feedback_3': r[8],
+                'correcta': correct_idx
+            })
+            
+        return jsonify({
+            'success': True,
+            'block_title': block_title,
+            'notes': {
+                'note1_title': note1_title, 'note1_text': note1_text,
+                'note2_title': note2_title, 'note2_text': note2_text,
+                'note3_title': note3_title, 'note3_text': note3_text,
+            },
+            'preguntas': preguntas,
+            'nudos': nudos
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/admin/guardar-bloque', methods=['POST'])
+@admin_required
+def admin_guardar_bloque():
+    data = request.json or {}
+    bloque = data.get('bloque')
+    block_title = data.get('block_title', '').strip()
+    notes = data.get('notes', {})
+    preguntas = data.get('preguntas', [])
+    nudos = data.get('nudos', [])
+    
+    if not bloque:
+        return jsonify({'success': False, 'error': 'Falta el número de bloque.'}), 400
+        
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+        
+    cursor = connection.cursor()
+    try:
+        # 1. Assemble material_estudio content string
+        material_str = f"{block_title}\n\nI. Kit del Guardián\n\n"
+        material_str += f"Nota 1 ({notes.get('note1_title', '').strip()}): {notes.get('note1_text', '').strip()}\n\n"
+        material_str += f"Nota 2 ({notes.get('note2_title', '').strip()}): {notes.get('note2_text', '').strip()}\n\n"
+        material_str += f"Nota 3 ({notes.get('note3_title', '').strip()}): {notes.get('note3_text', '').strip()}"
+        
+        # Upsert material_estudio
+        cursor.execute("SELECT 1 FROM material_estudio WHERE bloque = %s;", (bloque,))
+        if cursor.fetchone():
+            cursor.execute("UPDATE material_estudio SET contenido = %s WHERE bloque = %s;", (material_str, bloque))
+        else:
+            cursor.execute("INSERT INTO material_estudio (bloque, contenido) VALUES (%s, %s);", (bloque, material_str))
+            
+        # 2. Update banco_preguntas
+        cursor.execute("DELETE FROM banco_preguntas WHERE bloque = %s;", (bloque,))
+        for idx, q in enumerate(preguntas):
+            correct_idx = q.get('correcta', '1')
+            correct_ans = q.get(f'opcion_{correct_idx}', '')
+            
+            cursor.execute("""
+                INSERT INTO banco_preguntas (bloque, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            """, (
+                bloque,
+                q.get('pregunta', '').strip(),
+                q.get('opcion_1', '').strip(),
+                q.get('feedback_1', '').strip(),
+                q.get('opcion_2', '').strip(),
+                q.get('feedback_2', '').strip(),
+                q.get('opcion_3', '').strip(),
+                q.get('feedback_3', '').strip(),
+                q.get('opcion_4', '').strip(),
+                q.get('feedback_4', '').strip(),
+                correct_ans.strip()
+            ))
+            
+        # 3. Update historia_interactiva
+        cursor.execute("DELETE FROM historia_interactiva WHERE bloque = %s;", (bloque,))
+        for idx, n in enumerate(nudos):
+            correct_idx = n.get('correcta', '1')
+            correct_ans = n.get(f'opcion_{correct_idx}', '')
+            
+            cursor.execute("""
+                INSERT INTO historia_interactiva (bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            """, (
+                bloque,
+                n.get('escena_titulo', '').strip(),
+                n.get('texto_situacion', '').strip(),
+                n.get('opcion_1', '').strip(),
+                n.get('feedback_1', '').strip(),
+                n.get('opcion_2', '').strip(),
+                n.get('feedback_2', '').strip(),
+                n.get('opcion_3', '').strip(),
+                n.get('feedback_3', '').strip(),
+                correct_ans.strip()
+            ))
+            
+        connection.commit()
+        return jsonify({'success': True, 'message': f'¡El contenido del Bloque {bloque} ha sido actualizado con éxito!'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/admin/eliminar-bloque/<int:bloque>', methods=['DELETE'])
+@admin_required
+def admin_eliminar_bloque(bloque):
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+        
+    cursor = connection.cursor()
+    try:
+        # Delete from material_estudio, banco_preguntas, and historia_interactiva
+        cursor.execute("DELETE FROM material_estudio WHERE bloque = %s;", (bloque,))
+        cursor.execute("DELETE FROM banco_preguntas WHERE bloque = %s;", (bloque,))
+        cursor.execute("DELETE FROM historia_interactiva WHERE bloque = %s;", (bloque,))
+        # Delete results associated with this block to keep database clean
+        cursor.execute("DELETE FROM resultados_estudiantes WHERE bloque = %s;", (bloque,))
+        connection.commit()
+        return jsonify({'success': True, 'message': f'¡El Bloque {bloque} ha sido eliminado con éxito!'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
 
 @app.route('/estudiante-acceso')
 def estudiante_acceso():
@@ -569,7 +1177,7 @@ def verificar_codigo():
     cursor = connection.cursor()
     try:
         cursor.execute("""
-            SELECT p.nombre_publico, p.nombre 
+            SELECT p.nombre, p.username 
             FROM sesiones s 
             JOIN profesores p ON s.id_profesor = p.id_profesor 
             WHERE s.codigo_acceso = %s;
@@ -588,15 +1196,19 @@ def verificar_codigo():
 
 @app.route('/api/estudiante/datos-bloque', methods=['GET'])
 def datos_bloque():
-    # Elige un bloque aleatorio entre 1 y 4
-    bloque = random.randint(1, 4)
-    
     connection = get_db_connection()
     if not connection:
         return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
         
     cursor = connection.cursor()
     try:
+        # Obtener dinámicamente todos los bloques que tengan preguntas cargadas
+        cursor.execute("SELECT DISTINCT bloque FROM banco_preguntas;")
+        bloques = [row[0] for row in cursor.fetchall()]
+        if not bloques:
+            bloques = [1, 2, 3, 4]  # fallback
+        bloque = random.choice(bloques)
+        
         # 1. Recuperar banco_preguntas (las 5 del bloque)
         cursor.execute("""
             SELECT id_pregunta, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 

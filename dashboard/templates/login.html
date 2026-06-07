@@ -4,204 +4,222 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOA - Iniciar Sesión Docente</title>
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Outfit',sans-serif; background:#fff; overflow:hidden; height:100vh; display:flex; justify-content:center; align-items:center; }
-
-        /* Fondo visual idéntico al portal */
-        .portal-bg {
-            position: absolute; inset: 0; z-index: 0;
-            background: 
-                radial-gradient(circle at 50% -20%, #e8f5fd 0%, #b8def3 45%, #8ecce9 75%, #59afd5 100%),
-                linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-            background-blend-mode: overlay;
-            overflow: hidden;
+        body {
+            font-family:'Outfit',sans-serif;
+            background: radial-gradient(circle at 50% -20%, #e8f5fd 0%, #b8def3 45%, #8ecce9 75%, #59afd5 100%);
+            overflow:hidden; height:100vh; display:flex; justify-content:center; align-items:center;
         }
 
+        /* ── Fondo de agua ── */
+        .portal-bg {
+            position: fixed; inset: 0; z-index: 0;
+            background-image: url("{{ url_for('static', filename='ocean_bg.png') }}");
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            overflow: hidden;
+        }
         .wave-light {
             position: absolute;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-            transform: rotate(-35deg);
-            filter: blur(15px);
-            pointer-events: none;
-            z-index: 1;
+            transform: rotate(-35deg); filter: blur(15px); pointer-events: none; z-index: 1;
         }
-        .wl1 { width: 120px; height: 200%; top: -50%; left: 15%; animation: waveLightFlow 14s infinite linear; }
-        .wl2 { width: 80px; height: 200%; top: -50%; left: 45%; animation: waveLightFlow 20s infinite linear; animation-delay: 2s; }
-        .wl3 { width: 140px; height: 200%; top: -50%; left: 75%; animation: waveLightFlow 17s infinite linear; animation-delay: 4s; }
+        .wl1 { width:120px; height:200%; top:-50%; left:15%; animation: waveLightFlow 14s infinite linear; }
+        .wl2 { width: 80px; height:200%; top:-50%; left:45%; animation: waveLightFlow 20s infinite linear; animation-delay:2s; }
+        .wl3 { width:140px; height:200%; top:-50%; left:75%; animation: waveLightFlow 17s infinite linear; animation-delay:4s; }
+        .wl4 { width: 60px; height:200%; top:-50%; left:90%; animation: waveLightFlow 23s infinite linear; animation-delay:1s; }
         @keyframes waveLightFlow {
-            0% { transform: translate(-150px, -150px) rotate(-35deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translate(150px, 150px) rotate(-35deg); opacity: 0; }
+            0%   { transform: translate(-150px,-150px) rotate(-35deg); opacity:0; }
+            10%  { opacity:1; } 90% { opacity:1; }
+            100% { transform: translate(150px,150px) rotate(-35deg); opacity:0; }
         }
-
         .sparkle {
-            position: absolute; z-index: 1;
-            font-size: 1.4rem; color: rgba(255,255,255,0.45);
-            animation: sparkleAnim 3.5s ease-in-out infinite;
+            position: absolute; z-index: 1; font-size: 1.4rem; color: rgba(255,255,255,0.45);
+            animation: sparkleAnim 3.5s ease-in-out infinite; pointer-events: none;
         }
-        .sp1 { bottom: 18%; right: 8%;  animation-delay: 0s; }
-        .sp2 { bottom: 22%; right: 14%; animation-delay: 0.6s; font-size: 1rem; }
-        .sp3 { bottom: 14%; right: 5%;  animation-delay: 1.2s; font-size: .8rem; }
-        .sp4 { bottom: 20%; left: 6%;   animation-delay: 0.4s; }
+        .sp1{bottom:18%;right:8%;animation-delay:0s;}
+        .sp2{bottom:22%;right:14%;animation-delay:.6s;font-size:1rem;}
+        .sp3{bottom:14%;right:5%;animation-delay:1.2s;font-size:.8rem;}
+        .sp4{bottom:20%;left:6%;animation-delay:.4s;}
         @keyframes sparkleAnim {
-            0%,100% { opacity: 0.25; transform: scale(0.8); }
-            50%      { opacity: 0.65; transform: scale(1.15); }
+            0%,100%{opacity:.25;transform:scale(.8);} 50%{opacity:.65;transform:scale(1.15);}
         }
 
-        /* Contenedor del Login (Cristal templado / Glassmorphism) */
+        /* ── Login Card ── */
         .login-container {
             position: relative; z-index: 10;
             width: 90%; max-width: 440px;
-            background: rgba(255, 255, 255, 0.45);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 28px;
-            padding: 40px 32px;
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            box-shadow: 0 16px 48px rgba(30, 90, 150, 0.12);
-            text-align: center;
-            animation: fadeIn 0.6s ease-out;
+            background: rgba(255,255,255,0.42); border: 1px solid rgba(255,255,255,0.55);
+            border-radius: 28px; padding: 40px 32px 28px;
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 16px 48px rgba(30,90,150,0.12);
+            text-align: center; animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(15px);} to{opacity:1;transform:translateY(0);} }
+
+        .logo-container-login { width:190px; margin:0 auto 14px; display:flex; justify-content:center; align-items:center; }
+        .logo-container-login img {
+            width:100%; height:auto; object-fit:contain;
+            filter: drop-shadow(0 8px 20px rgba(14,165,233,.25));
+            animation: float 5s ease-in-out infinite;
+        }
+        @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+
+        .login-title    { font-size:1.6rem; font-weight:800; color:#1a3a5c; letter-spacing:-.5px; margin-bottom:4px; }
+        .login-subtitle { font-size:.88rem; color:#4b6e8a; margin-bottom:22px; }
+
+        /* ── Form ── */
+        .form-group   { position:relative; margin-bottom:16px; text-align:left; }
+        .form-label   { display:block; font-size:.82rem; font-weight:700; color:#2c4a6f; margin-bottom:6px; padding-left:4px; }
+        .input-wrapper{ position:relative; display:flex; align-items:center; }
+        .input-wrapper i { position:absolute; left:16px; color:#5c8bb0; font-size:1rem; }
+        .form-input {
+            width:100%; padding:13px 16px 13px 44px; border-radius:14px;
+            border:1px solid rgba(255,255,255,0.6); background:rgba(255,255,255,0.65);
+            font-family:'Outfit',sans-serif; font-size:.95rem; color:#1a3a5c;
+            outline:none; transition:all 0.3s ease;
+        }
+        .form-input:focus { background:#fff; border-color:#2a8bbb; box-shadow:0 0 0 3px rgba(42,139,187,0.15); }
+
+        /* ── Username hint chip ── */
+        .usuario-chip {
+            font-size:.78rem; font-weight:700; color:#1a5a8c; background:rgba(42,139,187,0.1);
+            border:1px solid rgba(42,139,187,0.25); border-radius:30px; padding:3px 12px;
+            margin-top:6px; display:inline-block; letter-spacing:.3px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* ── Alertas ── */
+        .alert-box { display:flex; align-items:center; gap:10px; padding:12px 16px; border-radius:14px; font-size:.88rem; font-weight:600; margin-bottom:18px; text-align:left; }
+        .alert-error   { background:rgba(239,68,68,0.08);  border:1px solid rgba(239,68,68,0.25);  color:#b91c1c; }
+        .alert-success { background:rgba(34,197,94,0.10);  border:1px solid rgba(34,197,94,0.28);  color:#166534; }
+
+        /* ── Botones ── */
+        .btn-submit {
+            width:100%; padding:13px; border-radius:50px;
+            font-size:1rem; font-weight:700; font-family:'Outfit',sans-serif;
+            cursor:pointer; border:none;
+            background:linear-gradient(135deg,#45a2d8,#2a8bbb);
+            color:#fff; box-shadow:0 4px 16px rgba(42,139,187,0.3);
+            transition:all 0.3s ease; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+        }
+        .btn-submit:hover  { transform:translateY(-2px); box-shadow:0 8px 24px rgba(42,139,187,0.45); }
+        .btn-submit:active { transform:translateY(0); }
+        .btn-submit:disabled { opacity:.7; cursor:not-allowed; transform:none; }
+
+        .divider {
+            display:flex; align-items:center; gap:10px; margin:18px 0 14px;
+            color:#7a9bb8; font-size:.82rem; font-weight:600;
+        }
+        .divider::before,.divider::after { content:''; flex:1; height:1px; background:rgba(42,139,187,0.2); }
+
+        .btn-register {
+            width:100%; padding:12px; border-radius:50px;
+            font-size:.95rem; font-weight:700; font-family:'Outfit',sans-serif;
+            cursor:pointer; background:rgba(255,255,255,0.55);
+            border:1.5px solid rgba(42,139,187,0.35); color:#1a5a8c;
+            transition:all 0.3s ease; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+        }
+        .btn-register:hover { background:rgba(255,255,255,0.85); border-color:#2a8bbb; transform:translateY(-2px); }
+
+        .btn-back {
+            display:inline-flex; align-items:center; gap:6px;
+            margin-top:20px; font-size:.85rem; font-weight:600;
+            color:#4b6e8a; text-decoration:none; transition:color 0.2s ease;
+        }
+        .btn-back:hover { color:#1a3a5c; }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position:fixed; inset:0; z-index:100;
+            background:rgba(14,30,60,0.45); backdrop-filter:blur(8px);
+            display:flex; align-items:center; justify-content:center;
+            opacity:0; pointer-events:none; transition:opacity 0.35s ease;
+        }
+        .modal-overlay.open { opacity:1; pointer-events:all; }
+
+        .modal-card {
+            position:relative; width:92%; max-width:460px;
+            background:rgba(255,255,255,0.48); border:1px solid rgba(255,255,255,0.6);
+            border-radius:28px; padding:36px 32px 28px;
+            backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+            box-shadow:0 20px 60px rgba(30,90,150,0.15);
+            transform:scale(0.92) translateY(10px);
+            transition:transform 0.35s cubic-bezier(0.175,0.885,0.32,1.15);
+            text-align:center;
+        }
+        .modal-overlay.open .modal-card { transform:scale(1) translateY(0); }
+
+        .modal-close {
+            position:absolute; top:18px; right:20px;
+            background:none; border:none; cursor:pointer; font-size:1.2rem; color:#4b6e8a;
+            transition:color .2s,transform .2s;
+        }
+        .modal-close:hover { color:#1a3a5c; transform:scale(1.15); }
+
+        .modal-title    { font-size:1.45rem; font-weight:800; color:#1a3a5c; margin-bottom:4px; }
+        .modal-subtitle { font-size:.85rem; color:#4b6e8a; margin-bottom:16px; }
+
+        .cupo-badge {
+            display:inline-flex; align-items:center; gap:6px;
+            background:rgba(42,139,187,0.1); border:1px solid rgba(42,139,187,0.25);
+            color:#1a5a8c; border-radius:30px; padding:5px 14px;
+            font-size:.8rem; font-weight:700; margin-bottom:18px;
         }
 
-        /* Logo en el login */
-        .logo-header {
+        /* Usuario preview box */
+        .usuario-preview {
+            display:none; background:rgba(42,139,187,0.08); border:1px solid rgba(42,139,187,0.25);
+            border-radius:14px; padding:10px 16px; margin-bottom:14px; text-align:left;
+        }
+        .usuario-preview p { font-size:.78rem; color:#4b6e8a; font-weight:600; margin-bottom:2px; }
+        .usuario-preview strong { font-size:.98rem; color:#1a3a5c; letter-spacing:.3px; }
+        .usuario-preview small  { font-size:.75rem; color:#5c8bb0; display:block; margin-top:3px; }
+
+        /* Green submit */
+        .btn-submit-green {
+            background:linear-gradient(135deg,#298552,#1e6b40) !important;
+            box-shadow:0 4px 16px rgba(41,133,82,0.3) !important;
+        }
+        .btn-submit-green:hover { box-shadow:0 8px 24px rgba(41,133,82,0.45) !important; }
+
+        /* ── Role Selector Segmented Control ── */
+        .role-selector {
+            display: flex;
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 22px;
+            position: relative;
+        }
+        .role-tab {
+            flex: 1;
+            border: none;
+            background: none;
+            padding: 11px 16px;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #4b6e8a;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 80px; height: 80px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            margin-bottom: 20px;
-            border: 1px solid rgba(14, 165, 233, 0.2);
-            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.15);
+            gap: 8px;
+            z-index: 2;
         }
-        .logo-header img {
-            width: 54px; height: 54px;
-            object-fit: contain;
-        }
-
-        .login-title {
-            font-size: 1.6rem;
-            font-weight: 800;
+        .role-tab:hover {
             color: #1a3a5c;
-            letter-spacing: -.5px;
-            margin-bottom: 6px;
         }
-        .login-subtitle {
-            font-size: 0.88rem;
-            color: #4b6e8a;
-            margin-bottom: 28px;
-        }
-
-        /* Formulario */
-        .form-group {
-            position: relative;
-            margin-bottom: 18px;
-            text-align: left;
-        }
-        .form-label {
-            display: block;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #2c4a6f;
-            margin-bottom: 6px;
-            padding-left: 4px;
-        }
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .input-wrapper i {
-            position: absolute;
-            left: 16px;
-            color: #5c8bb0;
-            font-size: 1rem;
-        }
-        .form-input {
-            width: 100%;
-            padding: 13px 16px 13px 44px;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.65);
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
-            color: #1a3a5c;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        .form-input:focus {
-            background: #fff;
-            border-color: #3b9d69;
-            box-shadow: 0 0 0 3px rgba(59, 157, 105, 0.15);
-        }
-
-        /* Mensajes de error */
-        .error-alert {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            color: #b91c1c;
-            padding: 12px 16px;
-            border-radius: 14px;
-            font-size: 0.88rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        /* Botón de envío */
-        .btn-submit {
-            width: 100%;
-            padding: 13px;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
-            cursor: pointer;
-            border: none;
-            background: linear-gradient(135deg, #3f9d69, #298552);
+        .role-tab.active {
             color: #fff;
-            box-shadow: 0 4px 16px rgba(41, 133, 82, 0.3);
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(41, 133, 82, 0.45);
-        }
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-
-        /* Botón de volver */
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 24px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #4b6e8a;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        .btn-back:hover {
-            color: #1a3a5c;
+            background: linear-gradient(135deg, #45a2d8, #2a8bbb);
+            box-shadow: 0 4px 12px rgba(42, 139, 187, 0.25);
         }
     </style>
 </head>
@@ -212,51 +230,290 @@
         <div class="wave-light wl1"></div>
         <div class="wave-light wl2"></div>
         <div class="wave-light wl3"></div>
+        <div class="wave-light wl4"></div>
     </div>
     <div class="sparkle sp1">✦</div>
     <div class="sparkle sp2">✦</div>
     <div class="sparkle sp3">✦</div>
     <div class="sparkle sp4">✦</div>
 
-    <!-- Contenedor del Login -->
+    <!-- Login Card -->
     <div class="login-container">
-        <div class="logo-header">
+        <div class="logo-container-login">
             <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" alt="GO-A Logo">
         </div>
         <h2 class="login-title">Acceso Docente</h2>
         <p class="login-subtitle">Ingresa tus credenciales para administrar la clase</p>
 
         {% if error %}
-        <div class="error-alert">
+        <div class="alert-box alert-error">
             <i class="fa-solid fa-triangle-exclamation"></i>
             <span>{{ error }}</span>
         </div>
         {% endif %}
 
-        <form action="{{ url_for('login') }}" method="POST">
-            <div class="form-group">
-                <label class="form-label" for="email">Correo Electrónico</label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input class="form-input" type="email" id="email" name="email" required placeholder="correo@ejemplo.com" value="{{ request.form.get('email', '') }}">
-                </div>
+        <form action="{{ url_for('login') }}" method="POST" id="login-form">
+            <!-- Selector de Roles -->
+            <div class="role-selector">
+                <button type="button" class="role-tab active" data-role="docente">
+                    <i class="fa-solid fa-chalkboard-user"></i> Docente
+                </button>
+                <button type="button" class="role-tab" data-role="admin">
+                    <i class="fa-solid fa-user-shield"></i> Administrador
+                </button>
             </div>
+            <input type="hidden" name="role" id="login-role" value="{{ request.form.get('role', 'docente') }}">
 
+            <div class="form-group">
+                <label class="form-label" for="usuario">Usuario</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user"></i>
+                    <input class="form-input" type="text" id="usuario" name="usuario" required
+                           autocomplete="username"
+                           placeholder="nombre.profesor"
+                           value="{{ request.form.get('usuario', '') }}">
+                </div>
+                <span class="usuario-chip" style="font-size:.75rem; color:#7a9bb8; background:transparent; border:none; padding:3px 4px;">
+                    <i class="fa-solid fa-circle-info" style="font-size:.7rem;"></i> Formato: <strong>nombre.apellido.profesor</strong>
+                </span>
+            </div>
             <div class="form-group">
                 <label class="form-label" for="password">Contraseña</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-lock"></i>
-                    <input class="form-input" type="password" id="password" name="password" required placeholder="Introduce tu contraseña">
+                    <input class="form-input" type="password" id="password" name="password" required
+                           autocomplete="current-password" placeholder="Introduce tu contraseña">
                 </div>
             </div>
-
-            <button type="submit" class="btn-submit">Entrar al Panel</button>
+            <button type="submit" class="btn-submit">
+                <i class="fa-solid fa-right-to-bracket"></i> Entrar al Panel
+            </button>
         </form>
+
+        <div class="divider">¿Eres nuevo aquí?</div>
+        <button class="btn-register" onclick="openRegisterModal()">
+            <i class="fa-solid fa-user-plus"></i> Registrarse como Docente
+        </button>
 
         <a href="{{ url_for('index') }}" class="btn-back">
             <i class="fa-solid fa-arrow-left"></i> Volver al Portal
         </a>
     </div>
+
+    <!-- Modal de Registro -->
+    <div class="modal-overlay" id="register-modal" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeRegisterModal()" aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <h3 class="modal-title">Registro de Docente</h3>
+            <p class="modal-subtitle">Tu usuario se genera automáticamente a partir de tu nombre</p>
+
+            <div class="cupo-badge" id="cupo-badge">
+                <i class="fa-solid fa-users"></i>
+                <span id="cupo-text">Verificando cupos...</span>
+            </div>
+
+            <div id="reg-alert" style="display:none;" class="alert-box"></div>
+
+            <!-- Preview del usuario generado -->
+            <div class="usuario-preview" id="usuario-preview">
+                <p><i class="fa-solid fa-id-badge" style="color:#2a8bbb;font-size:.8rem;"></i> Tu usuario será:</p>
+                <strong id="usuario-generado"></strong>
+                <small>Usa este usuario para iniciar sesión</small>
+            </div>
+
+            <form id="register-form" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label" for="reg-nombre">Tu Nombre Completo</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input class="form-input" type="text" id="reg-nombre"
+                               placeholder="Ej. Laura Gómez" required oninput="previewUsuario()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-password">Contraseña</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input class="form-input" type="password" id="reg-password"
+                               placeholder="Mínimo 6 caracteres" required minlength="6">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="reg-nombre-publico">
+                        Nombre Visible para Estudiantes
+                        <span style="font-weight:400;color:#7a9bb8;">(opcional)</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-chalkboard-teacher"></i>
+                        <input class="form-input" type="text" id="reg-nombre-publico"
+                               placeholder="Ej. Profe Laura">
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit btn-submit-green" id="btn-reg-submit">
+                    <i class="fa-solid fa-user-check"></i> Crear Cuenta
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Role Selection Toggling
+        document.querySelectorAll('.role-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const role = tab.getAttribute('data-role');
+                document.getElementById('login-role').value = role;
+                
+                const title = document.querySelector('.login-title');
+                const subtitle = document.querySelector('.login-subtitle');
+                const divider = document.querySelector('.divider');
+                const btnRegister = document.querySelector('.btn-register');
+                const usuarioInput = document.getElementById('usuario');
+                const usuarioChip = document.querySelector('.usuario-chip');
+                
+                if (role === 'admin') {
+                    title.textContent = 'Acceso Administrador';
+                    subtitle.textContent = 'Ingresa tus credenciales para crear historias y administrar la base de datos';
+                    if (divider) divider.style.display = 'none';
+                    if (btnRegister) btnRegister.style.display = 'none';
+                    if (usuarioChip) usuarioChip.style.display = 'none';
+                    if (usuarioInput) {
+                        usuarioInput.placeholder = 'admin.goa';
+                    }
+                } else {
+                    title.textContent = 'Acceso Docente';
+                    subtitle.textContent = 'Ingresa tus credenciales para administrar la clase';
+                    if (divider) divider.style.display = 'flex';
+                    if (btnRegister) btnRegister.style.display = 'inline-flex';
+                    if (usuarioChip) usuarioChip.style.display = 'inline-block';
+                    if (usuarioInput) {
+                        usuarioInput.placeholder = 'nombre.profesor';
+                    }
+                }
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const role = document.getElementById('login-role').value;
+            if (role === 'admin') {
+                const adminTab = document.querySelector('.role-tab[data-role="admin"]');
+                if (adminTab) adminTab.click();
+            }
+        });
+
+        const MAX_PROFESORES = 5;
+
+        /* ── Normalise name → nombre.apellido.profesor ── */
+        function normalizeName(s) {
+            s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            s = s.toLowerCase().trim().replace(/[^a-z0-9 ]/g, '').replace(/ +/g, '.');
+            return s + '.profesor';
+        }
+
+        function previewUsuario() {
+            const nombre = document.getElementById('reg-nombre').value.trim();
+            const preview = document.getElementById('usuario-preview');
+            const gen     = document.getElementById('usuario-generado');
+            if (nombre.length > 1) {
+                gen.textContent = normalizeName(nombre);
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        async function fetchCupos() {
+            try {
+                const res  = await fetch('/api/cupos-docente');
+                const data = await res.json();
+                const badge = document.getElementById('cupo-badge');
+                const text  = document.getElementById('cupo-text');
+                const btn   = document.getElementById('btn-reg-submit');
+                if (data.total >= MAX_PROFESORES) {
+                    text.textContent = `Cupos llenos (${data.total}/${MAX_PROFESORES})`;
+                    badge.style.cssText = 'background:rgba(239,68,68,0.10);border-color:rgba(239,68,68,0.3);color:#b91c1c;display:inline-flex;align-items:center;gap:6px;border-radius:30px;padding:5px 14px;font-size:.8rem;font-weight:700;margin-bottom:18px;border-width:1px;border-style:solid;';
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-ban"></i> No hay cupos disponibles';
+                } else {
+                    const libres = MAX_PROFESORES - data.total;
+                    text.textContent = `${libres} cupo${libres !== 1 ? 's' : ''} disponible${libres !== 1 ? 's' : ''} (${data.total}/${MAX_PROFESORES})`;
+                }
+            } catch(e) {
+                document.getElementById('cupo-text').textContent = 'No se pudo verificar cupos';
+            }
+        }
+
+        function openRegisterModal() {
+            document.getElementById('register-modal').classList.add('open');
+            document.getElementById('reg-alert').style.display = 'none';
+            document.getElementById('usuario-preview').style.display = 'none';
+            fetchCupos();
+        }
+
+        function closeRegisterModal() {
+            document.getElementById('register-modal').classList.remove('open');
+        }
+
+        document.getElementById('register-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeRegisterModal();
+        });
+
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn    = document.getElementById('btn-reg-submit');
+            const alertEl= document.getElementById('reg-alert');
+            const nombre = document.getElementById('reg-nombre').value.trim();
+            const pass   = document.getElementById('reg-password').value.trim();
+            const pub    = document.getElementById('reg-nombre-publico').value.trim();
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Registrando...';
+            alertEl.style.display = 'none';
+
+            try {
+                const res  = await fetch('/api/registro-docente', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, password: pass, nombre_publico: pub || nombre })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    alertEl.className = 'alert-box alert-success';
+                    alertEl.innerHTML = `<i class="fa-solid fa-circle-check"></i>
+                        <div><strong>${data.message}</strong><br>
+                        <span style="font-size:.85rem;">Tu usuario: <code style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:6px;">${data.usuario}</code></span></div>`;
+                    alertEl.style.display = 'flex';
+                    document.getElementById('register-form').reset();
+                    document.getElementById('usuario-preview').style.display = 'none';
+                    // Pre-fill login after 2.5s
+                    setTimeout(() => {
+                        closeRegisterModal();
+                        document.getElementById('usuario').value = data.usuario;
+                        document.getElementById('password').focus();
+                    }, 2500);
+                } else {
+                    alertEl.className = 'alert-box alert-error';
+                    alertEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><span>${data.error}</span>`;
+                    alertEl.style.display = 'flex';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
+                    fetchCupos();
+                }
+            } catch(err) {
+                alertEl.className = 'alert-box alert-error';
+                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>Error de conexión. Intenta de nuevo.</span>';
+                alertEl.style.display = 'flex';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
+            }
+        });
+    </script>
 
 </body>
 </html>

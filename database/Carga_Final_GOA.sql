@@ -14,10 +14,11 @@ DROP TABLE IF EXISTS `sesiones`;
 DROP TABLE IF EXISTS `profesores`;
 CREATE TABLE `profesores` (
   `id_profesor` int NOT NULL AUTO_INCREMENT,
-  `nombre` varchar(100) NOT NULL,
-  `email` varchar(100) NOT NULL,
+  `nombre` varchar(100) DEFAULT NULL,
+  `username` varchar(100) NOT NULL,
+  `contrasena` varchar(100) NOT NULL,
   PRIMARY KEY (`id_profesor`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
