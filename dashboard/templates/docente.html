@@ -18,13 +18,13 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-top: 24px;
+            gap: 8px;
+            margin-top: 10px;
             flex-grow: 1;
         }
 
         .sidebar-menu li {
-            padding: 14px 18px;
+            padding: 14px 20px;
             border-radius: 14px;
             background-color: rgba(255, 255, 255, 0.35);
             border: 1px solid rgba(255, 255, 255, 0.45);
@@ -32,7 +32,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: var(--text-primary);
             transition: var(--transition-smooth);
@@ -62,6 +62,11 @@
             border-color: rgba(239, 68, 68, 0.35);
             color: #991b1b;
             transform: translateX(4px);
+        }
+
+        #menu-story-creator, #menu-teachers {
+            padding: 12px 18px;
+            font-size: 14.5px;
         }
 
         /* Collapsible Sidebar Styles */
@@ -741,19 +746,18 @@
     <div class="app-container">
          <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="logo-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; margin-bottom: 24px; overflow: visible; width: 100%;">
+            <div class="logo-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; margin-bottom: 12px; overflow: visible; width: 100%;">
                 <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" alt="GO-A Logo" class="sidebar-logo" 
                      style="width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.7); box-shadow: 0 8px 24px rgba(42, 139, 187, 0.2); filter: drop-shadow(0 6px 16px rgba(42, 139, 187, 0.15)); flex-shrink: 0; margin: 0 auto; display: block; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;"
                      onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(255,255,255,1)'; this.style.boxShadow='0 12px 32px rgba(42,139,187,0.3)';"
                      onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.boxShadow='0 8px 24px rgba(42, 139, 187, 0.2)';"
                      onclick="toggleSidebar();">
                 <div class="logo-text" style="display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; width: 100%;">
-                    <h1 style="font-size: 22px; font-weight: 800; line-height: 1.2; color: #1a3a5c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{% if is_admin %}GOA ADMIN{% else %}GOA Docente{% endif %}</h1>
-                    <span style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ session.get('profesor_nombre_publico', 'Docente') }}</span>
+                    <h1 style="font-size: 18px; font-weight: 600; line-height: 1.2; color: #1a3a5c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{% if is_admin %}GOA ADMIN{% else %}GOA Docente{% endif %}</h1>
+                    <span style="font-size: 11px; color: var(--text-muted); font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ session.get('profesor_nombre_publico', 'Docente') }}</span>
                 </div>
             </div>
             
-            <div class="section-title"><i class="fa-solid fa-bars"></i> {% if is_admin %}Menú Administrador{% else %}Menú Docente{% endif %}</div>
             <ul class="sidebar-menu">
                 <li id="menu-generate" class="active"><i class="fa-solid fa-key"></i> {% if is_admin %}Visualizar Códigos{% else %}Generar Códigos{% endif %}</li>
                 <li id="menu-history"><i class="fa-solid fa-clock-rotate-left"></i> Historial de Partidas</li>
@@ -762,16 +766,16 @@
                 <li id="menu-story-creator"><i class="fa-solid fa-feather-pointed" style="color: #298552;"></i> Creador de Historias</li>
                 <li id="menu-teachers"><i class="fa-solid fa-users-gear" style="color: #2a8bbb;"></i> Gestión de Profesores</li>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" style="text-decoration: none; display: block; margin-top: auto;">
+                <a href="{{ url_for('logout') }}" style="text-decoration: none; display: block;">
                     <li class="logout-item" style="margin-top: 0;">
                         <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
                     </li>
                 </a>
             </ul>
 
-            <div class="sidebar-footer" style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 16px;">
-                <div class="connection-status">
-                    <span class="status-indicator"></span>
+            <div class="sidebar-footer" style="border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 8px;">
+                <div class="connection-status" style="font-size: 11px; opacity: 0.75; font-weight: 400; letter-spacing: 0.2px;">
+                    <span class="status-indicator" style="width: 7px; height: 7px;"></span>
                     <span>{{ 'Administrador' if is_admin else 'Docente' }} Conectado</span>
                 </div>
             </div>
@@ -1174,44 +1178,44 @@
                                     <!-- Opción 1 -->
                                     <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
                                         <div class="form-group">
-                                            <label style="color: #298552;">Opción A (1):</label>
-                                            <input type="text" id="wizard-q{{ i }}-opt1" class="form-control" placeholder="Texto de la opción A">
+                                            <label style="color: #298552;">Opción 1:</label>
+                                            <input type="text" id="wizard-q{{ i }}-opt1" class="form-control" placeholder="Texto de la opción 1">
                                         </div>
                                         <div class="form-group" style="margin-top: 8px;">
-                                            <label>Feedback Opción A:</label>
+                                            <label>Feedback Opción 1:</label>
                                             <input type="text" id="wizard-q{{ i }}-fb1" class="form-control" placeholder="Feedback si eligen esta opción">
                                         </div>
                                     </div>
                                     <!-- Opción 2 -->
                                     <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
                                         <div class="form-group">
-                                            <label style="color: #be123c;">Opción B (2):</label>
-                                            <input type="text" id="wizard-q{{ i }}-opt2" class="form-control" placeholder="Texto de la opción B">
+                                            <label style="color: #be123c;">Opción 2:</label>
+                                            <input type="text" id="wizard-q{{ i }}-opt2" class="form-control" placeholder="Texto de la opción 2">
                                         </div>
                                         <div class="form-group" style="margin-top: 8px;">
-                                            <label>Feedback Opción B:</label>
+                                            <label>Feedback Opción 2:</label>
                                             <input type="text" id="wizard-q{{ i }}-fb2" class="form-control" placeholder="Feedback si eligen esta opción">
                                         </div>
                                     </div>
                                     <!-- Opción 3 -->
                                     <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
                                         <div class="form-group">
-                                            <label style="color: #d97706;">Opción C (3):</label>
-                                            <input type="text" id="wizard-q{{ i }}-opt3" class="form-control" placeholder="Texto de la opción C">
+                                            <label style="color: #d97706;">Opción 3:</label>
+                                            <input type="text" id="wizard-q{{ i }}-opt3" class="form-control" placeholder="Texto de la opción 3">
                                         </div>
                                         <div class="form-group" style="margin-top: 8px;">
-                                            <label>Feedback Opción C:</label>
+                                            <label>Feedback Opción 3:</label>
                                             <input type="text" id="wizard-q{{ i }}-fb3" class="form-control" placeholder="Feedback si eligen esta opción">
                                         </div>
                                     </div>
                                     <!-- Opción 4 -->
                                     <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
                                         <div class="form-group">
-                                            <label style="color: #6b7280;">Opción D (4):</label>
-                                            <input type="text" id="wizard-q{{ i }}-opt4" class="form-control" placeholder="Texto de la opción D">
+                                            <label style="color: #6b7280;">Opción 4:</label>
+                                            <input type="text" id="wizard-q{{ i }}-opt4" class="form-control" placeholder="Texto de la opción 4">
                                         </div>
                                         <div class="form-group" style="margin-top: 8px;">
-                                            <label>Feedback Opción D:</label>
+                                            <label>Feedback Opción 4:</label>
                                             <input type="text" id="wizard-q{{ i }}-fb4" class="form-control" placeholder="Feedback si eligen esta opción">
                                         </div>
                                     </div>
@@ -1220,10 +1224,10 @@
                                 <div class="form-group" style="width: 250px; margin-top: 8px; margin-bottom: 0;">
                                     <label style="font-weight: 800; color: #1a3a5c;">Respuesta Correcta:</label>
                                     <select id="wizard-q{{ i }}-correct" class="form-control" style="font-weight: 700;">
-                                        <option value="1">Opción A (1)</option>
-                                        <option value="2">Opción B (2)</option>
-                                        <option value="3">Opción C (3)</option>
-                                        <option value="4">Opción D (4)</option>
+                                        <option value="1">Opción 1</option>
+                                        <option value="2">Opción 2</option>
+                                        <option value="3">Opción 3</option>
+                                        <option value="4">Opción 4</option>
                                     </select>
                                 </div>
                             </div>
@@ -1255,42 +1259,42 @@
 
                                 <!-- Opciones y Feedbacks (3 opciones para la historia) -->
                                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    <!-- Opción A (1) -->
+                                    <!-- Opción 1 -->
                                     <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
                                         <div class="form-row">
                                             <div class="form-group">
-                                                <label style="color: #298552;">Decisión A (1):</label>
-                                                <input type="text" id="wizard-node{{ i }}-opt1" class="form-control" placeholder="Texto de la decisión A">
+                                                <label style="color: #298552;">Decisión 1:</label>
+                                                <input type="text" id="wizard-node{{ i }}-opt1" class="form-control" placeholder="Texto de la decisión 1">
                                             </div>
                                             <div class="form-group">
-                                                <label>Feedback Decisión A:</label>
-                                                <input type="text" id="wizard-node{{ i }}-fb1" class="form-control" placeholder="Feedback/Consecuencia de la decisión A">
+                                                <label>Feedback Decisión 1:</label>
+                                                <input type="text" id="wizard-node{{ i }}-fb1" class="form-control" placeholder="Feedback/Consecuencia de la decisión 1">
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Opción B (2) -->
+                                    <!-- Opción 2 -->
                                     <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
                                         <div class="form-row">
                                             <div class="form-group">
-                                                <label style="color: #be123c;">Decisión B (2):</label>
-                                                <input type="text" id="wizard-node{{ i }}-opt2" class="form-control" placeholder="Texto de la decisión B">
+                                                <label style="color: #be123c;">Decisión 2:</label>
+                                                <input type="text" id="wizard-node{{ i }}-opt2" class="form-control" placeholder="Texto de la decisión 2">
                                             </div>
                                             <div class="form-group">
-                                                <label>Feedback Decisión B:</label>
-                                                <input type="text" id="wizard-node{{ i }}-fb2" class="form-control" placeholder="Feedback/Consecuencia de la decisión B">
+                                                <label>Feedback Decisión 2:</label>
+                                                <input type="text" id="wizard-node{{ i }}-fb2" class="form-control" placeholder="Feedback/Consecuencia de la decisión 2">
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Opción C (3) -->
+                                    <!-- Opción 3 -->
                                     <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 12px;">
                                         <div class="form-row">
                                             <div class="form-group">
-                                                <label style="color: #d97706;">Decisión C (3):</label>
-                                                <input type="text" id="wizard-node{{ i }}-opt3" class="form-control" placeholder="Texto de la decisión C">
+                                                <label style="color: #d97706;">Decisión 3:</label>
+                                                <input type="text" id="wizard-node{{ i }}-opt3" class="form-control" placeholder="Texto de la decisión 3">
                                             </div>
                                             <div class="form-group">
-                                                <label>Feedback Decisión C:</label>
-                                                <input type="text" id="wizard-node{{ i }}-fb3" class="form-control" placeholder="Feedback/Consecuencia de la decisión C">
+                                                <label>Feedback Decisión 3:</label>
+                                                <input type="text" id="wizard-node{{ i }}-fb3" class="form-control" placeholder="Feedback/Consecuencia de la decisión 3">
                                             </div>
                                         </div>
                                     </div>
@@ -1299,9 +1303,9 @@
                                 <div class="form-group" style="width: 250px; margin-top: 8px; margin-bottom: 0;">
                                     <label style="font-weight: 800; color: #1a3a5c;">Decisión Correcta:</label>
                                     <select id="wizard-node{{ i }}-correct" class="form-control" style="font-weight: 700;">
-                                        <option value="1">Decisión A (1)</option>
-                                        <option value="2">Decisión B (2)</option>
-                                        <option value="3">Decisión C (3)</option>
+                                        <option value="1">Decisión 1</option>
+                                        <option value="2">Decisión 2</option>
+                                        <option value="3">Decisión 3</option>
                                     </select>
                                 </div>
                             </div>
@@ -2577,7 +2581,9 @@
         }
 
         sidebarToggle.addEventListener('click', toggleSidebar);
-        sectionTitle.addEventListener('click', toggleSidebar);
+        if (sectionTitle) {
+            sectionTitle.addEventListener('click', toggleSidebar);
+        }
 
         // Teacher Management AJAX Loader
         async function loadTeachers() {

@@ -2031,7 +2031,7 @@
 
             options = shuffleArray(options);
             options.forEach((o, index) => {
-                o.letter = String.fromCharCode(65 + index); // A, B, C, D
+                o.letter = index + 1; // 1, 2, 3, 4
             });
 
             // Render container html
@@ -2115,7 +2115,7 @@
 
             options = shuffleArray(options);
             options.forEach((o, index) => {
-                o.letter = String.fromCharCode(65 + index); // A, B, C
+                o.letter = index + 1; // 1, 2, 3
             });
 
             // Trigger Typewriter text animation

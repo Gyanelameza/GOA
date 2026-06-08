@@ -1024,8 +1024,14 @@ def admin_eliminar_docente(id_docente):
         # 4. Delete professor
         cursor.execute("DELETE FROM profesores WHERE id_profesor = %s;", (id_docente,))
         
+        # 5. Shift down IDs of remaining professors with higher IDs
+        cursor.execute("UPDATE profesores SET id_profesor = id_profesor - 1 WHERE id_profesor > %s;", (id_docente,))
+        
+        # 6. Reset autoincrement sequence to prevent ID gaps when inserting next
+        cursor.execute("SELECT setval(pg_get_serial_sequence('profesores', 'id_profesor'), COALESCE((SELECT MAX(id_profesor) FROM profesores), 1));")
+        
         connection.commit()
-        return jsonify({'success': True, 'message': 'El docente y todos sus códigos/partidas asociados han sido eliminados con éxito.'})
+        return jsonify({'success': True, 'message': 'El docente ha sido eliminado con éxito, las posiciones de los demás docentes se han ajustado, y sus códigos/partidas asociados se han transferido o eliminado.'})
     except Exception as e:
         connection.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1184,6 +1190,46 @@ def admin_obtener_bloque(bloque):
         cursor.close()
         connection.close()
 
+def reindex_questions_and_nodes(cursor):
+    # 1. Re-index material_estudio
+    cursor.execute("SELECT id_material, bloque, contenido FROM material_estudio ORDER BY bloque, id_material;")
+    materials = cursor.fetchall()
+    cursor.execute("TRUNCATE TABLE material_estudio RESTART IDENTITY CASCADE;")
+    for _, bloque, contenido in materials:
+        cursor.execute("INSERT INTO material_estudio (bloque, contenido) VALUES (%s, %s);", (bloque, contenido))
+
+    # 2. Re-index banco_preguntas
+    cursor.execute("""
+        SELECT id_pregunta, bloque, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
+               opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta 
+        FROM banco_preguntas 
+        ORDER BY bloque, id_pregunta;
+    """)
+    questions = cursor.fetchall()
+    cursor.execute("TRUNCATE TABLE banco_preguntas RESTART IDENTITY CASCADE;")
+    for q in questions:
+        cursor.execute("""
+            INSERT INTO banco_preguntas (bloque, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
+                                        opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """, q[1:])
+        
+    # 3. Re-index historia_interactiva
+    cursor.execute("""
+        SELECT id_nodo, bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
+               opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta 
+        FROM historia_interactiva 
+        ORDER BY bloque, id_nodo;
+    """)
+    nodes = cursor.fetchall()
+    cursor.execute("TRUNCATE TABLE historia_interactiva RESTART IDENTITY CASCADE;")
+    for n in nodes:
+        cursor.execute("""
+            INSERT INTO historia_interactiva (bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
+                                             opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """, n[1:])
+
 @app.route('/api/admin/guardar-bloque', methods=['POST'])
 @admin_required
 def admin_guardar_bloque():
@@ -1315,8 +1361,11 @@ def admin_guardar_bloque():
                 correct_ans.strip()
             ))
             
+        # Re-index questions and nodes to make sure there are no gaps
+        reindex_questions_and_nodes(cursor)
+        
         connection.commit()
-        return jsonify({'success': True, 'message': f'¡El contenido del Bloque {bloque} ha sido actualizado con éxito!'})
+        return jsonify({'success': True, 'message': f'¡El contenido del Bloque {bloque} ha sido actualizado con éxito y las preguntas/historias han sido reordenadas en cascada!'})
     except Exception as e:
         connection.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1340,8 +1389,17 @@ def admin_eliminar_bloque(bloque):
         # Delete results associated with this block to keep database clean
         cursor.execute("DELETE FROM resultados_estudiantes WHERE bloque = %s;", (bloque,))
         
+        # Shift down block numbers for any block > deleted block
+        cursor.execute("UPDATE material_estudio SET bloque = bloque - 1 WHERE bloque > %s;", (bloque,))
+        cursor.execute("UPDATE banco_preguntas SET bloque = bloque - 1 WHERE bloque > %s;", (bloque,))
+        cursor.execute("UPDATE historia_interactiva SET bloque = bloque - 1 WHERE bloque > %s;", (bloque,))
+        cursor.execute("UPDATE resultados_estudiantes SET bloque = bloque - 1 WHERE bloque > %s;", (bloque,))
+        
+        # Re-index questions and nodes to make sure there are no gaps
+        reindex_questions_and_nodes(cursor)
+        
         connection.commit()
-        return jsonify({'success': True, 'message': f'¡El Bloque {bloque} ha sido eliminado con éxito!'})
+        return jsonify({'success': True, 'message': f'¡El Bloque {bloque} ha sido eliminado con éxito y los números de los siguientes bloques y preguntas se han ajustado!'})
     except Exception as e:
         connection.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
