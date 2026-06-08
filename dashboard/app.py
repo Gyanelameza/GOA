@@ -104,57 +104,70 @@ def login():
             error = "Por favor, llene todos los campos."
         else:
             if role == 'admin':
-                if email.lower() in ['admin', 'admin.goa'] and password in ['admin', 'AdminGOA', 'goa2026']:
-                    connection = get_db_connection()
-                    if not connection:
-                        error = "No se pudo conectar a la base de datos."
-                    else:
-                        cursor = connection.cursor()
-                        try:
-                            cursor.execute("SELECT id_profesor, contrasena, username FROM profesores WHERE username = %s;", ('admin.goa',))
-                            admin_row = cursor.fetchone()
-                            if not admin_row:
-                                cursor.execute(
-                                    "INSERT INTO profesores (contrasena, username, nombre) VALUES (%s, %s, %s) RETURNING id_profesor;",
-                                    ('admin', 'admin.goa', 'Administrador')
-                                )
-                                admin_id = cursor.fetchone()[0]
-                                connection.commit()
-                            else:
-                                admin_id = admin_row[0]
-                                
-                            session['profesor_id'] = admin_id
-                            session['profesor_nombre'] = 'Administrador'
-                            session['profesor_email'] = 'admin.goa'
-                            session['profesor_nombre_publico'] = 'Administrador'
-                            session['admin_logged_in'] = True
-                            
-                            if request.is_json:
-                                return jsonify({'success': True, 'redirect': url_for('docente_panel')})
-                            return redirect(url_for('docente_panel'))
-                        except Exception as e:
-                            if connection:
-                                connection.rollback()
-                            error = f"Error al iniciar sesión de administrador: {str(e)}"
-                        finally:
-                            cursor.close()
-                            connection.close()
-                else:
-                    error = "Usuario o contraseña de administrador incorrectos."
-            else:
+                # Map admin to admin.goa
+                admin_username = 'admin.goa' if email.lower() in ['admin', 'admin.goa'] else email.lower()
                 connection = get_db_connection()
                 if not connection:
                     error = "No se pudo conectar a la base de datos."
                 else:
                     cursor = connection.cursor()
                     try:
-                        cursor.execute("SELECT id_profesor, contrasena, username, nombre FROM profesores WHERE username = %s AND contrasena = %s;", (email, password))
+                        cursor.execute("SELECT id_profesor, contrasena, username, nombre FROM profesores WHERE username = %s;", (admin_username,))
+                        admin_row = cursor.fetchone()
+                        
+                        # Check if it is the admin user
+                        if admin_username == 'admin.goa':
+                            if not admin_row:
+                                # Create default admin entry in database if it doesn't exist
+                                cursor.execute(
+                                    "INSERT INTO profesores (contrasena, username, nombre) VALUES (%s, %s, %s) RETURNING id_profesor, contrasena, username, nombre;",
+                                    ('admin', 'admin.goa', 'Administrador')
+                                )
+                                admin_row = cursor.fetchone()
+                                connection.commit()
+                            
+                            # Validate password against database
+                            if admin_row[1] == password:
+                                session['profesor_id'] = admin_row[0]
+                                session['profesor_nombre'] = 'Administrador'
+                                session['profesor_email'] = admin_row[2]
+                                session['profesor_nombre_publico'] = admin_row[3] if (admin_row[3] and admin_row[3].strip()) else admin_row[2]
+                                session['admin_logged_in'] = True
+                                
+                                if request.is_json:
+                                    return jsonify({'success': True, 'redirect': url_for('docente_panel')})
+                                return redirect(url_for('docente_panel'))
+                            else:
+                                error = "Usuario o contraseña de administrador incorrectos."
+                        else:
+                            error = "El usuario ingresado no tiene privilegios de administrador."
+                    except Exception as e:
+                        if connection:
+                            connection.rollback()
+                        error = f"Error al iniciar sesión de administrador: {str(e)}"
+                    finally:
+                        cursor.close()
+                        connection.close()
+            else:
+                # Docente role
+                connection = get_db_connection()
+                if not connection:
+                    error = "No se pudo conectar a la base de datos."
+                else:
+                    cursor = connection.cursor()
+                    try:
+                        # Allow normal login, checking if it's admin logging in as docente
+                        target_username = 'admin.goa' if email.lower() in ['admin', 'admin.goa'] else email
+                        
+                        cursor.execute("SELECT id_profesor, contrasena, username, nombre FROM profesores WHERE username = %s AND contrasena = %s;", (target_username, password))
                         profesor = cursor.fetchone()
                         if profesor:
                             session['profesor_id'] = profesor[0]
                             session['profesor_nombre'] = profesor[1]
                             session['profesor_email'] = profesor[2]
                             session['profesor_nombre_publico'] = profesor[3] if (profesor[3] and profesor[3].strip()) else profesor[2]
+                            session['admin_logged_in'] = False  # Logged in as teacher
+                            
                             if request.is_json:
                                 return jsonify({'success': True, 'redirect': url_for('docente_panel')})
                             return redirect(url_for('docente_panel'))
@@ -556,18 +569,17 @@ def docente_panel():
             })
         # Obtener bloques dinámicos
         bloques_map = obtener_info_bloques()
-        default_titles = {
-            1: 'Residuos y Reciclaje',
-            2: 'Agua y Alcantarillado',
-            3: 'Consumo y Energía',
-            4: 'Liderazgo y Comunidad'
-        }
-        for b, title in list(bloques_map.items()):
-            if not title.startswith(f"Bloque {b}:"):
-                bloques_map[b] = f"Bloque {b}: {title}"
-        for b, title in default_titles.items():
-            if b not in bloques_map:
-                bloques_map[b] = f"Bloque {b}: {title}"
+        if not bloques_map:
+            bloques_map = {
+                1: 'Bloque 1: Residuos y Reciclaje',
+                2: 'Bloque 2: Agua y Alcantarillado',
+                3: 'Bloque 3: Consumo y Energía',
+                4: 'Bloque 4: Liderazgo y Comunidad'
+            }
+        else:
+            for b, title in list(bloques_map.items()):
+                if not title.startswith(f"Bloque {b}:"):
+                    bloques_map[b] = f"Bloque {b}: {title}"
                 
         bloques_list = [{'id': b, 'titulo': t.replace(f"Bloque {b}:", "").strip()} for b, t in sorted(bloques_map.items())]
             
@@ -652,6 +664,9 @@ def cambiar_password():
 @app.route('/api/docente/generar-codigo', methods=['POST'])
 @docente_required
 def generar_codigo():
+    if session.get('admin_logged_in'):
+        return jsonify({'error': 'Los administradores no pueden generar códigos de acceso.'}), 403
+        
     profesor_id = session.get('profesor_id')
     connection = get_db_connection()
     if not connection:
@@ -897,21 +912,141 @@ def eliminar_partida():
         cursor.close()
         connection.close()
 
+@app.route('/api/admin/profesores', methods=['GET'])
+@admin_required
+def admin_list_profesores():
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+    cursor = connection.cursor()
+    try:
+        cursor.execute("""
+            SELECT 
+                p.id_profesor, 
+                p.username, 
+                p.contrasena, 
+                p.nombre,
+                (SELECT COUNT(*) FROM sesiones s WHERE s.id_profesor = p.id_profesor) as total_codigos,
+                (SELECT COUNT(*) FROM resultados_estudiantes re JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso WHERE s.id_profesor = p.id_profesor) as total_partidas
+            FROM profesores p
+            ORDER BY p.id_profesor;
+        """)
+        rows = cursor.fetchall()
+        profesores = []
+        for r in rows:
+            profesores.append({
+                'id_profesor': r[0],
+                'username': r[1],
+                'contrasena': r[2],
+                'nombre': r[3],
+                'total_codigos': r[4],
+                'total_partidas': r[5]
+            })
+        return jsonify({'success': True, 'profesores': profesores})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/admin/profesor/<int:id_profesor>/detalles', methods=['GET'])
+@admin_required
+def admin_profesor_detalles(id_profesor):
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+    cursor = connection.cursor()
+    try:
+        # Fetch teacher details
+        cursor.execute("SELECT username, nombre FROM profesores WHERE id_profesor = %s;", (id_profesor,))
+        prof_row = cursor.fetchone()
+        if not prof_row:
+            return jsonify({'success': False, 'error': 'Docente no encontrado.'}), 404
+            
+        # Fetch sessions (codes)
+        cursor.execute("SELECT codigo_acceso FROM sesiones WHERE id_profesor = %s ORDER BY codigo_acceso;", (id_profesor,))
+        codes_rows = cursor.fetchall()
+        
+        codigos_list = []
+        for c_row in codes_rows:
+            codigo = c_row[0]
+            # Fetch unique students who played this code
+            cursor.execute("SELECT DISTINCT nombre_alumno FROM resultados_estudiantes WHERE codigo_acceso = %s ORDER BY nombre_alumno;", (codigo,))
+            students = [s[0] for s in cursor.fetchall()]
+            codigos_list.append({
+                'codigo': codigo,
+                'alumnos': students
+            })
+            
+        return jsonify({
+            'success': True,
+            'nombre': prof_row[1],
+            'username': prof_row[0],
+            'codigos': codigos_list
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/admin/eliminar-docente/<int:id_docente>', methods=['DELETE'])
+@admin_required
+def admin_eliminar_docente(id_docente):
+    current_admin_id = session.get('profesor_id')
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+    cursor = connection.cursor()
+    try:
+        # Check that we aren't trying to delete the active admin
+        if id_docente == current_admin_id:
+            return jsonify({'success': False, 'error': 'No puedes eliminar tu propia cuenta de administrador activa.'}), 400
+            
+        cursor.execute("SELECT username FROM profesores WHERE id_profesor = %s;", (id_docente,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'success': False, 'error': 'Docente no encontrado.'}), 404
+        if row[0].lower() == 'admin.goa':
+            return jsonify({'success': False, 'error': 'No se permite eliminar la cuenta de administrador principal.'}), 400
+
+        # Delete cascading:
+        # 1. Fetch sessions
+        cursor.execute("SELECT codigo_acceso FROM sesiones WHERE id_profesor = %s;", (id_docente,))
+        codigos = [c[0] for c in cursor.fetchall()]
+        
+        if codigos:
+            # 2. Delete results
+            cursor.execute("DELETE FROM resultados_estudiantes WHERE codigo_acceso = ANY(%s);", (codigos,))
+            # 3. Delete sessions
+            cursor.execute("DELETE FROM sesiones WHERE id_profesor = %s;", (id_docente,))
+        
+        # 4. Delete professor
+        cursor.execute("DELETE FROM profesores WHERE id_profesor = %s;", (id_docente,))
+        
+        connection.commit()
+        return jsonify({'success': True, 'message': 'El docente y todos sus códigos/partidas asociados han sido eliminados con éxito.'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
 @app.route('/api/admin/bloques', methods=['GET'])
 @admin_required
 def admin_list_bloques():
     info = obtener_info_bloques()
     list_bloques = [{'id': b, 'titulo': t.replace(f"Bloque {b}:", "").strip()} for b, t in sorted(info.items())]
-    # Asegurar que los bloques por defecto 1, 2, 3 y 4 siempre aparezcan
-    default_titles = {
-        1: 'Residuos y Reciclaje',
-        2: 'Agua y Alcantarillado',
-        3: 'Consumo y Energía',
-        4: 'Liderazgo y Comunidad'
-    }
-    existing_ids = {item['id'] for item in list_bloques}
-    for b, title in default_titles.items():
-        if b not in existing_ids:
+    if not list_bloques:
+        # Asegurar que los bloques por defecto 1, 2, 3 y 4 aparezcan si está vacío
+        default_titles = {
+            1: 'Residuos y Reciclaje',
+            2: 'Agua y Alcantarillado',
+            3: 'Consumo y Energía',
+            4: 'Liderazgo y Comunidad'
+        }
+        for b, title in default_titles.items():
             list_bloques.append({'id': b, 'titulo': title})
             
     list_bloques.sort(key=lambda x: x['id'])
@@ -1061,6 +1196,60 @@ def admin_guardar_bloque():
     
     if not bloque:
         return jsonify({'success': False, 'error': 'Falta el número de bloque.'}), 400
+    if not block_title:
+        return jsonify({'success': False, 'error': 'El título del bloque no puede estar vacío.'}), 400
+        
+    # Validar Notas
+    note1_title = notes.get('note1_title', '').strip()
+    note1_text = notes.get('note1_text', '').strip()
+    note2_title = notes.get('note2_title', '').strip()
+    note2_text = notes.get('note2_text', '').strip()
+    note3_title = notes.get('note3_title', '').strip()
+    note3_text = notes.get('note3_text', '').strip()
+    
+    if not note1_title or not note1_text or not note2_title or not note2_text or not note3_title or not note3_text:
+        return jsonify({'success': False, 'error': 'Todos los campos de las notas son obligatorios.'}), 400
+        
+    # Validar Preguntas (deben ser exactamente 5)
+    if len(preguntas) != 5:
+        return jsonify({'success': False, 'error': 'Se requieren exactamente 5 preguntas de evaluación.'}), 400
+        
+    for idx, q in enumerate(preguntas):
+        pregunta = q.get('pregunta', '').strip()
+        op1 = q.get('opcion_1', '').strip()
+        fb1 = q.get('feedback_1', '').strip()
+        op2 = q.get('opcion_2', '').strip()
+        fb2 = q.get('feedback_2', '').strip()
+        op3 = q.get('opcion_3', '').strip()
+        fb3 = q.get('feedback_3', '').strip()
+        op4 = q.get('opcion_4', '').strip()
+        fb4 = q.get('feedback_4', '').strip()
+        correcta = q.get('correcta', '').strip()
+        
+        if not pregunta or not op1 or not fb1 or not op2 or not fb2 or not op3 or not fb3 or not op4 or not fb4 or not correcta:
+            return jsonify({'success': False, 'error': f'Todos los campos son obligatorios. Falta completar datos en la pregunta {idx + 1}.'}), 400
+        if correcta not in ['1', '2', '3', '4']:
+            return jsonify({'success': False, 'error': f'La respuesta correcta de la pregunta {idx + 1} debe ser una opción válida (1, 2, 3 o 4).'}), 400
+            
+    # Validar Nudos (deben ser exactamente 3)
+    if len(nudos) != 3:
+        return jsonify({'success': False, 'error': 'Se requieren exactamente 3 nudos para la historia interactiva.'}), 400
+        
+    for idx, n in enumerate(nudos):
+        titulo = n.get('escena_titulo', '').strip()
+        contexto = n.get('texto_situacion', '').strip()
+        op1 = n.get('opcion_1', '').strip()
+        fb1 = n.get('feedback_1', '').strip()
+        op2 = n.get('opcion_2', '').strip()
+        fb2 = n.get('feedback_2', '').strip()
+        op3 = n.get('opcion_3', '').strip()
+        fb3 = n.get('feedback_3', '').strip()
+        correcta = n.get('correcta', '').strip()
+        
+        if not titulo or not contexto or not op1 or not fb1 or not op2 or not fb2 or not op3 or not fb3 or not correcta:
+            return jsonify({'success': False, 'error': f'Todos los campos son obligatorios. Falta completar datos en el nudo {idx + 1} de la historia.'}), 400
+        if correcta not in ['1', '2', '3']:
+            return jsonify({'success': False, 'error': f'La decisión correcta del nudo {idx + 1} debe ser una opción válida (1, 2 o 3).'}), 400
         
     connection = get_db_connection()
     if not connection:
@@ -1150,6 +1339,7 @@ def admin_eliminar_bloque(bloque):
         cursor.execute("DELETE FROM historia_interactiva WHERE bloque = %s;", (bloque,))
         # Delete results associated with this block to keep database clean
         cursor.execute("DELETE FROM resultados_estudiantes WHERE bloque = %s;", (bloque,))
+        
         connection.commit()
         return jsonify({'success': True, 'message': f'¡El Bloque {bloque} ha sido eliminado con éxito!'})
     except Exception as e:

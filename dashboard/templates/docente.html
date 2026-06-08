@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GO-A - Portal del Docente</title>
+    <title>GO-A - {% if is_admin %}Portal del Administrador{% else %}Portal del Docente{% endif %}</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -517,28 +517,211 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
         }
 
         .sub-card {
-            background: rgba(255, 255, 255, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 16px;
+            box-shadow: 0 8px 20px rgba(30, 90, 150, 0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .sub-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(30, 90, 150, 0.06);
         }
 
         .sub-card-title {
             font-size: 15px;
             font-weight: 800;
             color: #1a3a5c;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1.5px solid rgba(42, 139, 187, 0.15);
             padding-bottom: 8px;
             margin-bottom: 4px;
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        /* ── Styling for forms in Creador de Historias ── */
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #2c4a6f;
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.55);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            color: #1a3a5c;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .form-control:focus {
+            background: #ffffff;
+            border-color: #2a8bbb;
+            box-shadow: 0 0 0 4px rgba(42, 139, 187, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .form-control::placeholder {
+            color: #7a9bb8;
+            opacity: 0.7;
+        }
+
+        input.form-control {
+            height: 46px;
+        }
+
+        textarea.form-control {
+            height: 110px;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        select.form-control {
+            height: 46px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a8bbb' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 14px;
+            padding-right: 40px;
+        }
+
+        /* ── Custom Dialog Modal Styles ── */
+        .custom-dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 60, 90, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .custom-dialog-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .custom-dialog-card {
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            border-radius: 28px;
+            width: 90%;
+            max-width: 440px;
+            padding: 32px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 24px 64px rgba(30, 90, 150, 0.15);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+        }
+        .custom-dialog-overlay.show .custom-dialog-card {
+            transform: scale(1);
+        }
+        .custom-dialog-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .custom-dialog-icon.info {
+            background: rgba(42, 139, 187, 0.12);
+            color: #2a8bbb;
+            border: 1.5px solid rgba(42, 139, 187, 0.3);
+        }
+        .custom-dialog-icon.success {
+            background: rgba(41, 133, 82, 0.12);
+            color: #298552;
+            border: 1.5px solid rgba(41, 133, 82, 0.3);
+        }
+        .custom-dialog-icon.warning {
+            background: rgba(217, 119, 6, 0.12);
+            color: #d97706;
+            border: 1.5px solid rgba(217, 119, 6, 0.3);
+        }
+        .custom-dialog-icon.danger {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+            border: 1.5px solid rgba(239, 68, 68, 0.3);
+        }
+        .custom-dialog-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a3a5c;
+            line-height: 1.25;
+        }
+        .custom-dialog-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            line-height: 1.55;
+            margin: 0;
+        }
+        .custom-dialog-buttons {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .custom-dialog-buttons .btn {
+            flex: 1;
+            justify-content: center;
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            height: auto;
+        }
+        /* Estilos de validación */
+        .invalid-field {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15) !important;
+            background-color: rgba(239, 68, 68, 0.03) !important;
         }
     </style>
 </head>
@@ -565,18 +748,19 @@
                      onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.boxShadow='0 8px 24px rgba(42, 139, 187, 0.2)';"
                      onclick="toggleSidebar();">
                 <div class="logo-text" style="display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; width: 100%;">
-                    <h1 style="font-size: 22px; font-weight: 800; line-height: 1.2; color: #1a3a5c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">GOA Docente</h1>
+                    <h1 style="font-size: 22px; font-weight: 800; line-height: 1.2; color: #1a3a5c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{% if is_admin %}GOA ADMIN{% else %}GOA Docente{% endif %}</h1>
                     <span style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ session.get('profesor_nombre_publico', 'Docente') }}</span>
                 </div>
             </div>
             
-            <div class="section-title"><i class="fa-solid fa-bars"></i> Menú Docente</div>
+            <div class="section-title"><i class="fa-solid fa-bars"></i> {% if is_admin %}Menú Administrador{% else %}Menú Docente{% endif %}</div>
             <ul class="sidebar-menu">
-                <li id="menu-generate" class="active"><i class="fa-solid fa-key"></i> Generar Códigos</li>
+                <li id="menu-generate" class="active"><i class="fa-solid fa-key"></i> {% if is_admin %}Visualizar Códigos{% else %}Generar Códigos{% endif %}</li>
                 <li id="menu-history"><i class="fa-solid fa-clock-rotate-left"></i> Historial de Partidas</li>
                 <li id="menu-profile"><i class="fa-solid fa-user-gear"></i> Mi Perfil</li>
                 {% if is_admin %}
                 <li id="menu-story-creator"><i class="fa-solid fa-feather-pointed" style="color: #298552;"></i> Creador de Historias</li>
+                <li id="menu-teachers"><i class="fa-solid fa-users-gear" style="color: #2a8bbb;"></i> Gestión de Profesores</li>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" style="text-decoration: none; display: block; margin-top: auto;">
                     <li class="logout-item" style="margin-top: 0;">
@@ -604,8 +788,8 @@
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <div class="page-title">
-                    <h2 id="view-title" style="font-size: 24px;">Generar Códigos de Acceso</h2>
-                    <p id="view-desc">Administra el acceso a tus clases generando códigos de sesión aleatorios.</p>
+                    <h2 id="view-title" style="font-size: 24px;">{% if is_admin %}Visualizar Códigos de Acceso{% else %}Generar Códigos de Acceso{% endif %}</h2>
+                    <p id="view-desc">{% if is_admin %}Visualiza y elimina los códigos de acceso activos en el sistema.{% else %}Administra el acceso a tus clases generando códigos de sesión aleatorios.{% endif %}</p>
                 </div>
                 <button id="btn-refresh" class="btn btn-secondary" style="margin-left: auto; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); color: #1a3a5c; font-weight: 700; transition: all 0.2s ease;"
                         onmouseover="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.borderColor='#2a8bbb'; this.style.color='#2a8bbb'; this.style.transform='scale(1.05)';"
@@ -658,9 +842,11 @@
                     <div class="data-panel glass">
                         <div class="panel-header">
                             <h3><i class="fa-solid fa-key"></i> Lista de Códigos Activos</h3>
+                            {% if not is_admin %}
                             <button class="btn btn-primary" id="btn-generate-code">
                                 <i class="fa-solid fa-plus"></i> Generar Nuevo Código
                             </button>
+                            {% endif %}
                         </div>
                         <div class="content-body" style="padding: 24px 32px; min-height: auto;">
                             <!-- Flat grid of codes -->
@@ -748,11 +934,7 @@
                                             <td style="font-weight:700;">{{ h.alumno }}</td>
                                             <td><span class="code-badge" style="font-size:12px; background:rgba(30,90,150,0.08); border-color:rgba(30,90,150,0.2); color:var(--accent-indigo);">{{ h.codigo }}</span></td>
                                             <td style="font-weight:600; color:var(--text-secondary);">
-                                                {% if h.bloque == 1 %}Bloque 1: Residuos y Reciclaje
-                                                {% elif h.bloque == 2 %}Bloque 2: Agua y Alcantarillado
-                                                {% elif h.bloque == 3 %}Bloque 3: Consumo y Energía
-                                                {% elif h.bloque == 4 %}Bloque 4: Liderazgo y Comunidad
-                                                {% else %}Bloque {{ h.bloque }}{% endif %}
+                                                {{ bloques_map.get(h.bloque | string) or bloques_map.get(h.bloque) or 'Bloque ' ~ h.bloque }}
                                             </td>
                                             <td style="color:#298552; font-weight:700;"><i class="fa-solid fa-circle-check"></i> {{ h.correctas }}</td>
                                             <td style="color:#be123c; font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> {{ h.incorrectas }}</td>
@@ -1148,6 +1330,53 @@
                         <button class="btn btn-primary" id="btn-wizard-next">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
                     </div>
                 </div>
+
+                <!-- TAB 5: GESTIÓN DE PROFESORES -->
+                <div id="tab-teachers-content" class="tab-content" style="display: none; flex-direction: column; gap: 24px; animation: fadeIn 0.4s ease-out;">
+                    <!-- Tarjetas estadísticas -->
+                    <div class="dashboard-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+                        <div class="stat-card glass">
+                            <div class="stat-icon" style="color: #2a8bbb; background: rgba(42, 139, 187, 0.1);"><i class="fa-solid fa-chalkboard-user"></i></div>
+                            <div class="stat-info">
+                                <h4>Docentes Registrados</h4>
+                                <p id="stat-teachers-count">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass">
+                            <div class="stat-icon" style="color: #298552; background: rgba(41, 133, 82, 0.1);"><i class="fa-solid fa-users"></i></div>
+                            <div class="stat-info">
+                                <h4>Cupos de Sistema</h4>
+                                <p id="stat-teachers-slots">0 / 5</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de docentes -->
+                    <div class="data-panel glass">
+                        <div class="panel-header" style="padding: 24px 24px 12px;">
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-address-book" style="color: #2a8bbb;"></i> Directorio de Profesores
+                            </h3>
+                        </div>
+                        <div class="table-wrapper" style="padding: 0 24px 24px; overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: rgba(255,255,255,0.4); text-align: left; border-bottom: 1px solid rgba(255,255,255,0.35);">
+                                        <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c;">Nombre Público</th>
+                                        <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c;">Usuario / Credencial</th>
+                                        <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c;">Contraseña</th>
+                                        <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c; text-align: center;">Códigos Activos</th>
+                                        <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c; text-align: center;">Partidas de Alumnos</th>
+                                        <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c; text-align: center; width: 80px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teachers-table-body">
+                                    <!-- Se cargará dinámicamente con JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
 
             </section>
@@ -1323,6 +1552,37 @@
         </div>
     </div>
 
+    <!-- Modal overlay for Teacher Details (Gestión de Profesores) -->
+    <div class="modal-overlay" id="teacher-detail-modal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-chalkboard-user"></i> Detalles del Docente</h3>
+                <button class="btn-close" id="btn-close-teacher-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; max-height: 70vh; overflow-y: auto;">
+                
+                <!-- Info básica -->
+                <div style="background: rgba(255,255,255,0.4); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5);">
+                    <h4 style="font-size: 18px; font-weight: 800; color: #1a3a5c;" id="teacher-detail-name">-</h4>
+                    <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 6px;" id="teacher-detail-username">-</p>
+                </div>
+
+                <!-- Códigos y Alumnos -->
+                <div>
+                    <h4 style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fa-solid fa-key" style="color: #2a8bbb;"></i> Códigos Registrados y Estudiantes</span>
+                        <span class="row-count-badge" id="teacher-detail-codes-count" style="background: rgba(42, 139, 187, 0.12); color: #2a8bbb; border: 1px solid rgba(42, 139, 187, 0.25); padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 12px;">0 códigos</span>
+                    </h4>
+                    
+                    <div id="teacher-detail-codes-list" style="display: flex; flex-direction: column; gap: 14px;">
+                        <!-- Se poblará dinámicamente con JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
 <div class="toast-notification" id="toast-notif">
         <i class="fa-solid fa-circle-check" style="color: #298552; font-size: 20px;"></i>
@@ -1490,29 +1750,31 @@
         }
 
         // Generate Code
-        btnGenerateCode.addEventListener('click', async () => {
-            btnGenerateCode.disabled = true;
-            btnGenerateCode.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
-            try {
-                const response = await fetch('/api/docente/generar-codigo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                const data = await response.json();
-                if (data.success) {
-                    await loadCodes();
-                    showToast(`Código generado con éxito: ${data.codigo_acceso}`);
-                } else {
-                    alert('Error al generar código: ' + (data.error || 'Desconocido'));
+        if (btnGenerateCode) {
+            btnGenerateCode.addEventListener('click', async () => {
+                btnGenerateCode.disabled = true;
+                btnGenerateCode.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generando...';
+                try {
+                    const response = await fetch('/api/docente/generar-codigo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        await loadCodes();
+                        showToast(`Código generado con éxito: ${data.codigo_acceso}`);
+                    } else {
+                        customAlert('Error', 'Error al generar código: ' + (data.error || 'Desconocido'), 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    customAlert('Error de Conexión', 'Error de conexión al generar el código.', 'danger');
+                } finally {
+                    btnGenerateCode.disabled = false;
+                    btnGenerateCode.innerHTML = '<i class="fa-solid fa-plus"></i> Generar Nuevo Código';
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error de conexión al generar el código.');
-            } finally {
-                btnGenerateCode.disabled = false;
-                btnGenerateCode.innerHTML = '<i class="fa-solid fa-plus"></i> Generar Nuevo Código';
-            }
-        });
+            });
+        }
 
         // History and Codes Refreshing (AJAX)
         const btnRefresh = document.getElementById('btn-refresh');
@@ -1744,48 +2006,104 @@
             searchHistoryInput.addEventListener('input', refreshHistory);
         }
 
-        // ── showDangerConfirm: modal de advertencia fuerte ──
-        function showDangerConfirm(title, body, actionLabel, onConfirm) {
-            // Remove any existing danger modal
-            const old = document.getElementById('danger-confirm-modal');
-            if (old) old.remove();
-
+        // ── Custom Dialog System ──
+        function showCustomDialog({ title, message, type = 'info', confirmText = 'Aceptar', cancelText = 'Cancelar', showCancel = false, onConfirm = null }) {
             const overlay = document.createElement('div');
-            overlay.id = 'danger-confirm-modal';
-            overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(14,30,60,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;animation:fadeIn .25s ease;';
-
+            overlay.className = 'custom-dialog-overlay';
+            
+            let iconHTML = '';
+            if (type === 'success') {
+                iconHTML = '<i class="fa-solid fa-circle-check"></i>';
+            } else if (type === 'warning') {
+                iconHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else if (type === 'danger') {
+                iconHTML = '<i class="fa-solid fa-trash-can"></i>';
+            } else {
+                iconHTML = '<i class="fa-solid fa-circle-info"></i>';
+            }
+            
             overlay.innerHTML = `
-                <div style="background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.6);border-radius:24px;padding:32px;max-width:420px;width:90%;backdrop-filter:blur(24px);box-shadow:0 20px 60px rgba(14,30,60,0.18);text-align:center;">
-                    <div style="width:52px;height:52px;background:rgba(239,68,68,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                        <i class="fa-solid fa-triangle-exclamation" style="color:#dc2626;font-size:1.4rem;"></i>
+                <div class="custom-dialog-card">
+                    <div class="custom-dialog-icon ${type}">${iconHTML}</div>
+                    <div class="custom-dialog-title">${title}</div>
+                    <div class="custom-dialog-text">${message}</div>
+                    <div class="custom-dialog-buttons">
+                        <button class="btn btn-secondary" id="dialog-btn-cancel" style="${showCancel ? '' : 'display:none;'}">${cancelText}</button>
+                        <button class="btn btn-primary" id="dialog-btn-confirm">${confirmText}</button>
                     </div>
-                    <h3 style="font-size:1.15rem;font-weight:800;color:#7f1d1d;margin-bottom:10px;">${title}</h3>
-                    <p style="font-size:.88rem;color:#4b6e8a;line-height:1.6;margin-bottom:24px;">${body}</p>
-                    <div style="display:flex;gap:12px;justify-content:center;">
-                        <button id="danger-cancel" style="padding:10px 24px;border-radius:50px;border:1.5px solid rgba(42,139,187,0.35);background:rgba(255,255,255,0.6);color:#1a5a8c;font-family:'Outfit',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;">Cancelar</button>
-                        <button id="danger-ok" style="padding:10px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;font-family:'Outfit',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,0.3);">${actionLabel}</button>
-                    </div>
-                </div>`;
-
+                </div>
+            `;
+            
             document.body.appendChild(overlay);
-            overlay.querySelector('#danger-cancel').addEventListener('click', () => overlay.remove());
-            overlay.querySelector('#danger-ok').addEventListener('click', () => {
-                overlay.remove();
-                onConfirm();
+            setTimeout(() => overlay.classList.add('show'), 10);
+            
+            const closeDialog = () => {
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.remove(), 300);
+            };
+            
+            overlay.querySelector('#dialog-btn-confirm').addEventListener('click', () => {
+                closeDialog();
+                if (onConfirm) onConfirm();
             });
-            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+            
+            if (showCancel) {
+                overlay.querySelector('#dialog-btn-cancel').addEventListener('click', () => {
+                    closeDialog();
+                });
+            }
+            
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeDialog();
+                }
+            });
         }
+
+        function customAlert(title, message, type = 'info', onConfirm = null) {
+            showCustomDialog({ title, message, type, confirmText: 'Aceptar', showCancel: false, onConfirm });
+        }
+
+        function customConfirm(title, message, type = 'warning', onConfirm = null) {
+            showCustomDialog({ title, message, type, confirmText: 'Aceptar', cancelText: 'Cancelar', showCancel: true, onConfirm });
+        }
+
+        function showDangerConfirm(title, body, actionLabel, onConfirm) {
+            showCustomDialog({
+                title: title,
+                message: body,
+                type: 'danger',
+                confirmText: actionLabel,
+                showCancel: true,
+                onConfirm: onConfirm
+            });
+        }
+
+        function showCustomAlert(title, body, icon = 'fa-circle-exclamation', color = '#2a8bbb') {
+            let type = 'info';
+            if (color === '#ff4d4d' || color === '#dc2626') type = 'danger';
+            else if (color === '#298552') type = 'success';
+            else if (color === '#d97706') type = 'warning';
+            customAlert(title, body, type);
+        }
+
+        window.showCustomDialog = showCustomDialog;
+        window.customAlert = customAlert;
+        window.customConfirm = customConfirm;
         window.showDangerConfirm = showDangerConfirm;
+        window.showCustomAlert = showCustomAlert;
 
         // Tab switching logic
         const menuGenerate = document.getElementById('menu-generate');
         const menuHistory = document.getElementById('menu-history');
         const menuProfile = document.getElementById('menu-profile');
         const menuStoryCreator = document.getElementById('menu-story-creator');
+        const menuTeachers = document.getElementById('menu-teachers');
         const tabGenerateContent = document.getElementById('tab-generate-content');
         const tabHistoryContent = document.getElementById('tab-history-content');
         const tabProfileContent = document.getElementById('tab-profile-content');
         const tabStoryCreatorContent = document.getElementById('tab-story-creator-content');
+        const tabTeachersContent = document.getElementById('tab-teachers-content');
         
         const viewTitle = document.getElementById('view-title');
         const viewDesc = document.getElementById('view-desc');
@@ -1796,6 +2114,7 @@
             menuHistory.classList.remove('active');
             if (menuProfile) menuProfile.classList.remove('active');
             if (menuStoryCreator) menuStoryCreator.classList.remove('active');
+            if (menuTeachers) menuTeachers.classList.remove('active');
             
             tabGenerateContent.classList.remove('active');
             tabHistoryContent.classList.remove('active');
@@ -1803,6 +2122,10 @@
             if (tabStoryCreatorContent) {
                 tabStoryCreatorContent.classList.remove('active');
                 tabStoryCreatorContent.style.display = 'none';
+            }
+            if (tabTeachersContent) {
+                tabTeachersContent.classList.remove('active');
+                tabTeachersContent.style.display = 'none';
             }
             
             if (target === 'generate') {
@@ -1832,6 +2155,16 @@
                 // Initialize block data fetch if not loaded
                 const selectedBlock = document.getElementById('wizard-select-bloque').value;
                 cargarDatosBloque(selectedBlock);
+            } else if (target === 'teachers') {
+                if (menuTeachers) menuTeachers.classList.add('active');
+                if (tabTeachersContent) {
+                    tabTeachersContent.classList.add('active');
+                    tabTeachersContent.style.display = 'flex';
+                }
+                viewTitle.textContent = 'Gestión de Profesores';
+                viewDesc.textContent = 'Visualiza estadísticas, contraseñas y gestiona las cuentas de docentes del sistema.';
+                
+                loadTeachers();
             }
         }
 
@@ -1839,6 +2172,7 @@
         menuHistory.addEventListener('click', () => switchTab('history'));
         if (menuProfile) menuProfile.addEventListener('click', () => switchTab('profile'));
         if (menuStoryCreator) menuStoryCreator.addEventListener('click', () => switchTab('story-creator'));
+        if (menuTeachers) menuTeachers.addEventListener('click', () => switchTab('teachers'));
 
         // Profile save logic
         const btnSaveProfile = document.getElementById('btn-save-profile');
@@ -2245,6 +2579,270 @@
         sidebarToggle.addEventListener('click', toggleSidebar);
         sectionTitle.addEventListener('click', toggleSidebar);
 
+        // Teacher Management AJAX Loader
+        async function loadTeachers() {
+            const tableBody = document.getElementById('teachers-table-body');
+            const teachersCount = document.getElementById('stat-teachers-count');
+            const teachersSlots = document.getElementById('stat-teachers-slots');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Cargando información de docentes...
+                    </td>
+                </tr>`;
+
+            try {
+                const response = await fetch('/api/admin/profesores');
+                const data = await response.json();
+
+                if (data.success) {
+                    teachersCount.textContent = data.profesores.length;
+                    teachersSlots.textContent = `${data.profesores.length} / 5`;
+                    tableBody.innerHTML = '';
+
+                    data.profesores.forEach(prof => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'interactive-row';
+                        tr.style.borderBottom = '1px solid rgba(255,255,255,0.25)';
+                        
+                        const isAdminUser = prof.username.toLowerCase() === 'admin.goa';
+                        
+                        tr.innerHTML = `
+                            <td style="padding: 12px 10px; font-weight: 700; color: #1a3a5c;">
+                                ${prof.nombre} ${isAdminUser ? '<span style="font-size:10px; background:rgba(42,139,187,0.12); color:#2a8bbb; padding:2px 8px; border-radius:30px; margin-left:6px; font-weight:800;">Principal</span>' : ''}
+                            </td>
+                            <td style="padding: 12px 10px; font-weight: 600; color: var(--text-secondary); font-family: monospace;">${prof.username}</td>
+                            <td style="padding: 12px 10px; font-family: monospace; color: var(--text-secondary);">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="password" value="${prof.contrasena}" readonly 
+                                           style="background:none; border:none; color:var(--text-secondary); font-family:monospace; font-size:14px; width:80px; padding:0; outline:none;" id="prof-pwd-${prof.id_profesor}">
+                                    <button type="button" class="btn-toggle-prof-pwd" data-id="${prof.id_profesor}" style="background:none; border:none; cursor:pointer; color:#5c8bb0; font-size:13px; padding:0; display:flex; align-items:center;">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td style="padding: 12px 10px; text-align: center; font-weight: 700; color: #2563eb;">${prof.total_codigos}</td>
+                            <td style="padding: 12px 10px; text-align: center; font-weight: 700; color: #298552;">${prof.total_partidas}</td>
+                            <td style="padding: 12px 10px; text-align: center;">
+                                <button class="btn-del-docente" data-id="${prof.id_profesor}" data-nombre="${prof.nombre}" data-user="${prof.username}"
+                                        style="background:none; border:none; cursor:pointer; color:#dc2626; font-size:1.05rem; padding:6px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; transition:background .2s;"
+                                        ${isAdminUser ? 'disabled title="No se puede eliminar la cuenta del administrador"' : 'title="Eliminar Docente"'}>
+                                    <i class="fa-solid fa-trash-can" style="${isAdminUser ? 'opacity: 0.35; cursor: not-allowed;' : ''}"></i>
+                                </button>
+                            </td>
+                        `;
+
+                        tr.querySelector('.btn-toggle-prof-pwd').addEventListener('click', function() {
+                            const pwdInput = document.getElementById(`prof-pwd-${prof.id_profesor}`);
+                            const icon = this.querySelector('i');
+                            if (pwdInput.type === 'password') {
+                                pwdInput.type = 'text';
+                                icon.className = 'fa-solid fa-eye-slash';
+                            } else {
+                                pwdInput.type = 'password';
+                                icon.className = 'fa-solid fa-eye';
+                            }
+                        });
+
+                        if (!isAdminUser) {
+                            tr.querySelector('.btn-del-docente').addEventListener('click', function() {
+                                const id = this.getAttribute('data-id');
+                                const nombre = this.getAttribute('data-nombre');
+                                const username = this.getAttribute('data-user');
+                                
+                                showDangerConfirm(
+                                    `⚠️ Eliminar Docente: ${nombre}`,
+                                    `¿Estás seguro de que deseas eliminar permanentemente a <strong>${nombre}</strong> (${username})?<br><br>Esta acción eliminará de forma <strong>irreversible</strong> todos sus códigos de acceso y todas las partidas jugadas por sus alumnos.`,
+                                    'Eliminar Docente',
+                                    async () => {
+                                        try {
+                                            const response = await fetch(`/api/admin/eliminar-docente/${id}`, {
+                                                method: 'DELETE'
+                                            });
+                                            const resData = await response.json();
+                                            if (resData.success) {
+                                                showToast('¡Docente Eliminado!', resData.message, 'fa-trash-can', '#ff4d4d');
+                                                loadTeachers();
+                                            } else {
+                                                customAlert('Error', resData.error || 'No se pudo eliminar el docente.', 'danger');
+                                            }
+                                        } catch (error) {
+                                            console.error('Error deleting teacher:', error);
+                                            customAlert('Error de Conexión', 'No se pudo conectar con el servidor para eliminar al docente.', 'danger');
+                                        }
+                                    }
+                                );
+                            });
+                        }
+
+                        tr.addEventListener('click', (e) => {
+                            if (e.target.closest('.btn-toggle-prof-pwd') || e.target.closest('.btn-del-docente') || e.target.closest('input')) {
+                                return;
+                            }
+                            openTeacherDetailModal(prof);
+                        });
+
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 24px; color: #dc2626; font-weight: 600;">
+                                ${data.error || 'No se pudieron cargar los datos.'}
+                            </td>
+                        </tr>`;
+                }
+            } catch (error) {
+                console.error("Error loading teachers list:", error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 24px; color: #dc2626; font-weight: 600;">
+                            Error de conexión al cargar la lista de profesores.
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        const teacherDetailModal = document.getElementById('teacher-detail-modal');
+        const btnCloseTeacherModal = document.getElementById('btn-close-teacher-modal');
+        const teacherDetailName = document.getElementById('teacher-detail-name');
+        const teacherDetailUsername = document.getElementById('teacher-detail-username');
+        const teacherDetailCodesCount = document.getElementById('teacher-detail-codes-count');
+        const teacherDetailCodesList = document.getElementById('teacher-detail-codes-list');
+
+        async function openTeacherDetailModal(prof) {
+            if (!teacherDetailModal) return;
+            
+            teacherDetailName.textContent = prof.nombre;
+            teacherDetailUsername.innerHTML = `<i class="fa-solid fa-user" style="color: #2a8bbb;"></i> @${prof.username}`;
+            teacherDetailCodesCount.textContent = 'Cargando...';
+            
+            teacherDetailCodesList.innerHTML = `
+                <div style="text-align: center; padding: 24px; color: var(--text-muted);">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 20px; margin-bottom: 8px; color: #2a8bbb;"></i>
+                    <p style="font-size: 13.5px; font-weight: 600;">Cargando códigos del docente...</p>
+                </div>
+            `;
+            
+            teacherDetailModal.classList.add('show');
+            
+            try {
+                const response = await fetch(`/api/admin/profesor/${prof.id_profesor}/detalles`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    teacherDetailName.textContent = data.nombre;
+                    teacherDetailUsername.innerHTML = `<i class="fa-solid fa-user" style="color: #2a8bbb;"></i> @${data.username}`;
+                    
+                    const codes = data.codigos || [];
+                    teacherDetailCodesCount.textContent = `${codes.length} código${codes.length !== 1 ? 's' : ''}`;
+                    
+                    if (codes.length === 0) {
+                        teacherDetailCodesList.innerHTML = `
+                            <div style="text-align: center; color: var(--text-muted); padding: 32px 16px; background: rgba(255,255,255,0.25); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.4);">
+                                <img src="/static/gotita_corriendo.png" alt="Gotita" style="width: 60px; height: auto; margin-bottom: 8px; opacity: 0.7;">
+                                <p style="font-weight: 600; font-size: 13.5px; color: var(--text-secondary);">Este docente no tiene códigos registrados.</p>
+                            </div>
+                        `;
+                    } else {
+                        teacherDetailCodesList.innerHTML = '';
+                        codes.forEach(codeObj => {
+                            const card = document.createElement('div');
+                            card.style.cssText = `
+                                background: rgba(255, 255, 255, 0.45);
+                                border: 1px solid rgba(255, 255, 255, 0.6);
+                                border-radius: 20px;
+                                padding: 18px;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 12px;
+                                box-shadow: 0 8px 24px rgba(30, 90, 150, 0.03);
+                                transition: transform 0.2s ease;
+                            `;
+                            
+                            const header = document.createElement('div');
+                            header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.4); padding-bottom: 8px;';
+                            header.innerHTML = `
+                                <span class="code-badge" style="font-size: 13px; padding: 4px 10px; background: rgba(42, 139, 187, 0.1); border-color: rgba(42, 139, 187, 0.3); color: #2a8bbb;">${codeObj.codigo}</span>
+                                <span style="font-size: 12.5px; font-weight: 700; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fa-solid fa-gamepad" style="color: #2a8bbb;"></i> ${codeObj.alumnos.length} partida${codeObj.alumnos.length !== 1 ? 's' : ''}
+                                </span>
+                            `;
+                            card.appendChild(header);
+                            
+                            const studentsTitle = document.createElement('div');
+                            studentsTitle.style.cssText = 'font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px;';
+                            studentsTitle.innerHTML = `<i class="fa-solid fa-user-graduate"></i> Estudiantes que jugaron:`;
+                            card.appendChild(studentsTitle);
+                            
+                            const chipsContainer = document.createElement('div');
+                            chipsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px;';
+                            
+                            if (codeObj.alumnos.length === 0) {
+                                const emptySpan = document.createElement('span');
+                                emptySpan.style.cssText = 'font-size: 12.5px; color: var(--text-muted); font-style: italic; padding-left: 4px;';
+                                emptySpan.textContent = 'Sin estudiantes registrados';
+                                chipsContainer.appendChild(emptySpan);
+                            } else {
+                                codeObj.alumnos.forEach(alumno => {
+                                    const chip = document.createElement('span');
+                                    chip.style.cssText = `
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 6px;
+                                        background: rgba(255, 255, 255, 0.8);
+                                        border: 1px solid rgba(255, 255, 255, 0.95);
+                                        border-radius: 30px;
+                                        padding: 6px 12px;
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: #1a3a5c;
+                                        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+                                    `;
+                                    chip.innerHTML = `<i class="fa-solid fa-circle-user" style="color: #2a8bbb; font-size: 10px;"></i> ${alumno}`;
+                                    chipsContainer.appendChild(chip);
+                                });
+                            }
+                            card.appendChild(chipsContainer);
+                            teacherDetailCodesList.appendChild(card);
+                        });
+                    }
+                } else {
+                    teacherDetailCodesList.innerHTML = `
+                        <div style="text-align: center; color: #dc2626; padding: 24px; font-weight: 600;">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size: 20px; margin-bottom: 8px;"></i>
+                            <p>${data.error || 'Error al cargar los detalles.'}</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error("Error fetching teacher details:", err);
+                teacherDetailCodesList.innerHTML = `
+                    <div style="text-align: center; color: #dc2626; padding: 24px; font-weight: 600;">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size: 20px; margin-bottom: 8px;"></i>
+                        <p>Error de conexión al cargar la información.</p>
+                    </div>
+                `;
+            }
+        }
+
+        if (btnCloseTeacherModal) {
+            btnCloseTeacherModal.addEventListener('click', () => {
+                teacherDetailModal.classList.remove('show');
+            });
+        }
+        if (teacherDetailModal) {
+            teacherDetailModal.addEventListener('click', (e) => {
+                if (e.target === teacherDetailModal) {
+                    teacherDetailModal.classList.remove('show');
+                }
+            });
+        }
+
+        window.loadTeachers = loadTeachers;
+
         // Initial setup on DOM load
         loadCodes();
         refreshHistory();
@@ -2261,6 +2859,72 @@
         const progressBar = document.getElementById('wizard-progress-bar');
         const wizardSelectBloque = document.getElementById('wizard-select-bloque');
         const confirmBlockNum = document.getElementById('confirm-block-num');
+
+        // Validation Function
+        function validarPasoActual(paso) {
+            let esValido = true;
+            let inputsAValidar = [];
+
+            if (paso === 1) {
+                inputsAValidar = [
+                    document.getElementById('wizard-block-title'),
+                    document.getElementById('wizard-note1-title'),
+                    document.getElementById('wizard-note1-text'),
+                    document.getElementById('wizard-note2-title'),
+                    document.getElementById('wizard-note2-text'),
+                    document.getElementById('wizard-note3-title'),
+                    document.getElementById('wizard-note3-text')
+                ];
+            } else if (paso === 2) {
+                for (let i = 1; i <= 5; i++) {
+                    inputsAValidar.push(document.getElementById(`wizard-q${i}-text`));
+                    inputsAValidar.push(document.getElementById(`wizard-q${i}-correct`));
+                    for (let j = 1; j <= 4; j++) {
+                        inputsAValidar.push(document.getElementById(`wizard-q${i}-opt${j}`));
+                        inputsAValidar.push(document.getElementById(`wizard-q${i}-fb${j}`));
+                    }
+                }
+            } else if (paso === 3) {
+                for (let i = 1; i <= 3; i++) {
+                    inputsAValidar.push(document.getElementById(`wizard-node${i}-title`));
+                    inputsAValidar.push(document.getElementById(`wizard-node${i}-context`));
+                    inputsAValidar.push(document.getElementById(`wizard-node${i}-correct`));
+                    for (let j = 1; j <= 3; j++) {
+                        inputsAValidar.push(document.getElementById(`wizard-node${i}-opt${j}`));
+                        inputsAValidar.push(document.getElementById(`wizard-node${i}-fb${j}`));
+                    }
+                }
+            }
+
+            inputsAValidar.forEach(input => {
+                if (!input) return;
+                const valor = input.value.trim();
+                if (valor === '') {
+                    input.classList.add('invalid-field');
+                    esValido = false;
+                } else {
+                    input.classList.remove('invalid-field');
+                }
+            });
+
+            return esValido;
+        }
+
+        // Initialize Validation Clear Events
+        function inicializarLimpiezaValidacion() {
+            const wizardContainer = document.getElementById('tab-story-creator-content');
+            if (!wizardContainer) return;
+            const inputs = wizardContainer.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                const limpiar = () => {
+                    if (input.value.trim() !== '') {
+                        input.classList.remove('invalid-field');
+                    }
+                };
+                input.addEventListener('input', limpiar);
+                input.addEventListener('change', limpiar);
+            });
+        }
 
         function updateStepView() {
             // Hide all cards
@@ -2315,6 +2979,14 @@
 
             btnWizardNext.addEventListener('click', () => {
                 if (currentStep < totalSteps) {
+                    if (!validarPasoActual(currentStep)) {
+                        customAlert(
+                            'Campos Incompletos', 
+                            'Todos los campos son obligatorios. Por favor rellena todos los campos marcados en rojo para continuar.', 
+                            'warning'
+                        );
+                        return;
+                    }
                     currentStep++;
                     updateStepView();
                 }
@@ -2324,6 +2996,20 @@
             document.querySelectorAll('.wizard-step-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const targetStep = parseInt(item.getAttribute('data-step'));
+                    if (targetStep > currentStep) {
+                        for (let s = currentStep; s < targetStep; s++) {
+                            if (!validarPasoActual(s)) {
+                                customAlert(
+                                    'Campos Incompletos', 
+                                    'Todos los campos son obligatorios. Por favor rellena todos los campos marcados en rojo para continuar.', 
+                                    'warning'
+                                );
+                                currentStep = s;
+                                updateStepView();
+                                return;
+                            }
+                        }
+                    }
                     currentStep = targetStep;
                     updateStepView();
                 });
@@ -2338,28 +3024,16 @@
             const btnAddNewBlock = document.getElementById('btn-add-new-block');
             if (btnAddNewBlock) {
                 btnAddNewBlock.addEventListener('click', () => {
-                    const inputNum = prompt("Ingrese el número del nuevo bloque (ej. 5):");
-                    if (inputNum === null) return;
-                    
-                    const blockNum = parseInt(inputNum.trim());
-                    if (isNaN(blockNum) || blockNum <= 0) {
-                        alert("Por favor ingrese un número de bloque válido (entero positivo).");
-                        return;
-                    }
-                    
-                    let exists = false;
+                    const existingNums = new Set();
                     for (let i = 0; i < wizardSelectBloque.options.length; i++) {
-                        if (parseInt(wizardSelectBloque.options[i].value) === blockNum) {
-                            exists = true;
-                            break;
+                        const val = parseInt(wizardSelectBloque.options[i].value);
+                        if (!isNaN(val)) {
+                            existingNums.add(val);
                         }
                     }
-                    
-                    if (exists) {
-                        alert(`El Bloque ${blockNum} ya existe.`);
-                        wizardSelectBloque.value = blockNum;
-                        cargarDatosBloque(blockNum);
-                        return;
+                    let blockNum = 1;
+                    while (existingNums.has(blockNum)) {
+                        blockNum++;
                     }
                     
                     const option = document.createElement('option');
@@ -2380,50 +3054,80 @@
                     
                     wizardSelectBloque.value = blockNum;
                     cargarDatosBloque(blockNum);
-                    showToast('¡Nuevo Bloque Creado!', `Ahora puedes configurar el Bloque ${blockNum}.`, 'fa-plus', '#2a8bbb');
+                    showToast('¡Nuevo Bloque Creado!', `Se ha asignado automáticamente el Bloque ${blockNum}.`, 'fa-plus', '#2a8bbb');
                 });
             }
             
             // Delete block action handler
             const btnDeleteBlock = document.getElementById('btn-delete-block');
             if (btnDeleteBlock) {
-                btnDeleteBlock.addEventListener('click', async () => {
+                btnDeleteBlock.addEventListener('click', () => {
                     const blockNum = parseInt(wizardSelectBloque.value);
                     if (isNaN(blockNum) || blockNum <= 0) {
-                        alert("Por favor seleccione un bloque válido para eliminar.");
+                        customAlert("Acción Inválida", "Por favor seleccione un bloque válido para eliminar.", "warning");
                         return;
                     }
                     
-                    if (!confirm(`¿Estás seguro de que deseas eliminar por completo el Bloque ${blockNum}? Esta acción borrará el material de estudio, preguntas y escenas de la historia en la base de datos, y no se puede deshacer.`)) {
-                        return;
-                    }
-                    
-                    btnDeleteBlock.disabled = true;
-                    try {
-                        const response = await fetch(`/api/admin/eliminar-bloque/${blockNum}`, {
-                            method: 'DELETE'
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            showToast('¡Bloque Eliminado!', data.message, 'fa-trash', '#dc2626');
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1500);
-                        } else {
-                            alert('Error al eliminar bloque: ' + (data.error || 'Desconocido'));
-                            btnDeleteBlock.disabled = false;
+                    customConfirm(
+                        "Confirmar Eliminación",
+                        `¿Estás seguro de que deseas eliminar por completo el Bloque ${blockNum}? Esta acción borrará el material de estudio, preguntas y escenas de la historia en la base de datos, y no se puede deshacer.`,
+                        "danger",
+                        async () => {
+                            // Check if block exists in database (is in BLOQUES_MAP)
+                            const existsInDB = BLOQUES_MAP && (blockNum in BLOQUES_MAP);
+                            
+                            if (!existsInDB) {
+                                // Just remove it from select dropdown in-memory
+                                for (let i = 0; i < wizardSelectBloque.options.length; i++) {
+                                    if (parseInt(wizardSelectBloque.options[i].value) === blockNum) {
+                                        wizardSelectBloque.remove(i);
+                                        break;
+                                    }
+                                    }
+                                // Select another block (e.g. the first one)
+                                if (wizardSelectBloque.options.length > 0) {
+                                    wizardSelectBloque.selectedIndex = 0;
+                                    cargarDatosBloque(wizardSelectBloque.value);
+                                }
+                                showToast('¡Bloque Eliminado!', `Se ha eliminado el Bloque ${blockNum} de la memoria (no estaba guardado).`, 'fa-trash', '#dc2626');
+                                return;
+                            }
+                            
+                            btnDeleteBlock.disabled = true;
+                            try {
+                                const response = await fetch(`/api/admin/eliminar-bloque/${blockNum}`, {
+                                    method: 'DELETE'
+                                });
+                                const data = await response.json();
+                                if (data.success) {
+                                    showToast('¡Bloque Eliminado!', data.message, 'fa-trash', '#dc2626');
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 1500);
+                                } else {
+                                    customAlert("Error", data.error || 'No se pudo eliminar el bloque.', "danger");
+                                    btnDeleteBlock.disabled = false;
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                                customAlert("Error de Conexión", "No se pudo conectar con el servidor para eliminar el bloque.", "danger");
+                                btnDeleteBlock.disabled = false;
+                            }
                         }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('Error de conexión al eliminar el bloque.');
-                        btnDeleteBlock.disabled = false;
-                    }
+                    );
                 });
             }
         }
 
         // Load data from DB into wizard fields
         async function cargarDatosBloque(bloqueId) {
+            // Remove invalid class styling when switching/loading blocks
+            const wizardContainer = document.getElementById('tab-story-creator-content');
+            if (wizardContainer) {
+                wizardContainer.querySelectorAll('.invalid-field').forEach(el => {
+                    el.classList.remove('invalid-field');
+                });
+            }
             try {
                 const response = await fetch(`/api/admin/obtener-bloque/${bloqueId}`);
                 const data = await response.json();
@@ -2483,7 +3187,7 @@
                         }
                     });
                 } else {
-                    alert("Error al cargar los datos del bloque: " + data.error);
+                    customAlert("Error", "Error al cargar los datos del bloque: " + data.error, "danger");
                 }
             } catch (e) {
                 console.error("Error fetching block data:", e);
@@ -2494,6 +3198,20 @@
         const btnSaveWizard = document.getElementById('btn-save-wizard');
         if (btnSaveWizard) {
             btnSaveWizard.addEventListener('click', async () => {
+                // Validate all steps (1 to 3) before saving
+                for (let s = 1; s <= 3; s++) {
+                    if (!validarPasoActual(s)) {
+                        customAlert(
+                            'Campos Incompletos', 
+                            'No se puede guardar porque hay campos vacíos. Por favor rellena todos los campos marcados en rojo.', 
+                            'warning'
+                        );
+                        currentStep = s;
+                        updateStepView();
+                        return;
+                    }
+                }
+
                 const bloque = parseInt(wizardSelectBloque.value);
                 
                 // Gather Notes
@@ -2576,6 +3294,9 @@
                 }
             });
         }
+
+        // Initialize field listeners to dynamically clear invalid styling
+        inicializarLimpiezaValidacion();
     </script>
     {% endif %}
 </body>

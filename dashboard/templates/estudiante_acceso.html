@@ -1272,6 +1272,104 @@
 
         /* ---- Floating drops ---- */
         .floating-drop { opacity: 0.5 !important; }
+
+        /* ── Custom Dialog Modal Styles ── */
+        .custom-dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 60, 90, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .custom-dialog-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .custom-dialog-card {
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            border-radius: 28px;
+            width: 90%;
+            max-width: 440px;
+            padding: 32px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 24px 64px rgba(30, 90, 150, 0.15);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+        }
+        .custom-dialog-overlay.show .custom-dialog-card {
+            transform: scale(1);
+        }
+        .custom-dialog-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .custom-dialog-icon.info {
+            background: rgba(42, 139, 187, 0.12);
+            color: #2a8bbb;
+            border: 1.5px solid rgba(42, 139, 187, 0.3);
+        }
+        .custom-dialog-icon.success {
+            background: rgba(41, 133, 82, 0.12);
+            color: #298552;
+            border: 1.5px solid rgba(41, 133, 82, 0.3);
+        }
+        .custom-dialog-icon.warning {
+            background: rgba(217, 119, 6, 0.12);
+            color: #d97706;
+            border: 1.5px solid rgba(217, 119, 6, 0.3);
+        }
+        .custom-dialog-icon.danger {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+            border: 1.5px solid rgba(239, 68, 68, 0.3);
+        }
+        .custom-dialog-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a3a5c;
+            line-height: 1.25;
+        }
+        .custom-dialog-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            line-height: 1.55;
+            margin: 0;
+        }
+        .custom-dialog-buttons {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .custom-dialog-buttons .btn {
+            flex: 1;
+            justify-content: center;
+            border-radius: 14px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -1310,7 +1408,7 @@
                 <label class="input-label" for="code-input">Código de Partida</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-key"></i>
-                    <input type="text" id="code-input" class="form-input" maxlength="6" placeholder="Escribe el código aquí (ej. 4A8K9L)" style="text-transform: uppercase;">
+                    <input type="text" id="code-input" class="form-input" autocomplete="off" maxlength="6" placeholder="Escribe el código aquí (ej. 4A8K9L)" style="text-transform: uppercase;">
                 </div>
                 <div class="input-feedback" id="code-feedback"></div>
             </div>
@@ -1327,6 +1425,12 @@
             <button class="btn btn-primary" id="btn-next-step-1" disabled>
                 Continuar <i class="fa-solid fa-arrow-right"></i>
             </button>
+
+            <div style="margin-top: 24px; text-align: left; border-top: 1px solid rgba(255,255,255,0.4); padding-top: 15px;">
+                <a href="/" style="font-size: 14px; font-weight: 700; color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition-smooth);" onmouseover="this.style.color='#2a8bbb'" onmouseout="this.style.color='var(--text-secondary)'">
+                    <i class="fa-solid fa-chevron-left"></i> Volver al Portal
+                </a>
+            </div>
         </div>
 
         <!-- ================== STEP 2: REGISTRO DEL ESTUDIANTE ================== -->
@@ -1338,7 +1442,7 @@
                 <label class="input-label" for="student-name-input">Nombre y Apellido</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-user-graduate"></i>
-                    <input type="text" id="student-name-input" class="form-input" placeholder="Ej. Andrés Mendoza" style="text-transform: capitalize;">
+                    <input type="text" id="student-name-input" class="form-input" autocomplete="off" placeholder="Ej. Andrés Mendoza" style="text-transform: capitalize;">
                 </div>
                 <div class="input-feedback" id="name-feedback"></div>
             </div>
@@ -1346,6 +1450,12 @@
             <button class="btn btn-primary" id="btn-next-step-2">
                 Ingresar a la Actividad <i class="fa-solid fa-door-open"></i>
             </button>
+
+            <div style="margin-top: 24px; text-align: left; border-top: 1px solid rgba(255,255,255,0.4); padding-top: 15px;">
+                <a href="#" id="btn-back-to-step-1" style="font-size: 14px; font-weight: 700; color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition-smooth);" onmouseover="this.style.color='#2a8bbb'" onmouseout="this.style.color='var(--text-secondary)'">
+                    <i class="fa-solid fa-chevron-left"></i> Volver Atrás
+                </a>
+            </div>
         </div>
 
         <!-- ================== STEP 3: REVELACIÓN SECUENCIAL DE NOTAS ================== -->
@@ -1491,6 +1601,68 @@
 
     <!-- Page JavaScript Logic -->
     <script>
+        // ── Custom Dialog System ──
+        function showCustomDialog({ title, message, type = 'info', confirmText = 'Aceptar', cancelText = 'Cancelar', showCancel = false, onConfirm = null }) {
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-dialog-overlay';
+            
+            let iconHTML = '';
+            if (type === 'success') {
+                iconHTML = '<i class="fa-solid fa-circle-check"></i>';
+            } else if (type === 'warning') {
+                iconHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else if (type === 'danger') {
+                iconHTML = '<i class="fa-solid fa-trash-can"></i>';
+            } else {
+                iconHTML = '<i class="fa-solid fa-circle-info"></i>';
+            }
+            
+            overlay.innerHTML = `
+                <div class="custom-dialog-card">
+                    <div class="custom-dialog-icon ${type}">${iconHTML}</div>
+                    <div class="custom-dialog-title">${title}</div>
+                    <div class="custom-dialog-text">${message}</div>
+                    <div class="custom-dialog-buttons">
+                        <button class="btn btn-secondary" id="dialog-btn-cancel" style="${showCancel ? '' : 'display:none;'}">${cancelText}</button>
+                        <button class="btn btn-primary" id="dialog-btn-confirm">${confirmText}</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            setTimeout(() => overlay.classList.add('show'), 10);
+            
+            const closeDialog = () => {
+                overlay.classList.remove('show');
+                setTimeout(() => overlay.remove(), 300);
+            };
+            
+            overlay.querySelector('#dialog-btn-confirm').addEventListener('click', () => {
+                closeDialog();
+                if (onConfirm) onConfirm();
+            });
+            
+            if (showCancel) {
+                overlay.querySelector('#dialog-btn-cancel').addEventListener('click', () => {
+                    closeDialog();
+                });
+            }
+            
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeDialog();
+                }
+            });
+        }
+
+        function customAlert(title, message, type = 'info', onConfirm = null) {
+            showCustomDialog({ title, message, type, confirmText: 'Aceptar', showCancel: false, onConfirm });
+        }
+
+        function customConfirm(title, message, type = 'warning', onConfirm = null) {
+            showCustomDialog({ title, message, type, confirmText: 'Aceptar', cancelText: 'Cancelar', showCancel: true, onConfirm });
+        }
+
         // Session and Game variables
         let gameCode = '';
         let studentFullName = '';
@@ -1641,6 +1813,12 @@
             showStep(stepName);
         });
 
+        document.getElementById('btn-back-to-step-1').addEventListener('click', (e) => {
+            e.preventDefault();
+            codeInput.disabled = false;
+            showStep(stepCode);
+        });
+
         // ================== STEP 2: REGISTRO DEL ESTUDIANTE ==================
         studentNameInput.addEventListener('input', () => {
             const nameVal = studentNameInput.value.trim();
@@ -1712,13 +1890,13 @@
                     // Reveal notes sequentially
                     startNotesReveal();
                 } else {
-                    alert('Error al obtener los datos de la partida: ' + (data.error || 'Desconocido'));
+                    customAlert('Error', 'Error al obtener los datos de la partida: ' + (data.error || 'Desconocido'), 'danger');
                     btnNextStep2.disabled = false;
                     btnNextStep2.innerHTML = 'Ingresar a la Actividad <i class="fa-solid fa-door-open"></i>';
                 }
             } catch (error) {
                 console.error("Error loading block:", error);
-                alert('Error de conexión con el servidor.');
+                customAlert('Error de Conexión', 'Error de conexión con el servidor.', 'danger');
                 btnNextStep2.disabled = false;
                 btnNextStep2.innerHTML = 'Ingresar a la Actividad <i class="fa-solid fa-door-open"></i>';
             }
