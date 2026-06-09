@@ -728,6 +728,15 @@
             box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15) !important;
             background-color: rgba(239, 68, 68, 0.03) !important;
         }
+
+        /* Reset table column min-widths inside modal overlay tables to prevent overflow */
+        .modal-overlay table th,
+        .modal-overlay table td {
+            min-width: unset !important;
+            max-width: unset !important;
+        }
+
+        /* Estilos para impresión en PDF se manejan desde static/style.css */
     </style>
 </head>
 <body>
@@ -1391,10 +1400,40 @@
     <div class="modal-overlay" id="detail-modal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-user-graduate"></i> Detalles de la Partida</h3>
-                <button class="btn-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="btn-back" id="btn-back-modal" style="display: none; background: none; border: none; cursor: pointer; color: #1a3a5c; font-size: 1.15rem; padding: 4px 8px; border-radius: 8px; transition: all 0.2s; align-items: center; justify-content: center; gap: 4px;" 
+                            onmouseover="this.style.background='rgba(42, 139, 187, 0.1)'; this.style.color='#2a8bbb'; this.style.transform='translateX(-2px)';" 
+                            onmouseout="this.style.background='none'; this.style.color='#1a3a5c'; this.style.transform='none';">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h3><i class="fa-solid fa-user-graduate"></i> Detalles de la Partida</h3>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn btn-secondary" id="btn-print-detail" style="border-radius: 50px; height: 38px; padding: 0 20px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; background: rgba(42, 139, 187, 0.12); border: 1px solid rgba(42, 139, 187, 0.25); color: #2a8bbb; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(42, 139, 187, 0.2)'; this.style.transform='scale(1.03)';"
+                            onmouseout="this.style.background='rgba(42, 139, 187, 0.12)'; this.style.transform='none';">
+                        <i class="fa-solid fa-download"></i> Descargar Informe
+                    </button>
+                    <button class="btn-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div class="modal-body">
+                <!-- Cabecera de impresión exclusiva -->
+                <div class="print-only-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a8bbb; padding-bottom: 12px; margin-bottom: 20px; font-family: 'Outfit', sans-serif;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" style="height: 55px; width: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #2a8bbb;">
+                            <div style="text-align: left;">
+                                <h2 style="font-size: 18px; color: #1c3e5e; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">GO-A • Reporte Escolar de Resultados</h2>
+                                <p style="font-size: 11px; color: #4b6e8a; margin: 2px 0 0 0; font-weight: 600;">Juego de Concientización Ambiental — Cartagena</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 12px; color: #1c3e5e; font-weight: 800; margin: 0;">Docente: {{ session.get('profesor_nombre_publico', 'Docente') }}</p>
+                            <p style="font-size: 11px; color: #7a9bb8; margin: 2px 0 0 0;" class="print-current-date"></p>
+                        </div>
+                    </div>
+                </div>
                 <!-- Informacion del alumno -->
                 <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5);">
                     <h4 style="font-size: 18px; font-weight: 800; color: #1a3a5c;" id="modal-student-name">-</h4>
@@ -1445,9 +1484,32 @@
         <div class="modal-card" style="max-width: 800px;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-key"></i> Detalles del Código</h3>
-                <button class="btn-close" id="btn-close-code-modal"><i class="fa-solid fa-xmark"></i></button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn btn-secondary" id="btn-print-code-detail" style="border-radius: 50px; height: 38px; padding: 0 20px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; background: rgba(42, 139, 187, 0.12); border: 1px solid rgba(42, 139, 187, 0.25); color: #2a8bbb; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(42, 139, 187, 0.2)'; this.style.transform='scale(1.03)';"
+                            onmouseout="this.style.background='rgba(42, 139, 187, 0.12)'; this.style.transform='none';">
+                        <i class="fa-solid fa-download"></i> Descargar Informe
+                    </button>
+                    <button class="btn-close" id="btn-close-code-modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+                <!-- Cabecera de impresión exclusiva -->
+                <div class="print-only-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a8bbb; padding-bottom: 12px; margin-bottom: 20px; font-family: 'Outfit', sans-serif;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" style="height: 55px; width: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #2a8bbb;">
+                            <div style="text-align: left;">
+                                <h2 style="font-size: 18px; color: #1c3e5e; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">GO-A • Reporte Escolar de Resultados</h2>
+                                <p style="font-size: 11px; color: #4b6e8a; margin: 2px 0 0 0; font-weight: 600;">Juego de Concientización Ambiental — Cartagena</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 12px; color: #1c3e5e; font-weight: 800; margin: 0;">Docente: {{ session.get('profesor_nombre_publico', 'Docente') }}</p>
+                            <p style="font-size: 11px; color: #7a9bb8; margin: 2px 0 0 0;" class="print-current-date"></p>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Info del codigo -->
                 <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -1479,15 +1541,16 @@
                         <span class="row-count-badge" id="code-modal-student-count">0 alumnos</span>
                     </h4>
                     
-                    <div class="table-wrapper" style="max-height: 280px; overflow-y: auto; background: rgba(255,255,255,0.35); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4);">
+                    <div class="table-wrapper" style="max-height: 280px; overflow-y: auto; overflow-x: hidden; background: rgba(255,255,255,0.35); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4);">
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: rgba(255,255,255,0.5); text-align: left;">
                                     <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 25%;">Estudiante</th>
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 35%;">Bloque Jugado</th>
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 15%;">Correctas</th>
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 15%;">Incorrectas</th>
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 10%;">Acciones</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 39%;">Bloque Jugado</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 8%;">Correctas</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 8%;">Incorrectas</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 8%;">% Éxito</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 12%;" class="print-hide">Ver</th>
                                 </tr>
                             </thead>
                             <tbody id="code-modal-students-list">
@@ -1513,9 +1576,32 @@
         <div class="modal-card" style="max-width: 800px;">
             <div class="modal-header">
                 <h3><i class="fa-solid fa-gamepad"></i> Partidas del código <span id="history-modal-code-title" style="font-family: monospace; background: rgba(42,139,187,0.12); padding: 2px 10px; border-radius: 8px; font-size: 1rem;">-</span></h3>
-                <button class="btn-close" id="btn-close-history-modal"><i class="fa-solid fa-xmark"></i></button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn btn-secondary" id="btn-print-history-code" style="border-radius: 50px; height: 38px; padding: 0 20px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; background: rgba(42, 139, 187, 0.12); border: 1px solid rgba(42, 139, 187, 0.25); color: #2a8bbb; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(42, 139, 187, 0.2)'; this.style.transform='scale(1.03)';"
+                            onmouseout="this.style.background='rgba(42, 139, 187, 0.12)'; this.style.transform='none';">
+                        <i class="fa-solid fa-download"></i> Descargar Informe
+                    </button>
+                    <button class="btn-close" id="btn-close-history-modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+                <!-- Cabecera de impresión exclusiva -->
+                <div class="print-only-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a8bbb; padding-bottom: 12px; margin-bottom: 20px; font-family: 'Outfit', sans-serif;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <img src="{{ url_for('static', filename='goa_logo_oficial.png') }}" style="height: 55px; width: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #2a8bbb;">
+                            <div style="text-align: left;">
+                                <h2 style="font-size: 18px; color: #1c3e5e; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">GO-A • Reporte Escolar de Resultados</h2>
+                                <p style="font-size: 11px; color: #4b6e8a; margin: 2px 0 0 0; font-weight: 600;">Juego de Concientización Ambiental — Cartagena</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 12px; color: #1c3e5e; font-weight: 800; margin: 0;">Docente: {{ session.get('profesor_nombre_publico', 'Docente') }}</p>
+                            <p style="font-size: 11px; color: #7a9bb8; margin: 2px 0 0 0;" class="print-current-date"></p>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Info del codigo + botón eliminar todo -->
                 <div style="background: rgba(255,255,255,0.4); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -1535,15 +1621,16 @@
                         <span class="row-count-badge" id="history-modal-student-count">0 alumnos</span>
                     </h4>
                     
-                    <div class="table-wrapper" style="max-height: 300px; overflow-y: auto; background: rgba(255,255,255,0.35); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4);">
+                    <div class="table-wrapper" style="max-height: 300px; overflow-y: auto; overflow-x: hidden; background: rgba(255,255,255,0.35); border-radius: 16px; border: 1px solid rgba(255,255,255,0.4);">
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: rgba(255,255,255,0.5); text-align: left;">
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 25%;">Estudiante</th>
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 33%;">Bloque Jugado</th>
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 13%;">Correctas</th>
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 13%;">Incorrectas</th>
-                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 16%;">Acciones</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 22%;">Estudiante</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; width: 38%;">Bloque Jugado</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 8%;">Correctas</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 8%;">Incorrectas</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 8%;">% Éxito</th>
+                                    <th style="padding: 10px 8px; font-size: 12px; font-weight: 800; color: #1a3a5c; text-align: center; width: 16%;" class="print-hide">Ver</th>
                                 </tr>
                             </thead>
                             <tbody id="history-modal-students-list">
@@ -1616,6 +1703,7 @@
     <!-- Page Logic -->
     <script>
         // Declarations
+        let detailModalOrigin = null;
         const IS_ADMIN = {{ 'true' if is_admin else 'false' }};
         const BLOQUES_MAP = {{ bloques_map | tojson if bloques_map else '{}' }};
         const btnGenerateCode = document.getElementById('btn-generate-code');
@@ -1836,6 +1924,9 @@
                 
                 let blockText = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
 
+                let total = h.correctas + h.incorrectas;
+                let pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
+
                 tr.innerHTML = `
                     <td style="padding: 8px 10px; font-weight: 700; color: #1a3a5c; font-size: 13px;">${h.alumno}</td>
                     <td style="padding: 8px 10px; font-weight: 600; color: var(--text-secondary); font-size: 12px;">${blockText}</td>
@@ -1845,8 +1936,14 @@
                     <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #be123c; font-weight: 700; white-space: nowrap;">
                         <i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}
                     </td>
-                    <td style="padding: 8px 10px; text-align: center; white-space: nowrap;">
-                        <button class="btn btn-secondary btn-sm btn-view-ans" style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;">
+                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #1e3a5c; font-weight: 700; white-space: nowrap;">
+                        ${pct}%
+                    </td>
+                    <td style="padding: 8px 10px; text-align: center; white-space: nowrap;" class="print-hide">
+                        <button class="btn btn-primary btn-sm btn-view-ans" 
+                                style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: #2a8bbb; color: white; border: none; transition: all 0.2s; box-shadow: 0 2px 6px rgba(42, 139, 187, 0.2); margin-right: 4px;"
+                                onmouseenter="this.style.background='#1e6d94'; this.style.transform='translateY(-1px)';"
+                                onmouseleave="this.style.background='#2a8bbb'; this.style.transform='none';">
                             <i class="fa-solid fa-eye"></i> Ver
                         </button>
                         <button class="btn-del-partida-modal" title="Eliminar partida"
@@ -1860,6 +1957,7 @@
                 
                 tr.querySelector('.btn-view-ans').addEventListener('click', (e) => {
                     e.stopPropagation();
+                    detailModalOrigin = 'history-code-modal';
                     historyCodeModal.classList.remove('show');
                     openDetailModal(h);
                 });
@@ -1874,12 +1972,17 @@
                             const res = await fetch('/api/docente/eliminar-partida', {
                                 method: 'DELETE',
                                 headers: {'Content-Type':'application/json'},
-                                body: JSON.stringify({codigo: h.codigo, alumno: h.alumno})
+                                body: JSON.stringify({codigo: h.codigo, alumno: h.alumno, id_resultado: h.id_resultado})
                             });
                             const d = await res.json();
                             if (d.success) {
                                 showToast('¡Partida eliminada!', 'El registro fue borrado de la base de datos.', 'fa-trash-can', '#ff4d4d');
-                                historyCodeModal.classList.remove('show');
+                                tr.remove();
+                                const currentRows = historyModalStudentsList.querySelectorAll('tr');
+                                historyModalStudentCount.textContent = `${currentRows.length} estudiante${currentRows.length !== 1 ? 's' : ''}`;
+                                if (currentRows.length === 0) {
+                                    historyCodeModal.classList.remove('show');
+                                }
                                 refreshHistory();
                                 loadCodes();
                             } else {
@@ -1890,6 +1993,7 @@
                 });
                 
                 tr.addEventListener('click', () => {
+                    detailModalOrigin = 'history-code-modal';
                     historyCodeModal.classList.remove('show');
                     openDetailModal(h);
                 });
@@ -2398,13 +2502,26 @@
                 `;
             }
 
+            // Toggle back button visibility
+            const btnBackModal = document.getElementById('btn-back-modal');
+            if (btnBackModal) {
+                if (detailModalOrigin) {
+                    btnBackModal.style.display = 'inline-flex';
+                } else {
+                    btnBackModal.style.display = 'none';
+                }
+            }
+
             // Open modal
             detailModal.classList.add('show');
         }
 
         // Bind click to existing table rows
         document.querySelectorAll('.interactive-row').forEach(row => {
-            row.addEventListener('click', () => openDetailModal(row));
+            row.addEventListener('click', () => {
+                detailModalOrigin = null;
+                openDetailModal(row);
+            });
         });
 
         // Close modal events
@@ -2417,6 +2534,20 @@
                 detailModal.classList.remove('show');
             }
         });
+
+        // Back modal event
+        const btnBackModal = document.getElementById('btn-back-modal');
+        if (btnBackModal) {
+            btnBackModal.addEventListener('click', () => {
+                detailModal.classList.remove('show');
+                if (detailModalOrigin) {
+                    const originModal = document.getElementById(detailModalOrigin);
+                    if (originModal) {
+                        originModal.classList.add('show');
+                    }
+                }
+            });
+        }
 
         // Code Details Modal Logic
         const codeDetailModal = document.getElementById('code-detail-modal');
@@ -2451,7 +2582,7 @@
             
             codeModalStudentsList.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                    <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
                         <i class="fa-solid fa-circle-notch fa-spin"></i> Cargando respuestas...
                     </td>
                 </tr>`;
@@ -2470,7 +2601,7 @@
                     if (list.length === 0) {
                         codeModalStudentsList.innerHTML = `
                             <tr>
-                                <td colspan="5" class="empty-state" style="padding: 32px 16px; text-align: center;">
+                                <td colspan="6" class="empty-state" style="padding: 32px 16px; text-align: center;">
                                     <img src="/static/gotita_corriendo.png" alt="Gotita" style="width: 70px; height: auto; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
                                     <p style="font-weight: 600; font-size: 13px; color: var(--text-secondary);">Nadie ha jugado con este código aún.</p>
                                 </td>
@@ -2484,6 +2615,9 @@
                             
                             let blockText = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
                             
+                            let total = h.correctas + h.incorrectas;
+                            let pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
+                            
                             tr.innerHTML = `
                                 <td style="padding: 8px 10px; font-weight: 700; color: #1a3a5c; font-size: 13px;">${h.alumno}</td>
                                 <td style="padding: 8px 10px; font-weight: 600; color: var(--text-secondary); font-size: 12px;">${blockText}</td>
@@ -2493,8 +2627,14 @@
                                 <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #be123c; font-weight: 700; white-space: nowrap;">
                                     <i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}
                                 </td>
-                                <td style="padding: 8px 10px; text-align: center; white-space: nowrap;">
-                                    <button class="btn btn-secondary btn-sm btn-view-ans" style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #1e3a5c; font-weight: 700; white-space: nowrap;">
+                                    ${pct}%
+                                </td>
+                                <td style="padding: 8px 10px; text-align: center; white-space: nowrap;" class="print-hide">
+                                    <button class="btn btn-primary btn-sm btn-view-ans" 
+                                            style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: #2a8bbb; color: white; border: none; transition: all 0.2s; box-shadow: 0 2px 6px rgba(42, 139, 187, 0.2);"
+                                            onmouseenter="this.style.background='#1e6d94'; this.style.transform='translateY(-1px)';"
+                                            onmouseleave="this.style.background='#2a8bbb'; this.style.transform='none';">
                                         <i class="fa-solid fa-eye"></i> Ver
                                     </button>
                                 </td>
@@ -2502,11 +2642,13 @@
                             
                             tr.querySelector('.btn-view-ans').addEventListener('click', (e) => {
                                 e.stopPropagation();
+                                detailModalOrigin = 'code-detail-modal';
                                 codeDetailModal.classList.remove('show');
                                 openDetailModal(h);
                             });
                             
                             tr.addEventListener('click', () => {
+                                detailModalOrigin = 'code-detail-modal';
                                 codeDetailModal.classList.remove('show');
                                 openDetailModal(h);
                             });
@@ -2519,7 +2661,7 @@
                 console.error("Error loading code student history:", err);
                 codeModalStudentsList.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 24px; color: #be123c; font-weight: 600;">
+                        <td colspan="6" style="text-align: center; padding: 24px; color: #be123c; font-weight: 600;">
                             Error de conexión al cargar las respuestas.
                         </td>
                     </tr>`;
@@ -2848,6 +2990,51 @@
         }
 
         window.loadTeachers = loadTeachers;
+        
+        // Print Logic
+        function updatePrintDate() {
+            const dateStr = new Date().toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.querySelectorAll('.print-current-date').forEach(el => {
+                el.textContent = 'Impreso: ' + dateStr;
+            });
+        }
+
+        const btnPrintDetail = document.getElementById('btn-print-detail');
+        if (btnPrintDetail) {
+            btnPrintDetail.addEventListener('click', () => {
+                updatePrintDate();
+                document.body.classList.add('print-student-detail');
+                window.print();
+            });
+        }
+        
+        const btnPrintCodeDetail = document.getElementById('btn-print-code-detail');
+        if (btnPrintCodeDetail) {
+            btnPrintCodeDetail.addEventListener('click', () => {
+                updatePrintDate();
+                document.body.classList.add('print-code-detail');
+                window.print();
+            });
+        }
+        
+        const btnPrintHistoryCode = document.getElementById('btn-print-history-code');
+        if (btnPrintHistoryCode) {
+            btnPrintHistoryCode.addEventListener('click', () => {
+                updatePrintDate();
+                document.body.classList.add('print-code-detail');
+                window.print();
+            });
+        }
+        
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('print-student-detail', 'print-code-detail');
+        });
 
         // Initial setup on DOM load
         loadCodes();

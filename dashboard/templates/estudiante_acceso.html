@@ -1820,53 +1820,82 @@
         });
 
         // ================== STEP 2: REGISTRO DEL ESTUDIANTE ==================
-        studentNameInput.addEventListener('input', () => {
-            const nameVal = studentNameInput.value.trim();
-            // Regex to check only letters and spaces (accents, ñ, ü allowed)
+        function validateStudentName(nameValRaw) {
+            if (!nameValRaw) {
+                return "El nombre no puede estar vacío.";
+            }
+
+            // 1. Check if only spaces are typed
+            if (nameValRaw.trim() === "" && nameValRaw.length > 0) {
+                return "No puedes ingresar solo espacios en blanco. Debes escribir tu nombre.";
+            }
+
+            // 2. Check if it starts with a space
+            if (nameValRaw.startsWith(" ")) {
+                return "El nombre no puede comenzar con un espacio en blanco.";
+            }
+
+            // 3. Check for special characters, numbers or symbols
             const cleanLettersRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+            if (!cleanLettersRegex.test(nameValRaw)) {
+                return "No se permiten números, caracteres especiales ni símbolos.";
+            }
+
+            const words = nameValRaw.trim().split(/\s+/).filter(w => w.length > 0);
             
-            if (nameVal === "") {
+            // 4. Must contain at least name and surname (two words)
+            if (words.length < 2) {
+                return "Por favor ingresa al menos tu Nombre y Apellido (ej. Juan Pérez).";
+            }
+
+            // 5. No single-letter words (no "letra-espacio-letra", each word must have at least 2 letters)
+            const hasSingleLetter = words.some(word => word.length < 2);
+            if (hasSingleLetter) {
+                return "Cada palabra de tu nombre debe tener un mínimo de 2 letras (no se permiten letras o iniciales sueltas).";
+            }
+
+            return null; // Valid
+        }
+
+        studentNameInput.addEventListener('input', () => {
+            const nameValRaw = studentNameInput.value;
+            
+            if (nameValRaw === "") {
                 studentNameInput.classList.remove('valid', 'invalid');
                 nameFeedback.style.display = 'none';
                 return;
             }
 
-            if (!cleanLettersRegex.test(nameVal)) {
+            const error = validateStudentName(nameValRaw);
+            if (error) {
                 studentNameInput.classList.remove('valid');
                 studentNameInput.classList.add('invalid');
-                nameFeedback.textContent = 'El nombre no debe contener números ni símbolos especiales.';
+                nameFeedback.textContent = error;
                 nameFeedback.className = 'input-feedback error';
-                return;
+                nameFeedback.style.display = 'block';
+            } else {
+                studentNameInput.classList.remove('invalid');
+                studentNameInput.classList.add('valid');
+                nameFeedback.style.display = 'none';
             }
-
-            // Must contain at least name and surname (two words)
-            const words = nameVal.split(/\s+/).filter(w => w.length > 0);
-            if (words.length < 2) {
-                studentNameInput.classList.remove('valid');
-                studentNameInput.classList.add('invalid');
-                nameFeedback.textContent = 'Por favor ingresa al menos tu Nombre y Apellido (ej. Juan Pérez).';
-                nameFeedback.className = 'input-feedback error';
-                return;
-            }
-
-            studentNameInput.classList.remove('invalid');
-            studentNameInput.classList.add('valid');
-            nameFeedback.style.display = 'none';
         });
 
         btnNextStep2.addEventListener('click', async () => {
-            const nameVal = studentNameInput.value.trim();
-            const cleanLettersRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
-            const words = nameVal.split(/\s+/).filter(w => w.length > 0);
+            const nameValRaw = studentNameInput.value;
+            const error = validateStudentName(nameValRaw);
 
-            if (!nameVal || !cleanLettersRegex.test(nameVal) || words.length < 2) {
+            if (error) {
+                studentNameInput.classList.remove('valid');
                 studentNameInput.classList.add('invalid');
-                nameFeedback.textContent = 'Ingresa tu nombre y apellido válidos (sin números/símbolos).';
+                nameFeedback.textContent = error;
                 nameFeedback.className = 'input-feedback error';
+                nameFeedback.style.display = 'block';
                 return;
             }
 
-            studentFullName = nameVal;
+            studentFullName = nameValRaw.trim().split(/\s+/).map(word => {
+                return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            }).join(' ');
             btnNextStep2.disabled = true;
             btnNextStep2.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Cargando Actividad...';
 
@@ -2031,7 +2060,7 @@
 
             options = shuffleArray(options);
             options.forEach((o, index) => {
-                o.letter = index + 1; // 1, 2, 3, 4
+                o.letter = String.fromCharCode(65 + index); // A, B, C, D
             });
 
             // Render container html
@@ -2115,7 +2144,7 @@
 
             options = shuffleArray(options);
             options.forEach((o, index) => {
-                o.letter = index + 1; // 1, 2, 3
+                o.letter = String.fromCharCode(65 + index); // A, B, C
             });
 
             // Trigger Typewriter text animation

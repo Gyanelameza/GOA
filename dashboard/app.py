@@ -24,6 +24,12 @@ def get_db_connection():
         print(f"Error al conectar a PostgreSQL: {e}")
         return None
 
+def capitalize_name(name):
+    if not name:
+        return ''
+    words = name.strip().split()
+    return ' '.join(word.capitalize() for word in words)
+
 def docente_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -538,14 +544,14 @@ def docente_panel():
         # 2. Obtener historial de partidas de los estudiantes
         if is_admin:
             cursor.execute("""
-                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
+                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, re.id_resultado
                 FROM resultados_estudiantes re
                 JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                 ORDER BY re.id_resultado DESC;
             """)
         else:
             cursor.execute("""
-                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
+                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, re.id_resultado
                 FROM resultados_estudiantes re
                 JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                 WHERE s.id_profesor = %s
@@ -559,13 +565,14 @@ def docente_panel():
             detalles_raw = row[6] if row[6] is not None else []
             detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw)
             historial.append({
-                'alumno': row[0],
+                'alumno': capitalize_name(row[0]),
                 'codigo': row[1],
                 'puntaje': row[2],
                 'correctas': row[3],
                 'incorrectas': row[4],
                 'bloque': bloque,
-                'detalles': detalles_completos
+                'detalles': detalles_completos,
+                'id_resultado': row[7]
             })
         # Obtener bloques dinámicos
         bloques_map = obtener_info_bloques()
@@ -706,7 +713,7 @@ def api_historial():
         if codigo_filtro:
             if is_admin:
                 cursor.execute("""
-                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre, re.id_resultado
                     FROM resultados_estudiantes re
                     JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                     JOIN profesores p ON s.id_profesor = p.id_profesor
@@ -715,7 +722,7 @@ def api_historial():
                 """, (codigo_filtro,))
             else:
                 cursor.execute("""
-                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL, re.id_resultado
                     FROM resultados_estudiantes re
                     JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                     WHERE s.id_profesor = %s AND s.codigo_acceso = %s
@@ -724,7 +731,7 @@ def api_historial():
         else:
             if is_admin:
                 cursor.execute("""
-                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre, re.id_resultado
                     FROM resultados_estudiantes re
                     JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                     JOIN profesores p ON s.id_profesor = p.id_profesor
@@ -732,7 +739,7 @@ def api_historial():
                 """)
             else:
                 cursor.execute("""
-                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL, re.id_resultado
                     FROM resultados_estudiantes re
                     JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                     WHERE s.id_profesor = %s
@@ -746,13 +753,14 @@ def api_historial():
             detalles_raw = row[6] if row[6] is not None else []
             detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw)
             entry = {
-                'alumno': row[0],
+                'alumno': capitalize_name(row[0]),
                 'codigo': row[1],
                 'puntaje': row[2],
                 'correctas': row[3],
                 'incorrectas': row[4],
                 'bloque': bloque,
-                'detalles': detalles_completos
+                'detalles': detalles_completos,
+                'id_resultado': row[8]
             }
             if is_admin and row[7]:
                 entry['profesor'] = row[7]
@@ -972,7 +980,7 @@ def admin_profesor_detalles(id_profesor):
             codigo = c_row[0]
             # Fetch unique students who played this code
             cursor.execute("SELECT DISTINCT nombre_alumno FROM resultados_estudiantes WHERE codigo_acceso = %s ORDER BY nombre_alumno;", (codigo,))
-            students = [s[0] for s in cursor.fetchall()]
+            students = [capitalize_name(s[0]) for s in cursor.fetchall()]
             codigos_list.append({
                 'codigo': codigo,
                 'alumnos': students
