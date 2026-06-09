@@ -24,6 +24,12 @@ def get_db_connection():
         print(f"Error al conectar a PostgreSQL: {e}")
         return None
 
+def capitalize_name(name):
+    if not name:
+        return ''
+    words = name.strip().split()
+    return ' '.join(word.capitalize() for word in words)
+
 def docente_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -538,14 +544,14 @@ def docente_panel():
         # 2. Obtener historial de partidas de los estudiantes
         if is_admin:
             cursor.execute("""
-                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
+                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, re.id_resultado
                 FROM resultados_estudiantes re
                 JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                 ORDER BY re.id_resultado DESC;
             """)
         else:
             cursor.execute("""
-                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles 
+                SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, re.id_resultado
                 FROM resultados_estudiantes re
                 JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                 WHERE s.id_profesor = %s
@@ -559,13 +565,14 @@ def docente_panel():
             detalles_raw = row[6] if row[6] is not None else []
             detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw)
             historial.append({
-                'alumno': row[0],
+                'alumno': capitalize_name(row[0]),
                 'codigo': row[1],
                 'puntaje': row[2],
                 'correctas': row[3],
                 'incorrectas': row[4],
                 'bloque': bloque,
-                'detalles': detalles_completos
+                'detalles': detalles_completos,
+                'id_resultado': row[7]
             })
         # Obtener bloques dinámicos
         bloques_map = obtener_info_bloques()
@@ -706,7 +713,7 @@ def api_historial():
         if codigo_filtro:
             if is_admin:
                 cursor.execute("""
-                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre, re.id_resultado
                     FROM resultados_estudiantes re
                     JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                     JOIN profesores p ON s.id_profesor = p.id_profesor
@@ -715,7 +722,7 @@ def api_historial():
                 """, (codigo_filtro,))
             else:
                 cursor.execute("""
-                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL, re.id_resultado
                     FROM resultados_estudiantes re
                     JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                     WHERE s.id_profesor = %s AND s.codigo_acceso = %s
@@ -724,7 +731,7 @@ def api_historial():
         else:
             if is_admin:
                 cursor.execute("""
-                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, p.nombre, re.id_resultado
                     FROM resultados_estudiantes re
                     JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                     JOIN profesores p ON s.id_profesor = p.id_profesor
@@ -732,7 +739,7 @@ def api_historial():
                 """)
             else:
                 cursor.execute("""
-                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL
+                    SELECT re.nombre_alumno, re.codigo_acceso, re.puntaje, re.correctas, re.incorrectas, re.bloque, re.detalles, NULL, re.id_resultado
                     FROM resultados_estudiantes re
                     JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso
                     WHERE s.id_profesor = %s
@@ -746,13 +753,14 @@ def api_historial():
             detalles_raw = row[6] if row[6] is not None else []
             detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw)
             entry = {
-                'alumno': row[0],
+                'alumno': capitalize_name(row[0]),
                 'codigo': row[1],
                 'puntaje': row[2],
                 'correctas': row[3],
                 'incorrectas': row[4],
                 'bloque': bloque,
-                'detalles': detalles_completos
+                'detalles': detalles_completos,
+                'id_resultado': row[8]
             }
             if is_admin and row[7]:
                 entry['profesor'] = row[7]
@@ -972,7 +980,7 @@ def admin_profesor_detalles(id_profesor):
             codigo = c_row[0]
             # Fetch unique students who played this code
             cursor.execute("SELECT DISTINCT nombre_alumno FROM resultados_estudiantes WHERE codigo_acceso = %s ORDER BY nombre_alumno;", (codigo,))
-            students = [s[0] for s in cursor.fetchall()]
+            students = [capitalize_name(s[0]) for s in cursor.fetchall()]
             codigos_list.append({
                 'codigo': codigo,
                 'alumnos': students
@@ -1024,8 +1032,14 @@ def admin_eliminar_docente(id_docente):
         # 4. Delete professor
         cursor.execute("DELETE FROM profesores WHERE id_profesor = %s;", (id_docente,))
         
+        # 5. Shift down IDs of remaining professors with higher IDs
+        cursor.execute("UPDATE profesores SET id_profesor = id_profesor - 1 WHERE id_profesor > %s;", (id_docente,))
+        
+        # 6. Reset autoincrement sequence to prevent ID gaps when inserting next
+        cursor.execute("SELECT setval(pg_get_serial_sequence('profesores', 'id_profesor'), COALESCE((SELECT MAX(id_profesor) FROM profesores), 1));")
+        
         connection.commit()
-        return jsonify({'success': True, 'message': 'El docente y todos sus códigos/partidas asociados han sido eliminados con éxito.'})
+        return jsonify({'success': True, 'message': 'El docente ha sido eliminado con éxito, las posiciones de los demás docentes se han ajustado, y sus códigos/partidas asociados se han transferido o eliminado.'})
     except Exception as e:
         connection.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1184,6 +1198,46 @@ def admin_obtener_bloque(bloque):
         cursor.close()
         connection.close()
 
+def reindex_questions_and_nodes(cursor):
+    # 1. Re-index material_estudio
+    cursor.execute("SELECT id_material, bloque, contenido FROM material_estudio ORDER BY bloque, id_material;")
+    materials = cursor.fetchall()
+    cursor.execute("TRUNCATE TABLE material_estudio RESTART IDENTITY CASCADE;")
+    for _, bloque, contenido in materials:
+        cursor.execute("INSERT INTO material_estudio (bloque, contenido) VALUES (%s, %s);", (bloque, contenido))
+
+    # 2. Re-index banco_preguntas
+    cursor.execute("""
+        SELECT id_pregunta, bloque, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
+               opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta 
+        FROM banco_preguntas 
+        ORDER BY bloque, id_pregunta;
+    """)
+    questions = cursor.fetchall()
+    cursor.execute("TRUNCATE TABLE banco_preguntas RESTART IDENTITY CASCADE;")
+    for q in questions:
+        cursor.execute("""
+            INSERT INTO banco_preguntas (bloque, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
+                                        opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """, q[1:])
+        
+    # 3. Re-index historia_interactiva
+    cursor.execute("""
+        SELECT id_nodo, bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
+               opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta 
+        FROM historia_interactiva 
+        ORDER BY bloque, id_nodo;
+    """)
+    nodes = cursor.fetchall()
+    cursor.execute("TRUNCATE TABLE historia_interactiva RESTART IDENTITY CASCADE;")
+    for n in nodes:
+        cursor.execute("""
+            INSERT INTO historia_interactiva (bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
+                                             opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """, n[1:])
+
 @app.route('/api/admin/guardar-bloque', methods=['POST'])
 @admin_required
 def admin_guardar_bloque():
@@ -1315,8 +1369,11 @@ def admin_guardar_bloque():
                 correct_ans.strip()
             ))
             
+        # Re-index questions and nodes to make sure there are no gaps
+        reindex_questions_and_nodes(cursor)
+        
         connection.commit()
-        return jsonify({'success': True, 'message': f'¡El contenido del Bloque {bloque} ha sido actualizado con éxito!'})
+        return jsonify({'success': True, 'message': f'¡El contenido del Bloque {bloque} ha sido actualizado con éxito y las preguntas/historias han sido reordenadas en cascada!'})
     except Exception as e:
         connection.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1340,8 +1397,17 @@ def admin_eliminar_bloque(bloque):
         # Delete results associated with this block to keep database clean
         cursor.execute("DELETE FROM resultados_estudiantes WHERE bloque = %s;", (bloque,))
         
+        # Shift down block numbers for any block > deleted block
+        cursor.execute("UPDATE material_estudio SET bloque = bloque - 1 WHERE bloque > %s;", (bloque,))
+        cursor.execute("UPDATE banco_preguntas SET bloque = bloque - 1 WHERE bloque > %s;", (bloque,))
+        cursor.execute("UPDATE historia_interactiva SET bloque = bloque - 1 WHERE bloque > %s;", (bloque,))
+        cursor.execute("UPDATE resultados_estudiantes SET bloque = bloque - 1 WHERE bloque > %s;", (bloque,))
+        
+        # Re-index questions and nodes to make sure there are no gaps
+        reindex_questions_and_nodes(cursor)
+        
         connection.commit()
-        return jsonify({'success': True, 'message': f'¡El Bloque {bloque} ha sido eliminado con éxito!'})
+        return jsonify({'success': True, 'message': f'¡El Bloque {bloque} ha sido eliminado con éxito y los números de los siguientes bloques y preguntas se han ajustado!'})
     except Exception as e:
         connection.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500

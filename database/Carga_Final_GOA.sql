@@ -29,7 +29,7 @@ CREATE TABLE `sesiones` (
   `id_profesor` int DEFAULT NULL,
   PRIMARY KEY (`codigo_acceso`),
   KEY `id_profesor` (`id_profesor`),
-  CONSTRAINT `sesiones_ibfk_1` FOREIGN KEY (`id_profesor`) REFERENCES `profesores` (`id_profesor`)
+  CONSTRAINT `sesiones_ibfk_1` FOREIGN KEY (`id_profesor`) REFERENCES `profesores` (`id_profesor`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
