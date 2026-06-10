@@ -793,7 +793,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <!-- Topbar -->
-            <header class="topbar" style="padding: 20px 32px; min-height: 90px; display: flex; justify-content: flex-start; align-items: center; gap: 20px;">
+            <header class="topbar" style="padding: 20px 32px; min-height: 90px; display: flex; justify-content: flex-start; align-items: center; gap: 20px; position: relative; z-index: 95;">
                 <!-- Sidebar Toggle Button (Las rayitas) -->
                 <button id="sidebar-toggle" style="background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); cursor: pointer; color: #1a3a5c; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(30, 90, 150, 0.05); flex-shrink: 0;"
                         onmouseover="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.borderColor='#2a8bbb'; this.style.color='#2a8bbb'; this.style.transform='scale(1.05)';"
@@ -804,7 +804,28 @@
                     <h2 id="view-title" style="font-size: 24px;">{% if is_admin %}Visualizar Códigos de Acceso{% else %}Generar Códigos de Acceso{% endif %}</h2>
                     <p id="view-desc">{% if is_admin %}Visualiza y elimina los códigos de acceso activos en el sistema.{% else %}Administra el acceso a tus clases generando códigos de sesión aleatorios.{% endif %}</p>
                 </div>
-                <button id="btn-refresh" class="btn btn-secondary" style="margin-left: auto; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); color: #1a3a5c; font-weight: 700; transition: all 0.2s ease;"
+                {% if is_admin %}
+                <!-- Campana de Notificaciones -->
+                <div class="notification-container" style="margin-left: auto; position: relative; display: flex; align-items: center; z-index: 1000;">
+                    <button id="btn-notifications" style="background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); cursor: pointer; color: #1a3a5c; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; transition: all 0.2s ease; position: relative;"
+                            onmouseover="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.borderColor='#2a8bbb'; this.style.color='#2a8bbb'; this.style.transform='scale(1.05)';"
+                            onmouseout="this.style.background='rgba(255, 255, 255, 0.45)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.color='#1a3a5c'; this.style.transform='scale(1)';">
+                        <i class="fa-solid fa-bell"></i>
+                        <span id="notification-badge" style="position: absolute; top: -5px; right: -5px; background: #dc2626; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; display: none;">0</span>
+                    </button>
+                    <!-- Desplegable de notificaciones -->
+                    <div id="notifications-dropdown" style="display: none; position: absolute; right: 0; top: 50px; width: 330px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 20px; box-shadow: 0 16px 48px rgba(30, 90, 150, 0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 20px; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid rgba(42, 139, 187, 0.15); padding-bottom: 10px; margin-bottom: 12px;">
+                            <h4 style="margin: 0; font-size: 14px; font-weight: 800; color: #1a3a5c;"><i class="fa-solid fa-bell" style="color: #2a8bbb;"></i> Notificaciones</h4>
+                            <button id="btn-clear-notifications" style="background: none; border: none; color: #dc2626; font-size: 11px; cursor: pointer; font-weight: 700;">Marcar como leídas</button>
+                        </div>
+                        <div id="notifications-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;">
+                            <p style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin: 15px 0;">Sin notificaciones nuevas</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <button id="btn-refresh" class="btn btn-secondary" style="margin-left: {% if is_admin %}0{% else %}auto{% endif %}; height: 42px; border-radius: 12px; background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); color: #1a3a5c; font-weight: 700; transition: all 0.2s ease;"
                         onmouseover="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.borderColor='#2a8bbb'; this.style.color='#2a8bbb'; this.style.transform='scale(1.05)';"
                         onmouseout="this.style.background='rgba(255, 255, 255, 0.45)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.color='#1a3a5c'; this.style.transform='scale(1)';">
                     <i class="fa-solid fa-arrows-rotate"></i> Refrescar
@@ -992,6 +1013,13 @@
                                         <input type="text" id="input-nombre-publico" style="width: 100%; padding: 13px 16px 13px 44px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #1a3a5c; outline: none; transition: all 0.3s ease;" placeholder="Ej. Profe Lucas" value="{{ nombre_publico }}">
                                     </div>
                                     <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">Este es el nombre visible que verán tus alumnos cuando ingresen tu código de partida. ¡Puedes editarlo cuando quieras!</p>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <label style="font-weight: 700; font-size: 14px; color: var(--text-primary);">Número de WhatsApp:</label>
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <i class="fa-brands fa-whatsapp" style="position: absolute; left: 16px; color: #25d366; font-size: 1.15rem;"></i>
+                                        <input type="text" id="input-whatsapp" style="width: 100%; padding: 13px 16px 13px 44px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; font-size: 0.95rem; color: #1a3a5c; outline: none; transition: all 0.3s ease;" placeholder="+57 3XXXXXXXXX" value="{{ whatsapp }}">
+                                    </div>
                                 </div>
                                 <button class="btn btn-primary" id="btn-save-profile" style="align-self: flex-start; justify-content: center; min-width: 150px; border-radius: 50px;">
                                     <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
@@ -1377,6 +1405,7 @@
                                     <tr style="background: rgba(255,255,255,0.4); text-align: left; border-bottom: 1px solid rgba(255,255,255,0.35);">
                                         <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c;">Nombre Público</th>
                                         <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c;">Usuario / Credencial</th>
+                                        <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c;">Contacto</th>
                                         <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c;">Contraseña</th>
                                         <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c; text-align: center;">Códigos Activos</th>
                                         <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c; text-align: center;">Partidas de Alumnos</th>
@@ -2285,13 +2314,64 @@
         // Profile save logic
         const btnSaveProfile = document.getElementById('btn-save-profile');
         const inputNombrePublico = document.getElementById('input-nombre-publico');
+        const inputWhatsapp = document.getElementById('input-whatsapp');
+
+        // Prefix locking on profile WhatsApp field
+        if (inputWhatsapp) {
+            inputWhatsapp.addEventListener('input', function() {
+                if (!this.value.startsWith('+57 ')) {
+                    if (this.value.startsWith('+57')) {
+                        this.value = '+57 ' + this.value.substring(3).trimStart();
+                    } else {
+                        this.value = '+57 ';
+                    }
+                }
+            });
+        }
+
+        // Live validations on name inputs in profile
+        const profileNameRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]*$/;
+        if (inputNombrePublico) {
+            inputNombrePublico.addEventListener('input', function() {
+                if (this.value.startsWith(' ')) {
+                    this.value = this.value.trimStart();
+                }
+                if (!profileNameRegex.test(this.value)) {
+                    this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '');
+                }
+            });
+        }
         
         if (btnSaveProfile) {
             btnSaveProfile.addEventListener('click', async () => {
                 const nombrePublico = inputNombrePublico.value.trim();
+                const whatsappVal = inputWhatsapp ? inputWhatsapp.value.trim() : '';
+
                 if (!nombrePublico) {
                     showToast('Error', 'El nombre público no puede estar vacío.', 'fa-circle-xmark', '#ff4d4d');
                     return;
+                }
+                if (inputWhatsapp && !whatsappVal) {
+                    showToast('Error', 'El número de WhatsApp es obligatorio.', 'fa-circle-xmark', '#ff4d4d');
+                    return;
+                }
+                
+                if (nombrePublico.startsWith(' ')) {
+                    showToast('Error', 'El nombre no puede comenzar con espacios.', 'fa-circle-xmark', '#ff4d4d');
+                    return;
+                }
+                if (!profileNameRegex.test(nombrePublico)) {
+                    showToast('Error', 'El nombre no puede contener caracteres especiales.', 'fa-circle-xmark', '#ff4d4d');
+                    return;
+                }
+
+                if (inputWhatsapp) {
+                    const whatsappCleaned = whatsappVal.replace(/\s+/g, '');
+                    const whatsappPattern = /^\+573\d{9}$/;
+                    if (!whatsappPattern.test(whatsappCleaned)) {
+                        showToast('Error', 'El número de WhatsApp debe comenzar con +57 y tener 10 dígitos que comiencen con 3.', 'fa-circle-xmark', '#ff4d4d');
+                        return;
+                    }
                 }
                 
                 btnSaveProfile.disabled = true;
@@ -2301,13 +2381,16 @@
                     const response = await fetch('/api/docente/perfil', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nombre_publico: nombrePublico })
+                        body: JSON.stringify({ nombre_publico: nombrePublico, whatsapp: whatsappVal })
                     });
                     const data = await response.json();
                     if (data.success) {
-                        showToast('¡Perfil Actualizado!', 'Tu nombre de usuario público ha sido actualizado con éxito.', 'fa-circle-check', '#298552');
+                        showToast('¡Perfil Actualizado!', 'Tu perfil ha sido actualizado con éxito.', 'fa-circle-check', '#298552');
                         const logoTextSpan = document.querySelector('.logo-text span');
                         if (logoTextSpan) logoTextSpan.textContent = nombrePublico;
+                        if (inputWhatsapp && data.whatsapp) {
+                            inputWhatsapp.value = data.whatsapp;
+                        }
                     } else {
                         showToast('Error', data.error || 'No se pudo guardar el perfil.', 'fa-circle-xmark', '#ff4d4d');
                     }
@@ -2762,6 +2845,7 @@
                                 ${prof.nombre} ${isAdminUser ? '<span style="font-size:10px; background:rgba(42,139,187,0.12); color:#2a8bbb; padding:2px 8px; border-radius:30px; margin-left:6px; font-weight:800;">Principal</span>' : ''}
                             </td>
                             <td style="padding: 12px 10px; font-weight: 600; color: var(--text-secondary); font-family: monospace;">${prof.username}</td>
+                            <td style="padding: 12px 10px; font-weight: 600; color: var(--text-secondary); font-family: monospace;">${prof.whatsapp || '-'}</td>
                             <td style="padding: 12px 10px; font-family: monospace; color: var(--text-secondary);">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <input type="password" value="${prof.contrasena}" readonly 
@@ -3490,6 +3574,117 @@
 
         // Initialize field listeners to dynamically clear invalid styling
         inicializarLimpiezaValidacion();
+        // Notifications Bell Logic
+        const btnNotifications = document.getElementById('btn-notifications');
+        const notificationsDropdown = document.getElementById('notifications-dropdown');
+        const notificationBadge = document.getElementById('notification-badge');
+        const notificationsList = document.getElementById('notifications-list');
+        const btnClearNotifications = document.getElementById('btn-clear-notifications');
+
+        if (btnNotifications) {
+            btnNotifications.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                // If it is open, close it
+                if (notificationsDropdown.style.display === 'block') {
+                    notificationsDropdown.style.display = 'none';
+                    return;
+                }
+                
+                // Open the dropdown immediately
+                notificationsDropdown.style.display = 'block';
+                notificationsList.innerHTML = '<p style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin: 15px 0;"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</p>';
+                
+                try {
+                    const res = await fetch('/api/admin/notifications');
+                    const data = await res.json();
+                    if (data.success) {
+                        const list = data.notifications || [];
+                        updateNotificationBadge(list.length);
+                        
+                        if (list.length === 0) {
+                            notificationsList.innerHTML = '<p style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin: 15px 0;">Sin notificaciones nuevas</p>';
+                        } else {
+                            notificationsList.innerHTML = '';
+                            list.forEach(n => {
+                                const div = document.createElement('div');
+                                div.style.cssText = 'background: rgba(42, 139, 187, 0.08); border: 1px solid rgba(42, 139, 187, 0.15); border-radius: 12px; padding: 10px 12px; font-size: 12px; line-height: 1.4; color: #1a3a5c; text-align: left; margin-bottom: 8px;';
+                                
+                                const numOnly = n.whatsapp.replace(/\D/g, ''); // get only digits
+                                const whatsappUrl = `https://wa.me/${numOnly}`;
+                                
+                                div.innerHTML = `
+                                    El profesor <strong>${n.nombre}</strong> está teniendo problemas para ingresar ya que se le olvidaron las credenciales... Por favor, envíale un mensaje a su número de WhatsApp:<br>
+                                    <a href="${whatsappUrl}" target="_blank" style="color: #298552; font-weight: 700; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">
+                                        <i class="fa-brands fa-whatsapp"></i> ${n.whatsapp}
+                                    </a>
+                                `;
+                                notificationsList.appendChild(div);
+                            });
+                        }
+                    } else {
+                        notificationsList.innerHTML = `<p style="font-size: 12.5px; color: #dc2626; text-align: center; margin: 15px 0;">Error: ${data.error || "No se pudieron cargar"}</p>`;
+                    }
+                } catch (err) {
+                    console.error("Error loading notifications:", err);
+                    notificationsList.innerHTML = '<p style="font-size: 12.5px; color: #dc2626; text-align: center; margin: 15px 0;">Error de conexión</p>';
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (notificationsDropdown && !notificationsDropdown.contains(e.target) && e.target !== btnNotifications) {
+                    notificationsDropdown.style.display = 'none';
+                }
+            });
+        }
+
+        function updateNotificationBadge(count) {
+            if (count > 0) {
+                notificationBadge.textContent = count;
+                notificationBadge.style.display = 'flex';
+            } else {
+                notificationBadge.style.display = 'none';
+            }
+        }
+
+        if (btnClearNotifications) {
+            btnClearNotifications.addEventListener('click', async () => {
+                try {
+                    const res = await fetch('/api/admin/notifications/read', { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        updateNotificationBadge(0);
+                        notificationsList.innerHTML = '<p style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin: 15px 0;">No hay notificaciones activas</p>';
+                        notificationsDropdown.style.display = 'none';
+                        showToast("Notificaciones leídas", "Se marcaron todas como leídas.", "fa-circle-check", "#298552");
+                    }
+                } catch (err) {
+                    console.error("Error clearing notifications:", err);
+                }
+            });
+        }
+
+        // Poll notifications every 15 seconds
+        setInterval(() => {
+            if (notificationsDropdown && notificationsDropdown.style.display === 'none') {
+                loadNotificationsBadgeOnly();
+            }
+        }, 15000);
+
+        async function loadNotificationsBadgeOnly() {
+            try {
+                const res = await fetch('/api/admin/notifications');
+                const data = await res.json();
+                if (data.success) {
+                    updateNotificationBadge(data.notifications ? data.notifications.length : 0);
+                }
+            } catch (err) {
+                // silent background fail
+            }
+        }
+
+        // Run on load
+        loadNotificationsBadgeOnly();
     </script>
     {% endif %}
 </body>

@@ -140,12 +140,12 @@
         .modal-overlay {
             position:fixed; inset:0; z-index:100;
             background:rgba(14,30,60,0.45); backdrop-filter:blur(8px);
-            display:flex; align-items:center; justify-content:center;
-            opacity:0; pointer-events:none; transition:opacity 0.35s ease;
+            display:none; align-items:center; justify-content:center;
+            opacity:0; transition:opacity 0.35s ease;
             overflow-y: auto;
             padding: 20px 0;
         }
-        .modal-overlay.open { opacity:1; pointer-events:all; }
+        .modal-overlay.open { display:flex; opacity:1; }
 
         .modal-card {
             position:relative; width:92%; max-width:460px;
@@ -252,12 +252,10 @@
         <h2 class="login-title">Acceso Docente</h2>
         <p class="login-subtitle">Ingresa tus credenciales para administrar la clase</p>
 
-        {% if error %}
-        <div class="alert-box alert-error">
+        <div class="alert-box alert-error" id="login-alert" {% if not error and not show_modal %}style="display:none;"{% endif %}>
             <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>{{ error }}</span>
+            <span id="login-alert-message">{% if show_modal %}Estimado profesor, hemos detectado dificultades con su inicio de sesión. El administrador del sistema ya ha sido notificado y se pondrá en contacto con usted a través del número de WhatsApp registrado para asistirlo. Mientras tanto, puede seguir intentando acceder si logra recordar sus credenciales{% else %}{{ error if error else '' }}{% endif %}</span>
         </div>
-        {% endif %}
 
         <form action="{{ url_for('login') }}" method="POST" id="login-form">
             <!-- Selector de Roles -->
@@ -349,6 +347,14 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="form-label" for="reg-whatsapp">Número de WhatsApp</label>
+                    <div class="input-wrapper">
+                        <i class="fa-brands fa-whatsapp" style="color: #25d366; font-size: 1.15rem;"></i>
+                        <input class="form-input" type="text" id="reg-whatsapp"
+                               placeholder="+57 3XXXXXXXXX" required value="+57 ">
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="form-label" for="reg-nombre-publico">
                         Nombre Visible para Estudiantes
                         <span style="font-weight:400;color:#7a9bb8;">(opcional)</span>
@@ -363,6 +369,24 @@
                     <i class="fa-solid fa-user-check"></i> Crear Cuenta
                 </button>
             </form>
+        </div>
+    <!-- Modal de Recuperar Contraseña / Auto-Notificación -->
+    <div class="modal-overlay" id="forgot-password-modal" role="dialog" aria-modal="true">
+        <div class="modal-card" style="max-width: 410px; padding: 32px 24px;">
+            <h3 class="modal-title"><i class="fa-solid fa-circle-exclamation" style="color: #2a8bbb; margin-right: 6px;"></i> ¿Problemas para iniciar sesión?</h3>
+            <p class="modal-subtitle" id="auto-recovery-message" style="margin-top: 10px; margin-bottom: 20px; line-height: 1.6; font-size: 14.5px; text-align: left; color: #2c4a6f;">
+                Estimado profesor, hemos detectado dificultades con su inicio de sesión. El administrador del sistema ya ha sido notificado y se pondrá en contacto con usted a través del número de WhatsApp registrado para asistirlo. Mientras tanto, puede seguir intentando acceder si logra recordar sus credenciales
+            </p>
+            <button class="btn-submit btn-submit-green" onclick="closeForgotModal()" style="margin-top: 0; border-radius: 50px; height: 44px; width: 100%;">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta Custom Premium -->
+    <div class="modal-overlay" id="custom-alert-modal" role="dialog" aria-modal="true">
+        <div class="modal-card" style="max-width: 410px; padding: 32px 24px;">
+            <h3 class="modal-title" id="custom-alert-title">Notificación</h3>
+            <p class="modal-subtitle" id="custom-alert-message" style="margin-top: 10px; margin-bottom: 20px; line-height: 1.5; font-size: 14.5px;"></p>
+            <button class="btn-submit btn-submit-green" onclick="closeCustomAlert()" style="margin-top: 0; border-radius: 50px; height: 44px; width: 100%;">Aceptar</button>
         </div>
     </div>
 
@@ -410,6 +434,66 @@
             if (role === 'admin') {
                 const adminTab = document.querySelector('.role-tab[data-role="admin"]');
                 if (adminTab) adminTab.click();
+            }
+        });
+
+        // AJAX Form Submission for Login to handle failed attempts and modals dynamically
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('.btn-submit');
+            const alertEl = document.getElementById('login-alert');
+            const alertMsg = document.getElementById('login-alert-message');
+            const usuario = document.getElementById('usuario').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const role = document.getElementById('login-role').value;
+
+            btn.disabled = true;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Ingresando...';
+            if (alertEl) alertEl.style.display = 'none';
+
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password, role })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    if (alertEl && alertMsg) {
+                        if (data.show_auto_recovery) {
+                            alertMsg.textContent = `Estimado profesor, hemos detectado dificultades con su inicio de sesión. El administrador del sistema ya ha sido notificado y se pondrá en contacto con usted a través del número de WhatsApp registrado para asistirlo. Mientras tanto, puede seguir intentando acceder si logra recordar sus credenciales`;
+                        } else {
+                            alertMsg.textContent = data.error || 'Credenciales incorrectas.';
+                        }
+                        alertEl.style.display = 'flex';
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    
+                    // If server flags for auto recovery, display the auto-notification modal
+                    if (data.show_auto_recovery) {
+                        const msgEl = document.getElementById('auto-recovery-message');
+                        if (msgEl) {
+                            msgEl.innerHTML = `Estimado profesor, hemos detectado dificultades con su inicio de sesión. El administrador del sistema ya ha sido notificado y se pondrá en contacto con usted a través del número de WhatsApp registrado para asistirlo. Mientras tanto, puede seguir intentando acceder si logra recordar sus credenciales`;
+                        }
+                        const modal = document.getElementById('forgot-password-modal');
+                        if (modal) {
+                            modal.classList.add('open');
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (alertEl && alertMsg) {
+                    alertMsg.textContent = 'Error de conexión con el servidor.';
+                    alertEl.style.display = 'flex';
+                }
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
             }
         });
 
@@ -466,6 +550,40 @@
             document.getElementById('register-modal').classList.remove('open');
         }
 
+        // Prefix locking on WhatsApp input field
+        const regWhatsapp = document.getElementById('reg-whatsapp');
+        if (regWhatsapp) {
+            regWhatsapp.addEventListener('input', function() {
+                if (!this.value.startsWith('+57 ')) {
+                    if (this.value.startsWith('+57')) {
+                        // user deleted the space
+                        this.value = '+57 ' + this.value.substring(3).trimStart();
+                    } else {
+                        this.value = '+57 ';
+                    }
+                }
+            });
+        }
+
+        // Live Name Validation (disallow leading spaces and special chars, allow numbers)
+        const nameRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]*$/;
+        
+        function handleNameInputValidation(inputEl) {
+            inputEl.addEventListener('input', function() {
+                if (this.value.startsWith(' ')) {
+                    this.value = this.value.trimStart();
+                }
+                if (!nameRegex.test(this.value)) {
+                    this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '');
+                }
+            });
+        }
+        
+        const regNombre = document.getElementById('reg-nombre');
+        const regNombrePublico = document.getElementById('reg-nombre-publico');
+        if (regNombre) handleNameInputValidation(regNombre);
+        if (regNombrePublico) handleNameInputValidation(regNombrePublico);
+
         document.getElementById('register-modal').addEventListener('click', function(e) {
             if (e.target === this) closeRegisterModal();
         });
@@ -477,16 +595,46 @@
             const nombre = document.getElementById('reg-nombre').value.trim();
             const pass   = document.getElementById('reg-password').value.trim();
             const pub    = document.getElementById('reg-nombre-publico').value.trim();
+            const whatsapp = document.getElementById('reg-whatsapp').value.trim();
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Registrando...';
             alertEl.style.display = 'none';
 
+            // Additional validations
+            if (nombre.startsWith(' ')) {
+                alertEl.className = 'alert-box alert-error';
+                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>El nombre no puede comenzar con espacios.</span>';
+                alertEl.style.display = 'flex';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
+                return;
+            }
+            if (!nameRegex.test(nombre) || (pub && !nameRegex.test(pub))) {
+                alertEl.className = 'alert-box alert-error';
+                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>El nombre no puede contener caracteres especiales.</span>';
+                alertEl.style.display = 'flex';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
+                return;
+            }
+
+            const whatsappCleaned = whatsapp.replace(/\s+/g, '');
+            const whatsappPattern = /^\+573\d{9}$/;
+            if (!whatsappPattern.test(whatsappCleaned)) {
+                alertEl.className = 'alert-box alert-error';
+                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>El número de WhatsApp debe comenzar con +57 y tener un número de 10 dígitos que comience con 3.</span>';
+                alertEl.style.display = 'flex';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
+                return;
+            }
+
             try {
                 const res  = await fetch('/api/registro-docente', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, password: pass, nombre_publico: pub || nombre })
+                    body: JSON.stringify({ nombre, password: pass, nombre_publico: pub || nombre, whatsapp })
                 });
                 const data = await res.json();
 
@@ -498,6 +646,7 @@
                     alertEl.style.display = 'flex';
                     document.getElementById('register-form').reset();
                     document.getElementById('usuario-preview').style.display = 'none';
+                    document.getElementById('reg-whatsapp').value = '+57 ';
                     // Pre-fill login after 2.5s
                     setTimeout(() => {
                         closeRegisterModal();
@@ -520,6 +669,69 @@
                 btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
             }
         });
+
+        async function closeForgotModal() {
+            document.getElementById('forgot-password-modal').classList.remove('open');
+            try {
+                await fetch('/api/reset-failed-attempts', { method: 'POST' });
+            } catch (err) {
+                console.error("Error resetting failed attempts:", err);
+            }
+        }
+        
+        const targetUsername = "{{ target_username }}";
+        async function sendForgotPasswordNotification() {
+            const username = document.getElementById('usuario').value.trim() || targetUsername;
+            if (!username) {
+                showCustomAlert("Acceso Requerido", "Por favor ingresa tu nombre de usuario primero.");
+                closeForgotModal();
+                return;
+            }
+            closeForgotModal();
+            try {
+                const res = await fetch('/api/forgot-password-notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showCustomAlert("Notificación Enviada", "El administrador se pondrá en contacto contigo a través de WhatsApp.");
+                } else {
+                    showCustomAlert("Error", data.error || "No se pudo notificar al administrador.");
+                }
+            } catch (err) {
+                showCustomAlert("Error de Conexión", "No se pudo conectar al servidor para notificar.");
+            }
+        }
+
+        function showCustomAlert(title, message) {
+            document.getElementById('custom-alert-title').textContent = title;
+            document.getElementById('custom-alert-message').textContent = message;
+            document.getElementById('custom-alert-modal').classList.add('open');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-modal').classList.remove('open');
+        }
+
+        {% if show_modal %}
+        function openForgotModalAutomatically() {
+            const msgEl = document.getElementById('auto-recovery-message');
+            if (msgEl) {
+                msgEl.innerHTML = `Estimado profesor, hemos detectado dificultades con su inicio de sesión. El administrador del sistema ya ha sido notificado y se pondrá en contacto con usted a través del número de WhatsApp registrado para asistirlo. Mientras tanto, puede seguir intentando acceder si logra recordar sus credenciales`;
+            }
+            const modal = document.getElementById('forgot-password-modal');
+            if (modal) {
+                modal.classList.add('open');
+            }
+        }
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', openForgotModalAutomatically);
+        } else {
+            openForgotModalAutomatically();
+        }
+        {% endif %}
     </script>
 
 </body>

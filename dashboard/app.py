@@ -88,13 +88,13 @@ def obtener_info_bloques():
 @app.route('/')
 def index():
     return render_template('index.html')
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'profesor_id' in session:
         return redirect(url_for('docente_panel'))
         
     error = None
+    email = ''
     if request.method == 'POST':
         if request.is_json:
             data = request.json
@@ -139,14 +139,19 @@ def login():
                                 session['profesor_email'] = admin_row[2]
                                 session['profesor_nombre_publico'] = admin_row[3] if (admin_row[3] and admin_row[3].strip()) else admin_row[2]
                                 session['admin_logged_in'] = True
+                                session['failed_attempts'] = 0
                                 
                                 if request.is_json:
                                     return jsonify({'success': True, 'redirect': url_for('docente_panel')})
                                 return redirect(url_for('docente_panel'))
                             else:
                                 error = "Usuario o contraseña de administrador incorrectos."
+                                session['failed_attempts'] = session.get('failed_attempts', 0) + 1
+                                session['last_failed_username'] = admin_username
                         else:
                             error = "El usuario ingresado no tiene privilegios de administrador."
+                            session['failed_attempts'] = session.get('failed_attempts', 0) + 1
+                            session['last_failed_username'] = admin_username
                     except Exception as e:
                         if connection:
                             connection.rollback()
@@ -173,22 +178,101 @@ def login():
                             session['profesor_email'] = profesor[2]
                             session['profesor_nombre_publico'] = profesor[3] if (profesor[3] and profesor[3].strip()) else profesor[2]
                             session['admin_logged_in'] = False  # Logged in as teacher
+                            session['failed_attempts'] = 0
+                            
+                            # Clear notifications for this professor
+                            try:
+                                cursor.execute("DELETE FROM notificaciones WHERE id_profesor = %s;", (profesor[0],))
+                                connection.commit()
+                            except Exception as db_err:
+                                print(f"Error deleting notifications on successful login: {db_err}")
+                                connection.rollback()
                             
                             if request.is_json:
                                 return jsonify({'success': True, 'redirect': url_for('docente_panel')})
                             return redirect(url_for('docente_panel'))
                         else:
-                            error = "Correo o contraseña incorrectos."
+                            error = "Credenciales incorrectas."
+                            session['failed_attempts'] = session.get('failed_attempts', 0) + 1
+                            session['last_failed_username'] = target_username
+                            
+                            # Check if the teacher exists
+                            cursor.execute("SELECT id_profesor, nombre, whatsapp FROM profesores WHERE username = %s;", (target_username,))
+                            teacher_exists = cursor.fetchone()
+                            
+                            if session['failed_attempts'] >= 5 and teacher_exists:
+                                id_prof, name_prof, wa_prof = teacher_exists
+                                # Check if a notification already exists for this teacher to prevent duplicates
+                                cursor.execute("SELECT 1 FROM notificaciones WHERE id_profesor = %s LIMIT 1;", (id_prof,))
+                                notification_exists = cursor.fetchone()
+                                
+                                if not notification_exists:
+                                    try:
+                                        cursor.execute("""
+                                            INSERT INTO notificaciones (id_profesor, nombre, whatsapp)
+                                            VALUES (%s, %s, %s);
+                                        """, (id_prof, name_prof, wa_prof))
+                                        connection.commit()
+                                    except Exception as db_err:
+                                        print(f"Error inserting auto-notification: {db_err}")
+                                        connection.rollback()
                     except Exception as e:
                         error = f"Error en el servidor: {str(e)}"
                     finally:
                         cursor.close()
                         connection.close()
-        
+           
         if request.is_json:
-            return jsonify({'success': False, 'error': error}), 401
+            # Check teacher info for auto-recovery response
+            connection = get_db_connection()
+            teacher_info = None
+            if connection:
+                cursor = connection.cursor()
+                try:
+                    cursor.execute("SELECT nombre, whatsapp FROM profesores WHERE username = %s;", (session.get('last_failed_username', email),))
+                    teacher_info = cursor.fetchone()
+                finally:
+                    cursor.close()
+                    connection.close()
+
+            attempts = session.get('failed_attempts', 0)
+            response_data = {
+                'success': False,
+                'error': error,
+                'failed_attempts': attempts
+            }
+            if attempts >= 5 and teacher_info:
+                response_data['show_auto_recovery'] = True
+                response_data['nombre'] = teacher_info[0]
+                response_data['whatsapp'] = teacher_info[1]
+                
+            return jsonify(response_data), 401
             
-    return render_template('login.html', error=error)
+    attempts = session.get('failed_attempts', 0)
+    show_modal = False
+    nombre = ""
+    whatsapp = ""
+    if attempts >= 5:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            try:
+                cursor.execute("SELECT nombre, whatsapp FROM profesores WHERE username = %s;", (session.get('last_failed_username', ''),))
+                row = cursor.fetchone()
+                if row:
+                    show_modal = True
+                    nombre = row[0]
+                    whatsapp = row[1]
+            finally:
+                cursor.close()
+                connection.close()
+
+    return render_template('login.html', error=error, show_modal=show_modal, nombre=nombre, whatsapp=whatsapp, target_username=email)
+
+@app.route('/api/reset-failed-attempts', methods=['POST'])
+def reset_failed_attempts():
+    session['failed_attempts'] = 0
+    return jsonify({'success': True, 'failed_attempts': 0})
 
 @app.route('/logout')
 def logout():
@@ -206,14 +290,35 @@ def registro_docente():
     nombre         = (data.get('nombre',   '') or '').strip()
     password       = (data.get('password', '') or '').strip()
     nombre_publico = (data.get('nombre_publico', '') or nombre).strip()
+    whatsapp       = (data.get('whatsapp', '') or '').strip()
 
     if not nombre or not password:
         return jsonify({'success': False, 'error': 'Por favor completa todos los campos.'}), 400
     if len(password) < 6:
         return jsonify({'success': False, 'error': 'La contraseña debe tener al menos 6 caracteres.'}), 400
+    if not whatsapp:
+        return jsonify({'success': False, 'error': 'El número de WhatsApp es obligatorio.'}), 400
+
+    import re
+    # Validate name (no leading spaces, no special chars, numbers allowed)
+    name_pattern = r'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+( [a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+)*$'
+    if not re.match(name_pattern, nombre):
+        return jsonify({'success': False, 'error': 'El nombre no puede tener espacios iniciales/finales ni caracteres especiales, pero se aceptan números.'}), 400
+    if nombre_publico and not re.match(name_pattern, nombre_publico):
+        return jsonify({'success': False, 'error': 'El nombre público no puede tener espacios iniciales/finales ni caracteres especiales.'}), 400
+
+    # Validate WhatsApp (allow spaces in the middle)
+    whatsapp_val = whatsapp.replace(' ', '')
+    whatsapp_pattern = r'^\+573\d{9}$'
+    if not re.match(whatsapp_pattern, whatsapp_val):
+        return jsonify({'success': False, 'error': 'El número de WhatsApp debe comenzar con +57 y tener un número de 10 dígitos que comience con 3.'}), 400
+
+    # Clean and format WhatsApp
+    digits = re.sub(r'\D', '', whatsapp_val[3:])
+    whatsapp_clean = f"+57 {digits}"
 
     # Auto-generate username: "laura gomez" -> "laura.gomez.profesor"
-    import re, unicodedata
+    import unicodedata
     def normalize(s):
         s = unicodedata.normalize('NFD', s)
         s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
@@ -242,8 +347,8 @@ def registro_docente():
 
         # 3. Insert new teacher (username col = auto-generated username; contrasena col = password; nombre col = display name)
         cursor.execute(
-            "INSERT INTO profesores (contrasena, username, nombre) VALUES (%s, %s, %s);",
-            (password, usuario, nombre_publico)
+            "INSERT INTO profesores (contrasena, username, nombre, whatsapp) VALUES (%s, %s, %s, %s);",
+            (password, usuario, nombre_publico, whatsapp_clean)
         )
         connection.commit()
         return jsonify({'success': True, 'usuario': usuario, 'message': '¡Registro exitoso! Ya puedes iniciar sesión.'})
@@ -529,9 +634,10 @@ def docente_panel():
     cursor = connection.cursor()
     try:
         # Get profesor public name
-        cursor.execute("SELECT nombre FROM profesores WHERE id_profesor = %s;", (profesor_id,))
+        cursor.execute("SELECT nombre, whatsapp FROM profesores WHERE id_profesor = %s;", (profesor_id,))
         row_prof = cursor.fetchone()
         nombre_publico = row_prof[0] if (row_prof and row_prof[0]) else session.get('profesor_email', 'Docente')
+        whatsapp = row_prof[1] if (row_prof and len(row_prof) > 1 and row_prof[1]) else ''
         session['profesor_nombre_publico'] = nombre_publico
 
         # 1. Obtener códigos de acceso
@@ -590,7 +696,7 @@ def docente_panel():
                 
         bloques_list = [{'id': b, 'titulo': t.replace(f"Bloque {b}:", "").strip()} for b, t in sorted(bloques_map.items())]
             
-        return render_template('docente.html', codigos=codigos, historial=historial, nombre_publico=nombre_publico, is_admin=is_admin, bloques_map=bloques_map, bloques_list=bloques_list)
+        return render_template('docente.html', codigos=codigos, historial=historial, nombre_publico=nombre_publico, whatsapp=whatsapp, is_admin=is_admin, bloques_map=bloques_map, bloques_list=bloques_list)
     except Exception as e:
         return f"Error en el servidor: {str(e)}", 500
     finally:
@@ -603,9 +709,28 @@ def update_profile():
     profesor_id = session.get('profesor_id')
     data = request.json or {}
     nombre_publico = data.get('nombre_publico', '').strip()
+    whatsapp = data.get('whatsapp', '').strip()
     
     if not nombre_publico:
         return jsonify({'error': 'El nombre público no puede estar vacío.'}), 400
+    if not whatsapp:
+        return jsonify({'error': 'El número de WhatsApp es obligatorio.'}), 400
+        
+    import re
+    # Validate name
+    name_pattern = r'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+( [a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+)*$'
+    if not re.match(name_pattern, nombre_publico):
+        return jsonify({'error': 'El nombre público no puede tener espacios iniciales/finales ni caracteres especiales.'}), 400
+        
+    # Validate WhatsApp (allow spaces in the middle)
+    whatsapp_val = whatsapp.replace(' ', '')
+    whatsapp_pattern = r'^\+573\d{9}$'
+    if not re.match(whatsapp_pattern, whatsapp_val):
+        return jsonify({'error': 'El número de WhatsApp debe comenzar con +57 y tener un número de 10 dígitos que comience con 3.'}), 400
+        
+    # Clean and format WhatsApp
+    digits = re.sub(r'\D', '', whatsapp_val[3:])
+    whatsapp_clean = f"+57 {digits}"
         
     connection = get_db_connection()
     if not connection:
@@ -613,12 +738,98 @@ def update_profile():
         
     cursor = connection.cursor()
     try:
-        cursor.execute("UPDATE profesores SET nombre = %s WHERE id_profesor = %s;", (nombre_publico, profesor_id))
+        cursor.execute("UPDATE profesores SET nombre = %s, whatsapp = %s WHERE id_profesor = %s;", (nombre_publico, whatsapp_clean, profesor_id))
         connection.commit()
         session['profesor_nombre_publico'] = nombre_publico
-        return jsonify({'success': True, 'nombre_publico': nombre_publico}), 200
+        return jsonify({'success': True, 'nombre_publico': nombre_publico, 'whatsapp': whatsapp_clean}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/forgot-password-notify', methods=['POST'])
+def forgot_password_notify():
+    data = request.json or {}
+    username = data.get('username')
+    if not username or not isinstance(username, str):
+        return jsonify({'success': False, 'error': 'Nombre de usuario requerido.'}), 400
+    username = username.strip()
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+
+    cursor = connection.cursor()
+    try:
+        # Check if user exists
+        cursor.execute("SELECT id_profesor, nombre, whatsapp FROM profesores WHERE username = %s;", (username,))
+        prof = cursor.fetchone()
+        if not prof:
+            return jsonify({'success': False, 'error': 'El usuario ingresado no está registrado.'}), 444
+
+        id_profesor, nombre, whatsapp = prof
+        
+        # Check if a notification already exists for this teacher to prevent duplicates
+        cursor.execute("SELECT 1 FROM notificaciones WHERE id_profesor = %s LIMIT 1;", (id_profesor,))
+        notification_exists = cursor.fetchone()
+        
+        if not notification_exists:
+            # Insert notification
+            cursor.execute("""
+                INSERT INTO notificaciones (id_profesor, nombre, whatsapp)
+                VALUES (%s, %s, %s);
+            """, (id_profesor, nombre, whatsapp))
+            connection.commit()
+            
+        session['failed_attempts'] = 0 # reset attempts
+        return jsonify({'success': True, 'message': 'Notificación enviada al administrador.'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/admin/notifications', methods=['GET'])
+@admin_required
+def admin_get_notifications():
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+    cursor = connection.cursor()
+    try:
+        cursor.execute("SELECT id, nombre, whatsapp, creado_en FROM notificaciones WHERE leido = FALSE ORDER BY creado_en DESC;")
+        rows = cursor.fetchall()
+        notifications = []
+        for r in rows:
+            notifications.append({
+                'id': r[0],
+                'nombre': r[1],
+                'whatsapp': r[2] if r[2] else '',
+                'creado_en': r[3].isoformat() if r[3] else None
+            })
+        return jsonify({'success': True, 'notifications': notifications})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.route('/api/admin/notifications/read', methods=['POST'])
+@admin_required
+def admin_mark_notifications_read():
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+    cursor = connection.cursor()
+    try:
+        cursor.execute("UPDATE notificaciones SET leido = TRUE WHERE leido = FALSE;")
+        connection.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         cursor.close()
         connection.close()
@@ -935,7 +1146,8 @@ def admin_list_profesores():
                 p.contrasena, 
                 p.nombre,
                 (SELECT COUNT(*) FROM sesiones s WHERE s.id_profesor = p.id_profesor) as total_codigos,
-                (SELECT COUNT(*) FROM resultados_estudiantes re JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso WHERE s.id_profesor = p.id_profesor) as total_partidas
+                (SELECT COUNT(*) FROM resultados_estudiantes re JOIN sesiones s ON re.codigo_acceso = s.codigo_acceso WHERE s.id_profesor = p.id_profesor) as total_partidas,
+                p.whatsapp
             FROM profesores p
             ORDER BY p.id_profesor;
         """)
@@ -948,7 +1160,8 @@ def admin_list_profesores():
                 'contrasena': r[2],
                 'nombre': r[3],
                 'total_codigos': r[4],
-                'total_partidas': r[5]
+                'total_partidas': r[5],
+                'whatsapp': r[6] if r[6] else ''
             })
         return jsonify({'success': True, 'profesores': profesores})
     except Exception as e:
@@ -1042,7 +1255,8 @@ def admin_eliminar_docente(id_docente):
         return jsonify({'success': True, 'message': 'El docente ha sido eliminado con éxito, las posiciones de los demás docentes se han ajustado, y sus códigos/partidas asociados se han transferido o eliminado.'})
     except Exception as e:
         connection.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
+        print(f"Error al eliminar docente: {e}")
+        return jsonify({'success': False, 'error': 'Ocurrió un error al intentar eliminar el docente en la base de datos. Por favor, intente de nuevo.'}), 500
     finally:
         cursor.close()
         connection.close()
