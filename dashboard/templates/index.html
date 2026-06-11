@@ -250,6 +250,49 @@
             .portals-grid { gap: 12px; }
             body { padding: 2vh 0 1vh; }
         }
+
+        /* Optimización de espacio para celulares en horizontal (landscape) */
+        @media (max-height: 540px) {
+            .logo-bubble {
+                width: clamp(100px, 18vh, 150px) !important;
+                margin-bottom: 0.2vh !important;
+            }
+            .portal-title {
+                font-size: 1.1rem !important;
+                margin-bottom: 0px !important;
+            }
+            .portal-loc {
+                font-size: 0.75rem !important;
+                margin-bottom: 0.5vh !important;
+            }
+            .portals-grid {
+                margin-top: 0px !important;
+                gap: 12px !important;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+            }
+            .portal-card {
+                padding: 10px 14px 8px !important;
+                gap: 4px !important;
+                border-radius: 16px !important;
+            }
+            .card-icon-img {
+                width: 50px !important;
+                height: 50px !important;
+            }
+            .portal-card h3 {
+                font-size: 1rem !important;
+            }
+            .portal-card p {
+                display: none !important; /* Esconder explicación larga en horizontal */
+            }
+            .btn-pill {
+                padding: 6px 12px !important;
+                font-size: 0.8rem !important;
+            }
+            .portal-footer {
+                margin-top: 1vh !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -330,6 +373,17 @@
     const video = document.getElementById('intro-video');
     const skip  = document.getElementById('skip');
     setTimeout(() => skip.classList.add('show'), 800);
+    
+    // Controlar el bloqueo de autoplay de navegadores móviles (modo ahorro de batería, etc.)
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            console.log("Autoplay bloqueado:", error);
+            // Si el navegador impide la autoreproducción, saltamos directo al portal
+            goPortal();
+        });
+    }
+
     video.addEventListener('ended', goPortal);
     video.addEventListener('error', goPortal);
     function goPortal() {
