@@ -253,6 +253,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Collapsible Sidebar logic for mobile/tablet viewports
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    if (sidebar && window.innerWidth <= 768) {
+        sidebar.classList.add('collapsed');
+    }
+
+    function toggleSidebar() {
+        if (sidebar) {
+            sidebar.classList.toggle('collapsed');
+            if (window.innerWidth <= 768) {
+                if (!sidebar.classList.contains('collapsed')) {
+                    if (sidebarOverlay) sidebarOverlay.classList.add('active');
+                } else {
+                    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+                }
+            }
+        }
+    }
+
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+    }
+ 
     // Initial load
     loadTables();
 });

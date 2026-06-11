@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- Sidebar Overlay for Mobile/Tablet Drawer collapse -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -41,10 +44,16 @@
         <!-- Main Content -->
         <main class="main-content">
             <!-- Topbar -->
-            <header class="topbar">
-                <div class="page-title">
-                    <h2 id="current-view-title">Tablas de la Base de Datos</h2>
-                    <p id="current-view-desc">Selecciona una tabla para explorar su estructura y contenido.</p>
+            <header class="topbar" style="display: flex; align-items: center; gap: 20px;">
+                <!-- Sidebar Toggle Button (Las rayitas) -->
+                <button id="sidebar-toggle" style="background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.7); cursor: pointer; color: #1a3a5c; font-size: 18px; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(30, 90, 150, 0.05); flex-shrink: 0;"
+                        onmouseover="this.style.background='rgba(255, 255, 255, 0.7)'; this.style.borderColor='#2a8bbb'; this.style.color='#2a8bbb'; this.style.transform='scale(1.05)';"
+                        onmouseout="this.style.background='rgba(255, 255, 255, 0.45)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.color='#1a3a5c'; this.style.transform='scale(1)';">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="page-title" style="flex-grow: 1;">
+                    <h2 id="current-view-title" style="font-size: 20px; margin: 0;">Tablas de la Base de Datos</h2>
+                    <p id="current-view-desc" style="font-size: 12px; margin: 2px 0 0;">Selecciona una tabla para explorar su estructura y contenido.</p>
                 </div>
                 <div class="actions">
                     <button class="btn btn-primary" id="btn-show-console"><i class="fa-solid fa-terminal"></i> Consola SQL</button>

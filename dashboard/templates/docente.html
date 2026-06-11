@@ -752,6 +752,9 @@
     <div class="sparkle sp3">✦</div>
     <div class="sparkle sp4">✦</div>
 
+    <!-- Sidebar Overlay for Mobile/Tablet Drawer collapse -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <div class="app-container">
          <!-- Sidebar -->
         <aside class="sidebar">
@@ -2801,14 +2804,32 @@
         const sidebar = document.querySelector('.sidebar');
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const sectionTitle = document.querySelector('.section-title');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        // Collapse sidebar by default on mobile/tablet screens
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+        }
 
         function toggleSidebar() {
             sidebar.classList.toggle('collapsed');
+            if (window.innerWidth <= 768) {
+                if (!sidebar.classList.contains('collapsed')) {
+                    if (sidebarOverlay) sidebarOverlay.classList.add('active');
+                } else {
+                    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+                }
+            }
         }
 
-        sidebarToggle.addEventListener('click', toggleSidebar);
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
         if (sectionTitle) {
             sectionTitle.addEventListener('click', toggleSidebar);
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', toggleSidebar);
         }
 
         // Teacher Management AJAX Loader

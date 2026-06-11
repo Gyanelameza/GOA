@@ -945,3 +945,110 @@ textarea#sql-editor:focus {
     }
 }
 
+/* ====================================================
+   RESPONSIVE LAYOUT FOR TABLETS & SMARTPHONES (<= 768px)
+   ==================================================== */
+@media (max-width: 768px) {
+    /* Reset main structure to stack layouts */
+    .app-container {
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Collapsible Sidebar behaving as a floating drawer */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        height: 100vh;
+        width: 280px;
+        z-index: 1000;
+        margin-left: 0 !important;
+        transform: translateX(0);
+        transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 10px 0 40px rgba(14, 30, 60, 0.15);
+    }
+
+    /* In mobile collapsed state, translate it out of viewport */
+    .sidebar.collapsed {
+        transform: translateX(-280px);
+    }
+
+    /* Sidebar Overlay Backdrop visible when drawer is open */
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(14, 30, 60, 0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+    }
+    .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    /* Main content container bounds */
+    .main-content {
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* Compress Topbar sizes and padding */
+    .topbar {
+        padding: 16px 20px !important;
+        min-height: 76px !important;
+        gap: 12px !important;
+    }
+
+    .page-title h2 {
+        font-size: 18px !important;
+        line-height: 1.2;
+    }
+
+    .page-title p {
+        display: none !important; /* Hide description text to maximize space */
+    }
+
+    /* Compress content padding */
+    .content-body {
+        padding: 16px 16px 24px !important;
+        gap: 16px !important;
+    }
+
+    /* Stack statistic cards grid vertically */
+    .dashboard-cards {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .stat-card {
+        grid-column: span 1 !important;
+        padding: 14px 18px !important;
+    }
+
+    .stat-info p {
+        font-size: 22px !important;
+    }
+
+    /* Keep tables scrollable horizontally without breaking layout */
+    .table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 12px;
+    }
+
+    table {
+        min-width: 500px; /* Force scrollable bounds if narrower */
+    }
+
+    th, td {
+        padding: 12px 16px !important;
+        font-size: 13px !important;
+    }
+}
+
