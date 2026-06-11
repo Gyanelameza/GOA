@@ -960,7 +960,7 @@
 
         .note-card {
             display: flex !important;
-            align-items: center !important;
+            align-items: flex-start !important;
             gap: 20px !important;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(240, 249, 255, 0.72) 100%) !important;
             border: 1.5px solid rgba(42, 139, 187, 0.22) !important;
@@ -1042,13 +1042,14 @@
             left: unset !important;
             top: unset !important;
             transform: none !important;
-            width: 68px !important;
-            height: 68px !important;
+            width: 76px !important;
+            height: 76px !important;
             object-fit: contain !important;
             filter: drop-shadow(0 6px 12px rgba(14,165,233,0.18)) !important;
             z-index: 5 !important;
             animation: float 4s ease-in-out infinite !important;
             flex-shrink: 0 !important;
+            margin-top: 4px !important;
         }
         .note-card:nth-child(2) .note-mascot-left { animation-delay: 0.9s !important; }
         .note-card:nth-child(3) .note-mascot-left { animation-delay: 1.8s !important; }
@@ -1408,8 +1409,9 @@
                 border-radius: 16px !important;
             }
             .note-mascot-left {
-                width: 48px !important;
-                height: 48px !important;
+                width: 60px !important;
+                height: 60px !important;
+                margin-top: 2px !important;
             }
             .note-card h4 {
                 font-size: 0.95rem !important;

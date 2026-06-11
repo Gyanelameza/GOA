@@ -64,8 +64,9 @@
         #portal {
             position: fixed; inset: 0;
             display: flex; flex-direction: column;
-            align-items: center; justify-content: space-between;
-            overflow: hidden;
+            align-items: center;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             padding: 3vh 0 2vh;
             opacity: 0; pointer-events: none;
             transition: opacity .85s ease;
@@ -74,7 +75,7 @@
 
         /* Fondo: cielo azul oceánico y agua con caústicas dinámicas */
         .portal-bg {
-            position: absolute; inset: 0; z-index: 0;
+            position: fixed; inset: 0; z-index: 0;
             background-image: url("{{ url_for('static', filename='ocean_bg.png') }}");
             background-size: cover;
             background-position: center;
@@ -122,8 +123,8 @@
             width: 92%; max-width: 900px;
             display: flex; flex-direction: column;
             align-items: center; gap: 1.5vh;
-            flex-grow: 1;
-            justify-content: center;
+            flex-shrink: 0;
+            margin: auto 0;
         }
 
         /* ── LOGO CIRCULAR (sin fondo a cuadros - ahora más grande) ── */
@@ -226,6 +227,7 @@
             font-size: .8rem; color: #4b6e8a;
             text-align: center; margin-top: 1.5vh;
             display: flex; flex-direction: column; align-items: center; gap: 4px;
+            flex-shrink: 0;
         }
         .portal-footer-icons {
             display: flex; gap: 8px; font-size: 1.25rem; color: #5c8bb0;
