@@ -962,12 +962,30 @@ textarea#sql-editor:focus {
         left: 0;
         bottom: 0;
         height: 100vh;
+        height: 100dvh;
         width: 280px;
         z-index: 1000;
         margin-left: 0 !important;
         transform: translateX(0);
         transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         box-shadow: 10px 0 40px rgba(14, 30, 60, 0.15);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar-logo {
+        width: 90px !important;
+        height: 90px !important;
+    }
+
+    .sidebar .logo-container {
+        margin-bottom: 8px !important;
+        gap: 4px !important;
+    }
+
+    .sidebar-menu li {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
     }
 
     /* In mobile collapsed state, translate it out of viewport */
