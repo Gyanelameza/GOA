@@ -8,6 +8,14 @@ import json
 app = Flask(__name__)
 app.secret_key = 'goa_secret_key_for_session_management_2026'
 
+# Prevent aggressive browser caching of pages/assets
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 DB_CONFIG = {
     'host': 'bdxdrafrcqpzcgr02qmo-postgresql.services.clever-cloud.com',
     'user': 'ubln8ics1lhzirt1xpmt',
