@@ -2246,6 +2246,7 @@
         const viewDesc = document.getElementById('view-desc');
 
         function switchTab(target) {
+            sessionStorage.setItem('activeTab', target);
             // Remove active classes
             menuGenerate.classList.remove('active');
             menuHistory.classList.remove('active');
@@ -3123,6 +3124,20 @@
         // Initial setup on DOM load
         loadCodes();
         refreshHistory();
+
+        const savedTab = sessionStorage.getItem('activeTab');
+        if (savedTab) {
+            let isAvailable = false;
+            if (savedTab === 'generate') isAvailable = true;
+            else if (savedTab === 'history') isAvailable = true;
+            else if (savedTab === 'profile' && menuProfile) isAvailable = true;
+            else if (savedTab === 'story-creator' && menuStoryCreator) isAvailable = true;
+            else if (savedTab === 'teachers' && menuTeachers) isAvailable = true;
+            
+            if (isAvailable) {
+                switchTab(savedTab);
+            }
+        }
     </script>
 
     {% if is_admin %}
