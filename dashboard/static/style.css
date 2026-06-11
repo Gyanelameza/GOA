@@ -971,11 +971,12 @@ textarea#sql-editor:focus {
         box-shadow: 10px 0 40px rgba(14, 30, 60, 0.15);
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        padding: 16px 12px !important;
     }
 
     .sidebar-logo {
-        width: 90px !important;
-        height: 90px !important;
+        width: 70px !important;
+        height: 70px !important;
     }
 
     .sidebar .logo-container {
@@ -983,9 +984,26 @@ textarea#sql-editor:focus {
         gap: 4px !important;
     }
 
+    .sidebar .logo-container h1 {
+        font-size: 15px !important;
+    }
+
+    .sidebar .logo-container span {
+        font-size: 10px !important;
+    }
+
+    .sidebar-menu {
+        gap: 4px !important;
+        margin-top: 6px !important;
+    }
+
     .sidebar-menu li {
-        padding: 10px 16px !important;
-        font-size: 14px !important;
+        padding: 8px 12px !important;
+        font-size: 13.5px !important;
+    }
+
+    .sidebar-footer {
+        display: none !important;
     }
 
     /* In mobile collapsed state, translate it out of viewport */
