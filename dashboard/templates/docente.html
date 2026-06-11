@@ -2307,6 +2307,12 @@
                 
                 loadTeachers();
             }
+
+            // Close sidebar automatically on mobile after switching tab
+            const sidebarEl = document.querySelector('.sidebar');
+            if (window.innerWidth <= 768 && sidebarEl && !sidebarEl.classList.contains('collapsed')) {
+                toggleSidebar();
+            }
         }
 
         menuGenerate.addEventListener('click', () => switchTab('generate'));

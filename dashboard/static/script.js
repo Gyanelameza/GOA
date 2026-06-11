@@ -54,6 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.querySelectorAll('#table-list li').forEach(item => item.classList.remove('active'));
                     li.classList.add('active');
                     viewTable(table.name);
+                    
+                    // Collapse sidebar on mobile after selecting a table
+                    if (window.innerWidth <= 768 && sidebar && !sidebar.classList.contains('collapsed')) {
+                        toggleSidebar();
+                    }
                 });
                 
                 tableList.appendChild(li);
