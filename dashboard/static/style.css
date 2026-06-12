@@ -953,6 +953,7 @@ textarea#sql-editor:focus {
     .app-container {
         flex-direction: column;
         overflow: hidden;
+        z-index: auto !important; /* Break stacking context to allow drawer and toggle button to stack above modals */
     }
 
     /* Collapsible Sidebar behaving as a floating drawer */
