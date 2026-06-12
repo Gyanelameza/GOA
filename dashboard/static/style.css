@@ -956,6 +956,11 @@ textarea#sql-editor:focus {
         z-index: auto !important; /* Break stacking context to allow drawer and toggle button to stack above modals */
     }
 
+    /* Overrides inline z-index: 95 to prevent forming a low stacking context */
+    .topbar {
+        z-index: auto !important;
+    }
+
     /* Collapsible Sidebar behaving as a floating drawer */
     .sidebar {
         position: fixed;
@@ -965,7 +970,7 @@ textarea#sql-editor:focus {
         height: 100vh;
         height: 100dvh;
         width: 280px;
-        z-index: 1100 !important; /* Ensure it is on top of any modal overlay (1000) */
+        z-index: 11000 !important; /* Ensure it is on top of any modal or custom dialog overlay (9999) */
         margin-left: 0 !important;
         transform: translateX(0);
         transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -1019,7 +1024,7 @@ textarea#sql-editor:focus {
         background: rgba(14, 30, 60, 0.4);
         backdrop-filter: blur(4px);
         -webkit-backdrop-filter: blur(4px);
-        z-index: 1080 !important; /* On top of modal overlay (1000), below sidebar (1100) */
+        z-index: 10800 !important; /* On top of modal/dialog overlays (9999), below sidebar (11000) */
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.4s ease;
@@ -1027,7 +1032,7 @@ textarea#sql-editor:focus {
 
     /* Keep toggle button clickable on top of modal overlays */
     #sidebar-toggle {
-        z-index: 1050 !important;
+        z-index: 10050 !important;
         position: relative !important;
     }
     .sidebar-overlay.active {

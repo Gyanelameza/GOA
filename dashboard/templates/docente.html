@@ -11,7 +11,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.9">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.1.0">
     <style>
         /* Sidebar Menu Styles */
         .sidebar-menu {
@@ -2254,6 +2254,11 @@
             // Close all open modals when switching tabs
             document.querySelectorAll('.modal-overlay').forEach(modal => {
                 modal.classList.remove('show');
+            });
+            // Close and remove any open custom dialog overlays
+            document.querySelectorAll('.custom-dialog-overlay').forEach(dialog => {
+                dialog.classList.remove('show');
+                dialog.remove();
             });
 
             // Remove active classes
