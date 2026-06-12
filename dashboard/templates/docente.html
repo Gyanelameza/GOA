@@ -867,6 +867,28 @@
                 min-height: 0 !important;
             }
 
+            /* Stats boxes on mobile: adjust padding, font-sizes and gap to fit nicely */
+            .modal-stats {
+                gap: 10px !important;
+            }
+            .modal-stat-box {
+                padding: 12px 6px !important;
+                border-radius: 14px !important;
+            }
+            .modal-stat-box span {
+                font-size: 9.5px !important;
+                letter-spacing: 0.2px !important;
+            }
+            .modal-stat-box p {
+                font-size: 20px !important;
+                margin-top: 2px !important;
+            }
+            .question-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+            }
+
             /* 5. Remove inner scrollbars to let the modal-body scroll cleanly */
             .modal-card #modal-questions-container,
             .modal-card .table-wrapper {
@@ -1586,7 +1608,7 @@
 
     <!-- Modal overlay for student details -->
     <div class="modal-overlay" id="detail-modal">
-        <div class="modal-card">
+        <div class="modal-card" style="max-width: 800px;">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <button class="btn-back" id="btn-back-modal" style="display: none; background: none; border: none; cursor: pointer; color: #1a3a5c; font-size: 1.15rem; padding: 4px 8px; border-radius: 8px; transition: all 0.2s; align-items: center; justify-content: center; gap: 4px;" 
@@ -1605,7 +1627,7 @@
                     <button class="btn-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
                 <!-- Cabecera de impresión exclusiva -->
                 <div class="print-only-header">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a8bbb; padding-bottom: 12px; margin-bottom: 20px; font-family: 'Outfit', sans-serif;">
