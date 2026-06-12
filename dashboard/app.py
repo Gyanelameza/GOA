@@ -209,7 +209,7 @@ def login():
                             cursor.execute("SELECT id_profesor, nombre, whatsapp FROM profesores WHERE username = %s;", (target_username,))
                             teacher_exists = cursor.fetchone()
                             
-                            if session['failed_attempts'] >= 5 and teacher_exists:
+                            if session['failed_attempts'] >= 3 and teacher_exists:
                                 id_prof, name_prof, wa_prof = teacher_exists
                                 # Check if a notification already exists for this teacher to prevent duplicates
                                 cursor.execute("SELECT 1 FROM notificaciones WHERE id_profesor = %s LIMIT 1;", (id_prof,))
@@ -250,7 +250,7 @@ def login():
                 'error': error,
                 'failed_attempts': attempts
             }
-            if attempts >= 5 and teacher_info:
+            if attempts >= 3 and teacher_info:
                 response_data['show_auto_recovery'] = True
                 response_data['nombre'] = teacher_info[0]
                 response_data['whatsapp'] = teacher_info[1]
@@ -261,7 +261,7 @@ def login():
     show_modal = False
     nombre = ""
     whatsapp = ""
-    if attempts >= 5:
+    if attempts >= 3:
         connection = get_db_connection()
         if connection:
             cursor = connection.cursor()
