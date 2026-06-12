@@ -33,14 +33,11 @@
             display: block;
             outline: none;
             border: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
-
-        /* Aplicar máscara difuminada lateral solo si la pantalla es más ancha que el video (16:9) */
-        @media (min-aspect-ratio: 16/9) {
-            #intro-video {
-                -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
-                mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
-            }
+        #intro-video.ready {
+            opacity: 1;
         }
         /* Ocultar controles nativos del navegador agresivamente */
         #intro-video::-webkit-media-controls { display: none !important; }
@@ -372,18 +369,36 @@
 <script>
     const video = document.getElementById('intro-video');
     const skip  = document.getElementById('skip');
+    let hasGoneToPortal = false;
+
+    // Mostrar el botón saltar después de 800ms
     setTimeout(() => skip.classList.add('show'), 800);
     
-    // Controlar el bloqueo de autoplay de navegadores móviles (modo ahorro de batería, etc.)
+    // Cuando el video realmente empiece a reproducirse, lo mostramos
+    video.addEventListener('playing', () => {
+        video.classList.add('ready');
+    });
+
+    // Fallback: si en 1.5 segundos el video no se está reproduciendo (por bloqueo de autoplay),
+    // saltamos automáticamente al portal para no dejar al usuario en una pantalla en blanco.
+    const fallbackTimeout = setTimeout(() => {
+        if (!video.classList.contains('ready')) {
+            console.log("Fallback: El video no se reprodujo a tiempo, saltando al portal.");
+            goPortal();
+        }
+    }, 1500);
+
+    // Intentar reproducir automáticamente
     const playPromise = video.play();
     if (playPromise !== undefined) {
-        playPromise.catch(error => {
-            console.log("Autoplay bloqueado. Esperando interacción para reproducir:", error);
+        playPromise.then(() => {
+            // Autoplay exitoso
+        }).catch(error => {
+            console.log("Autoplay bloqueado. Esperando interacción o fallback:", error);
             
             // Toque en cualquier parte de la pantalla para iniciar reproducción si el navegador lo bloqueó
             const playOnInteraction = () => {
                 video.play().then(() => {
-                    // Remover los oyentes de interacción una vez que empiece a reproducirse
                     document.removeEventListener('touchstart', playOnInteraction);
                     document.removeEventListener('click', playOnInteraction);
                 }).catch(e => console.log("Error al reproducir tras interacción:", e));
@@ -396,12 +411,21 @@
 
     video.addEventListener('ended', goPortal);
     video.addEventListener('error', goPortal);
+    
     function goPortal() {
+        if (hasGoneToPortal) return;
+        hasGoneToPortal = true;
+        
+        // Cancelar el fallback por si acaso
+        clearTimeout(fallbackTimeout);
+        
+        // Iniciar transición de salida del intro y entrada del portal simultáneamente (cross-fade)
         document.getElementById('intro').classList.add('out');
+        document.getElementById('portal').classList.add('in');
+        
         setTimeout(() => {
             document.getElementById('intro').style.display = 'none';
-            document.getElementById('portal').classList.add('in');
-        }, 700);
+        }, 850); // Tiempo ajustado al de la transición del portal (.85s)
     }
 </script>
 </body>
