@@ -956,9 +956,10 @@ textarea#sql-editor:focus {
         z-index: auto !important; /* Break stacking context to allow drawer and toggle button to stack above modals */
     }
 
-    /* Overrides inline z-index: 95 to prevent forming a low stacking context */
+    /* Overrides inline z-index: 95 and raises topbar above modals */
     .topbar {
-        z-index: auto !important;
+        z-index: 10050 !important;
+        position: relative !important;
     }
 
     /* Collapsible Sidebar behaving as a floating drawer */
