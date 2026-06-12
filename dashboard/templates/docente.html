@@ -11,7 +11,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.1.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.1.2">
     <style>
         /* Sidebar Menu Styles */
         .sidebar-menu {
@@ -736,6 +736,35 @@
             max-width: unset !important;
         }
 
+        /* Responsive block selector layout for Creador de Historias on mobile */
+        @media (max-width: 768px) {
+            .block-selector-group {
+                flex-wrap: wrap !important;
+                width: 100% !important;
+                gap: 10px !important;
+                justify-content: flex-start !important;
+                flex-direction: row !important;
+            }
+            .block-selector-group label {
+                width: 100% !important;
+                margin-bottom: 2px !important;
+                padding-left: 0 !important;
+            }
+            .block-selector-group select {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex-grow: 1 !important;
+            }
+            #btn-add-new-block, #btn-delete-block {
+                flex: 1 1 calc(50% - 6px) !important;
+                justify-content: center !important;
+                font-size: 13px !important;
+                height: 42px !important;
+                padding: 0 10px !important;
+                white-space: nowrap !important;
+            }
+        }
+
         /* Estilos para impresión en PDF se manejan desde static/style.css */
     </style>
 </head>
@@ -1124,7 +1153,7 @@
                             <h3 style="font-size: 18px; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px; margin: 0;">
                                 <i class="fa-solid fa-book-open"></i> Configuración de Bloque y Material
                             </h3>
-                            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-bottom: 0;">
+                            <div class="form-group block-selector-group" style="flex-direction: row; align-items: center; gap: 10px; margin-bottom: 0;">
                                 <label style="margin: 0; white-space: nowrap;">Seleccionar Bloque:</label>
                                 <select id="wizard-select-bloque" class="form-control" style="width: 150px; font-weight: 700; height: 42px; border-radius: 12px;">
                                     {% for b in bloques_list %}
