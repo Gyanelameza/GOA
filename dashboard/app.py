@@ -212,7 +212,7 @@ def login():
                             if session['failed_attempts'] >= 3 and teacher_exists:
                                 id_prof, name_prof, wa_prof = teacher_exists
                                 # Check if a notification already exists for this teacher to prevent duplicates
-                                cursor.execute("SELECT 1 FROM notificaciones WHERE id_profesor = %s LIMIT 1;", (id_prof,))
+                                cursor.execute("SELECT 1 FROM notificaciones WHERE id_profesor = %s AND leido = FALSE LIMIT 1;", (id_prof,))
                                 notification_exists = cursor.fetchone()
                                 
                                 if not notification_exists:
@@ -780,7 +780,7 @@ def forgot_password_notify():
         id_profesor, nombre, whatsapp = prof
         
         # Check if a notification already exists for this teacher to prevent duplicates
-        cursor.execute("SELECT 1 FROM notificaciones WHERE id_profesor = %s LIMIT 1;", (id_profesor,))
+        cursor.execute("SELECT 1 FROM notificaciones WHERE id_profesor = %s AND leido = FALSE LIMIT 1;", (id_profesor,))
         notification_exists = cursor.fetchone()
         
         if not notification_exists:
