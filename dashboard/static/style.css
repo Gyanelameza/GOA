@@ -964,7 +964,7 @@ textarea#sql-editor:focus {
         height: 100vh;
         height: 100dvh;
         width: 280px;
-        z-index: 1000;
+        z-index: 1100 !important; /* Ensure it is on top of any modal overlay (1000) */
         margin-left: 0 !important;
         transform: translateX(0);
         transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -1018,10 +1018,16 @@ textarea#sql-editor:focus {
         background: rgba(14, 30, 60, 0.4);
         backdrop-filter: blur(4px);
         -webkit-backdrop-filter: blur(4px);
-        z-index: 999;
+        z-index: 1080 !important; /* On top of modal overlay (1000), below sidebar (1100) */
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.4s ease;
+    }
+
+    /* Keep toggle button clickable on top of modal overlays */
+    #sidebar-toggle {
+        z-index: 1050 !important;
+        position: relative !important;
     }
     .sidebar-overlay.active {
         opacity: 1;

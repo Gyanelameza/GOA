@@ -11,7 +11,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.6">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.8">
     <style>
         /* Sidebar Menu Styles */
         .sidebar-menu {
@@ -2250,6 +2250,12 @@
 
         function switchTab(target) {
             sessionStorage.setItem('activeTab', target);
+            
+            // Close all open modals when switching tabs
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.classList.remove('show');
+            });
+
             // Remove active classes
             menuGenerate.classList.remove('active');
             menuHistory.classList.remove('active');
