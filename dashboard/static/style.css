@@ -953,6 +953,8 @@ textarea#sql-editor:focus {
     .app-container {
         flex-direction: column;
         overflow: hidden;
+        height: 100vh;
+        height: 100dvh;
         z-index: auto !important; /* Break stacking context to allow drawer and toggle button to stack above modals */
     }
 
@@ -1044,6 +1046,7 @@ textarea#sql-editor:focus {
     /* Main content container bounds */
     .main-content {
         height: 100vh;
+        height: 100dvh;
         width: 100vw;
     }
 
