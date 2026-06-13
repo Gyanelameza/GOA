@@ -55,6 +55,7 @@ body {
     flex-direction: column;
     padding: 24px;
     z-index: 10;
+    overflow-y: auto;
 }
 
 .logo-container {
@@ -103,6 +104,7 @@ body {
 }
 
 /* Custom Scrollbar for Sidebar and Panels */
+.sidebar::-webkit-scrollbar,
 .table-list::-webkit-scrollbar,
 .table-wrapper::-webkit-scrollbar,
 .console-output::-webkit-scrollbar {
@@ -110,6 +112,7 @@ body {
     height: 6px;
 }
 
+.sidebar::-webkit-scrollbar-thumb,
 .table-list::-webkit-scrollbar-thumb,
 .table-wrapper::-webkit-scrollbar-thumb,
 .console-output::-webkit-scrollbar-thumb {
@@ -117,6 +120,7 @@ body {
     border-radius: 3px;
 }
 
+.sidebar::-webkit-scrollbar-thumb:hover,
 .table-list::-webkit-scrollbar-thumb:hover,
 .table-wrapper::-webkit-scrollbar-thumb:hover,
 .console-output::-webkit-scrollbar-thumb:hover {

@@ -312,15 +312,15 @@ def registro_docente():
     # Validate name (no leading spaces, no special chars, numbers allowed)
     name_pattern = r'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+( [a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+)*$'
     if not re.match(name_pattern, nombre):
-        return jsonify({'success': False, 'error': 'El nombre no puede tener espacios iniciales/finales ni caracteres especiales, pero se aceptan números.'}), 400
+        return jsonify({'success': False, 'error': 'El nombre no debe iniciar ni terminar con espacios, ni contener caracteres especiales (como @, $, #, etc.). Se admiten letras, números y espacios.'}), 400
     if nombre_publico and not re.match(name_pattern, nombre_publico):
-        return jsonify({'success': False, 'error': 'El nombre público no puede tener espacios iniciales/finales ni caracteres especiales.'}), 400
+        return jsonify({'success': False, 'error': 'El nombre público no debe iniciar ni terminar con espacios, ni contener caracteres especiales (como @, $, #, etc.).'}), 400
 
     # Validate WhatsApp (allow spaces in the middle)
     whatsapp_val = whatsapp.replace(' ', '')
     whatsapp_pattern = r'^\+573\d{9}$'
     if not re.match(whatsapp_pattern, whatsapp_val):
-        return jsonify({'success': False, 'error': 'El número de WhatsApp debe comenzar con +57 y tener un número de 10 dígitos que comience con 3.'}), 400
+        return jsonify({'success': False, 'error': 'Por favor, ingresa un número de WhatsApp válido. Debe iniciar con el indicativo +57 seguido de tu celular de 10 dígitos (ejemplo: +57 312 345 6789).'}), 400
 
     # Clean and format WhatsApp
     digits = re.sub(r'\D', '', whatsapp_val[3:])
@@ -729,13 +729,13 @@ def update_profile():
     # Validate name
     name_pattern = r'^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+( [a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+)*$'
     if not re.match(name_pattern, nombre_publico):
-        return jsonify({'error': 'El nombre público no puede tener espacios iniciales/finales ni caracteres especiales.'}), 400
+        return jsonify({'error': 'El nombre público no debe iniciar ni terminar con espacios, ni contener caracteres especiales (como @, $, #, etc.).'}), 400
         
     # Validate WhatsApp (allow spaces in the middle)
     whatsapp_val = whatsapp.replace(' ', '')
     whatsapp_pattern = r'^\+573\d{9}$'
     if not re.match(whatsapp_pattern, whatsapp_val):
-        return jsonify({'error': 'El número de WhatsApp debe comenzar con +57 y tener un número de 10 dígitos que comience con 3.'}), 400
+        return jsonify({'error': 'Por favor, ingresa un número de WhatsApp válido. Debe iniciar con el indicativo +57 seguido de tu celular de 10 dígitos (ejemplo: +57 312 345 6789).'}), 400
         
     # Clean and format WhatsApp
     digits = re.sub(r'\D', '', whatsapp_val[3:])

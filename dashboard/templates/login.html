@@ -97,9 +97,39 @@
         }
 
         /* ── Alertas ── */
-        .alert-box { display:flex; align-items:center; gap:10px; padding:12px 16px; border-radius:14px; font-size:.88rem; font-weight:600; margin-bottom:18px; text-align:left; }
-        .alert-error   { background:rgba(239,68,68,0.08);  border:1px solid rgba(239,68,68,0.25);  color:#b91c1c; }
-        .alert-success { background:rgba(34,197,94,0.10);  border:1px solid rgba(34,197,94,0.28);  color:#166534; }
+        .alert-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: .88rem;
+            font-weight: 600;
+            margin-bottom: 18px;
+            text-align: left;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.04);
+            line-height: 1.4;
+            transition: all 0.3s ease;
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.18);
+            color: #c22e2e;
+        }
+        .alert-error i {
+            font-size: 1.1rem;
+            color: #ef4444;
+        }
+        .alert-success {
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.18);
+            color: #15803d;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.04);
+        }
+        .alert-success i {
+            font-size: 1.1rem;
+            color: #22c55e;
+        }
 
         /* ── Botones ── */
         .btn-submit {
@@ -276,6 +306,88 @@
                 margin: 14px 0 10px;
             }
         }
+
+        /* ── Register Modal specific overrides ── */
+        #register-modal .modal-card {
+            max-width: 410px;
+            padding: 28px 24px 20px;
+            border-radius: 24px;
+        }
+        #register-modal .modal-title {
+            font-size: 1.35rem;
+            margin-bottom: 3px;
+        }
+        #register-modal .modal-subtitle {
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+        #register-modal .cupo-badge {
+            margin-bottom: 12px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+        }
+        #register-modal .form-group {
+            margin-bottom: 10px;
+        }
+        #register-modal .form-label {
+            font-size: 0.78rem;
+            margin-bottom: 4px;
+        }
+        #register-modal .form-input {
+            padding: 10px 40px 10px 38px;
+            font-size: 0.9rem;
+            height: 42px;
+        }
+        #register-modal .input-wrapper i {
+            left: 14px;
+            font-size: 0.9rem;
+        }
+        #register-modal .usuario-preview {
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+        }
+        #register-modal .btn-submit-green {
+            padding: 11px;
+            font-size: 0.95rem;
+            margin-top: 6px;
+            height: 44px;
+            border-radius: 50px;
+        }
+        #btn-toggle-reg-pwd {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #5c8bb0;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            z-index: 5;
+            padding: 0;
+            outline: none;
+        }
+        #btn-toggle-reg-pwd:hover {
+            color: #2a8bbb;
+            background-color: rgba(42, 139, 187, 0.1);
+        }
+        #register-modal #reg-password {
+            padding-right: 44px;
+        }
+        .opcional-badge {
+            font-weight: 700;
+            color: #1a5a8c;
+            font-size: 0.78rem;
+            margin-left: 4px;
+        }
     </style>
 </head>
 <body>
@@ -382,16 +494,19 @@
                     <label class="form-label" for="reg-nombre">Tu Nombre Completo</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-user"></i>
-                        <input class="form-input" type="text" id="reg-nombre"
+                        <input class="form-input" type="text" id="reg-nombre" autocomplete="off"
                                placeholder="Ej. Laura Gómez" required oninput="previewUsuario()">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="reg-password">Contraseña</label>
-                    <div class="input-wrapper">
+                    <div class="input-wrapper" style="position: relative;">
                         <i class="fa-solid fa-lock"></i>
-                        <input class="form-input" type="password" id="reg-password"
+                        <input class="form-input" type="password" id="reg-password" autocomplete="new-password"
                                placeholder="Mínimo 6 caracteres" required minlength="6">
+                        <button type="button" id="btn-toggle-reg-pwd" aria-label="Mostrar/ocultar contraseña">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -405,7 +520,7 @@
                 <div class="form-group">
                     <label class="form-label" for="reg-nombre-publico">
                         Nombre Visible para Estudiantes
-                        <span style="font-weight:400;color:#7a9bb8;">(opcional)</span>
+                        <span class="opcional-badge">(opcional)</span>
                     </label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-chalkboard-teacher"></i>
@@ -417,6 +532,11 @@
                     <i class="fa-solid fa-user-check"></i> Crear Cuenta
                 </button>
             </form>
+            <div style="margin-top: 18px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.4); padding-top: 12px;">
+                <a href="#" onclick="closeRegisterModal(); return false;" class="btn-back" style="margin-top: 0;">
+                    <i class="fa-solid fa-arrow-left"></i> Volver al Inicio de Sesión
+                </a>
+            </div>
         </div>
     <!-- Modal de Recuperar Contraseña / Auto-Notificación -->
     <div class="modal-overlay" id="forgot-password-modal" role="dialog" aria-modal="true">
@@ -462,7 +582,7 @@
                     if (btnRegister) btnRegister.style.display = 'none';
                     if (usuarioChip) usuarioChip.style.display = 'none';
                     if (usuarioInput) {
-                        usuarioInput.placeholder = 'admin.goa';
+                        usuarioInput.placeholder = 'Usuario';
                     }
                 } else {
                     title.textContent = 'Acceso Docente';
@@ -587,8 +707,35 @@
             }
         }
 
+        function updateBodyScroll() {
+            if (document.querySelector('.modal-overlay.open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Toggle password visibility in registration modal
+        const btnToggleRegPwd = document.getElementById('btn-toggle-reg-pwd');
+        const regPasswordInput = document.getElementById('reg-password');
+        if (btnToggleRegPwd && regPasswordInput) {
+            btnToggleRegPwd.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (regPasswordInput.type === 'password') {
+                    regPasswordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    regPasswordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        }
+
         function openRegisterModal() {
             document.getElementById('register-modal').classList.add('open');
+            updateBodyScroll();
             document.getElementById('reg-alert').style.display = 'none';
             document.getElementById('usuario-preview').style.display = 'none';
             fetchCupos();
@@ -596,6 +743,7 @@
 
         function closeRegisterModal() {
             document.getElementById('register-modal').classList.remove('open');
+            updateBodyScroll();
         }
 
         // Prefix locking on WhatsApp input field
@@ -652,7 +800,7 @@
             // Additional validations
             if (nombre.startsWith(' ')) {
                 alertEl.className = 'alert-box alert-error';
-                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>El nombre no puede comenzar con espacios.</span>';
+                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>El nombre no debe iniciar con un espacio vacío. Escribe tu nombre directamente.</span>';
                 alertEl.style.display = 'flex';
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
@@ -660,7 +808,7 @@
             }
             if (!nameRegex.test(nombre) || (pub && !nameRegex.test(pub))) {
                 alertEl.className = 'alert-box alert-error';
-                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>El nombre no puede contener caracteres especiales.</span>';
+                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>Por favor, escribe tu nombre usando solo letras, números y espacios.</span>';
                 alertEl.style.display = 'flex';
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
@@ -671,7 +819,7 @@
             const whatsappPattern = /^\+573\d{9}$/;
             if (!whatsappPattern.test(whatsappCleaned)) {
                 alertEl.className = 'alert-box alert-error';
-                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>El número de WhatsApp debe comenzar con +57 y tener un número de 10 dígitos que comience con 3.</span>';
+                alertEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>Por favor, ingresa un número de WhatsApp válido. Debe iniciar con el indicativo +57 seguido de tu celular de 10 dígitos (ejemplo: +57 312 345 6789).</span>';
                 alertEl.style.display = 'flex';
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-user-check"></i> Crear Cuenta';
@@ -720,6 +868,7 @@
 
         async function closeForgotModal() {
             document.getElementById('forgot-password-modal').classList.remove('open');
+            updateBodyScroll();
             try {
                 await fetch('/api/reset-failed-attempts', { method: 'POST' });
             } catch (err) {
@@ -757,10 +906,12 @@
             document.getElementById('custom-alert-title').textContent = title;
             document.getElementById('custom-alert-message').textContent = message;
             document.getElementById('custom-alert-modal').classList.add('open');
+            updateBodyScroll();
         }
 
         function closeCustomAlert() {
             document.getElementById('custom-alert-modal').classList.remove('open');
+            updateBodyScroll();
         }
 
         {% if show_modal %}
@@ -772,6 +923,7 @@
             const modal = document.getElementById('forgot-password-modal');
             if (modal) {
                 modal.classList.add('open');
+                updateBodyScroll();
             }
         }
         if (document.readyState === 'loading') {

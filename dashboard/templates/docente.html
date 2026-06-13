@@ -634,7 +634,7 @@
             background: rgba(30, 60, 90, 0.45);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            z-index: 9999;
+            z-index: 20000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -918,6 +918,11 @@
     </style>
 </head>
 <body>
+    <!-- Evitar auto-completado de credenciales del navegador en campos de búsqueda -->
+    <div style="position: absolute; top: -1000px; left: -1000px; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none;">
+        <input type="text" name="prevent_autofill_username" tabindex="-1">
+        <input type="password" name="prevent_autofill_password" tabindex="-1">
+    </div>
     <!-- Fondo visual -->
     <div class="portal-bg">
         <div class="wave-light wl1"></div>
@@ -1097,7 +1102,7 @@
                             <!-- Barra de búsqueda principal (más amplia y espaciosa) -->
                             <div style="position: relative; flex: 1; max-width: 480px; min-width: 280px;">
                                 <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #2a8bbb; font-size: 1rem;"></i>
-                                <input type="text" id="search-history" placeholder="Buscar por estudiante o código..." autocomplete="off"
+                                <input type="search" id="search-history" placeholder="Buscar por estudiante o código..." autocomplete="off"
                                        style="width: 100%; padding: 12px 16px 12px 48px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.6); font-family: 'Outfit', sans-serif; font-size: 0.92rem; color: #1a3a5c; outline: none; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(30, 90, 150, 0.03);"
                                        onfocus="this.style.borderColor='#2a8bbb'; this.style.boxShadow='0 4px 16px rgba(42, 139, 187, 0.15)';"
                                        onblur="this.style.borderColor='rgba(255,255,255,0.7)'; this.style.boxShadow='0 4px 12px rgba(30, 90, 150, 0.03)';">
@@ -1590,7 +1595,6 @@
                                         <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c;">Contraseña</th>
                                         <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c; text-align: center;">Códigos Activos</th>
                                         <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c; text-align: center;">Partidas de Alumnos</th>
-                                        <th style="padding: 12px 10px; font-weight: 800; color: #1a3a5c; text-align: center; width: 80px;">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="teachers-table-body">
@@ -1863,9 +1867,16 @@
             <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; max-height: 70vh; overflow-y: auto;">
                 
                 <!-- Info básica -->
-                <div style="background: rgba(255,255,255,0.4); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5);">
-                    <h4 style="font-size: 18px; font-weight: 800; color: #1a3a5c;" id="teacher-detail-name">-</h4>
-                    <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 6px;" id="teacher-detail-username">-</p>
+                <div style="background: rgba(255,255,255,0.4); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="font-size: 18px; font-weight: 800; color: #1a3a5c;" id="teacher-detail-name">-</h4>
+                        <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 6px;" id="teacher-detail-username">-</p>
+                    </div>
+                    <button id="btn-delete-teacher-from-detail" class="btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #dc2626; border-radius: 50px; padding: 10px 18px; font-size: 13.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.transform='scale(1.03)';"
+                            onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.transform='none';">
+                        <i class="fa-solid fa-trash-can"></i> Eliminar Docente
+                    </button>
                 </div>
 
                 <!-- Códigos y Alumnos -->
@@ -1984,7 +1995,10 @@
                     codesList.innerHTML = '';
                     
                     const previousValue = filterHistorySelect.value;
-                    filterHistorySelect.innerHTML = '<option value="">Todos los códigos</option>';
+                    const isSelectFocused = (document.activeElement === filterHistorySelect);
+                    if (!isSelectFocused) {
+                        filterHistorySelect.innerHTML = '<option value="">Todos los códigos</option>';
+                    }
                     
                     if (data.codigos.length === 0) {
                         codesList.innerHTML = `
@@ -2032,16 +2046,18 @@
                             
                             codesList.appendChild(div);
                             
-                            const opt = document.createElement('option');
-                            opt.value = item.codigo;
-                            opt.textContent = IS_ADMIN && item.profesor
-                                ? item.codigo + ' — ' + item.profesor + (item.usado ? ' (usado)' : ' (sin uso)')
-                                : item.codigo + (item.usado ? ' (usado)' : ' (sin uso)');
-                            filterHistorySelect.appendChild(opt);
+                            if (!isSelectFocused) {
+                                const opt = document.createElement('option');
+                                opt.value = item.codigo;
+                                opt.textContent = IS_ADMIN && item.profesor
+                                    ? item.codigo + ' — ' + item.profesor + (item.usado ? ' (usado)' : ' (sin uso)')
+                                    : item.codigo + (item.usado ? ' (usado)' : ' (sin uso)');
+                                filterHistorySelect.appendChild(opt);
+                            }
                         });
                     }
                     
-                    if (previousValue && [...filterHistorySelect.options].some(o => o.value === previousValue)) {
+                    if (!isSelectFocused && previousValue && [...filterHistorySelect.options].some(o => o.value === previousValue)) {
                         filterHistorySelect.value = previousValue;
                     }
                     statCodesCount.textContent = data.codigos.length;
@@ -2309,6 +2325,87 @@
                     Object.keys(gamesByCode).sort().forEach(code => {
                         codesContainer.appendChild(createHistoryCodeCard(code, gamesByCode[code]));
                     });
+
+                    // Real-time update of history-code-modal if open
+                    if (historyCodeModal && historyCodeModal.classList.contains('show')) {
+                        const activeCode = historyModalCodeValue.textContent;
+                        const studentsList = data.historial.filter(h => h.codigo === activeCode);
+                        if (historyModalStudentsList.children.length !== studentsList.length) {
+                            historyModalStudentCount.textContent = `${studentsList.length} estudiante${studentsList.length !== 1 ? 's' : ''}`;
+                            historyModalStudentsList.innerHTML = '';
+                            studentsList.forEach(h => {
+                                const tr = document.createElement('tr');
+                                tr.className = 'interactive-row';
+                                tr.style.borderBottom = '1px solid rgba(255,255,255,0.3)';
+                                let blockText = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
+                                let total = h.correctas + h.incorrectas;
+                                let pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
+                                tr.innerHTML = `
+                                    <td style="padding: 8px 10px; font-weight: 700; color: #1a3a5c; font-size: 13px;">${h.alumno}</td>
+                                    <td style="padding: 8px 10px; font-weight: 600; color: var(--text-secondary); font-size: 12px;">${blockText}</td>
+                                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #298552; font-weight: 700; white-space: nowrap;">
+                                        <i class="fa-solid fa-circle-check"></i> ${h.correctas}
+                                    </td>
+                                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #be123c; font-weight: 700; white-space: nowrap;">
+                                        <i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}
+                                    </td>
+                                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #1e3a5c; font-weight: 700; white-space: nowrap;">
+                                        ${pct}%
+                                    </td>
+                                    <td style="padding: 8px 10px; text-align: center; white-space: nowrap;" class="print-hide">
+                                        <button class="btn btn-primary btn-sm btn-view-ans" 
+                                                style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: #2a8bbb; color: white; border: none; transition: all 0.2s; box-shadow: 0 2px 6px rgba(42, 139, 187, 0.2); margin-right: 4px;"
+                                                onmouseenter="this.style.background='#1e6d94'; this.style.transform='translateY(-1px)';"
+                                                onmouseleave="this.style.background='#2a8bbb'; this.style.transform='none';">
+                                            <i class="fa-solid fa-eye"></i> Ver
+                                        </button>
+                                        <button class="btn-del-partida-modal" title="Eliminar partida"
+                                                style="background: rgba(239, 68, 68, 0.1); border: none; cursor: pointer; color: #dc2626; font-size: .85rem; padding: 6px 8px; border-radius: 8px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;"
+                                                onmouseenter="this.style.background='rgba(239, 68, 68, 0.2)'"
+                                                onmouseleave="this.style.background='rgba(239, 68, 68, 0.1)'">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </td>
+                                `;
+                                tr.querySelector('.btn-view-ans').addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    detailModalOrigin = 'history-code-modal';
+                                    historyCodeModal.classList.remove('show');
+                                    openDetailModal(h);
+                                });
+                                tr.querySelector('.btn-del-partida-modal').addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    showDangerConfirm(
+                                        `⚠️ Eliminar partida de <strong>${h.alumno}</strong>`,
+                                        `Esta acción borrará permanentemente el registro de la partida del código <strong>${h.codigo}</strong> para este estudiante.<br><br>Los datos <strong>no se pueden recuperar</strong>.`,
+                                        'Eliminar Partida',
+                                        async () => {
+                                            const res = await fetch('/api/docente/eliminar-partida', {
+                                                method: 'DELETE',
+                                                headers: {'Content-Type':'application/json'},
+                                                body: JSON.stringify({codigo: h.codigo, alumno: h.alumno, id_resultado: h.id_resultado})
+                                            });
+                                            const d = await res.json();
+                                            if (d.success) {
+                                                showToast('¡Partida eliminada!', 'El registro fue borrado de la base de datos.', 'fa-trash-can', '#ff4d4d');
+                                                tr.remove();
+                                                const currentRows = historyModalStudentsList.querySelectorAll('tr');
+                                                historyModalStudentCount.textContent = `${currentRows.length} estudiante${currentRows.length !== 1 ? 's' : ''}`;
+                                                if (currentRows.length === 0) {
+                                                    historyCodeModal.classList.remove('show');
+                                                }
+                                                refreshHistory();
+                                                loadCodes();
+                                            } else {
+                                                showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
+                                            }
+                                        }
+                                    );
+                                });
+                                historyModalStudentsList.appendChild(tr);
+                            });
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error refreshing history:', error);
@@ -2568,7 +2665,7 @@
                     const whatsappCleaned = whatsappVal.replace(/\s+/g, '');
                     const whatsappPattern = /^\+573\d{9}$/;
                     if (!whatsappPattern.test(whatsappCleaned)) {
-                        showToast('Error', 'El número de WhatsApp debe comenzar con +57 y tener 10 dígitos que comiencen con 3.', 'fa-circle-xmark', '#ff4d4d');
+                        showToast('Error', 'Por favor, ingresa un número de WhatsApp válido. Debe iniciar con el indicativo +57 seguido de tu celular de 10 dígitos (ejemplo: +57 312 345 6789).', 'fa-circle-xmark', '#ff4d4d');
                         return;
                     }
                 }
@@ -3074,13 +3171,6 @@
                             </td>
                             <td style="padding: 12px 10px; text-align: center; font-weight: 700; color: #2563eb;">${prof.total_codigos}</td>
                             <td style="padding: 12px 10px; text-align: center; font-weight: 700; color: #298552;">${prof.total_partidas}</td>
-                            <td style="padding: 12px 10px; text-align: center;">
-                                <button class="btn-del-docente" data-id="${prof.id_profesor}" data-nombre="${prof.nombre}" data-user="${prof.username}"
-                                        style="background:none; border:none; cursor:pointer; color:#dc2626; font-size:1.05rem; padding:6px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; transition:background .2s;"
-                                        ${isAdminUser ? 'disabled title="No se puede eliminar la cuenta del administrador"' : 'title="Eliminar Docente"'}>
-                                    <i class="fa-solid fa-trash-can" style="${isAdminUser ? 'opacity: 0.35; cursor: not-allowed;' : ''}"></i>
-                                </button>
-                            </td>
                         `;
 
                         tr.querySelector('.btn-toggle-prof-pwd').addEventListener('click', function() {
@@ -3095,39 +3185,8 @@
                             }
                         });
 
-                        if (!isAdminUser) {
-                            tr.querySelector('.btn-del-docente').addEventListener('click', function() {
-                                const id = this.getAttribute('data-id');
-                                const nombre = this.getAttribute('data-nombre');
-                                const username = this.getAttribute('data-user');
-                                
-                                showDangerConfirm(
-                                    `⚠️ Eliminar Docente: ${nombre}`,
-                                    `¿Estás seguro de que deseas eliminar permanentemente a <strong>${nombre}</strong> (${username})?<br><br>Esta acción eliminará de forma <strong>irreversible</strong> todos sus códigos de acceso y todas las partidas jugadas por sus alumnos.`,
-                                    'Eliminar Docente',
-                                    async () => {
-                                        try {
-                                            const response = await fetch(`/api/admin/eliminar-docente/${id}`, {
-                                                method: 'DELETE'
-                                            });
-                                            const resData = await response.json();
-                                            if (resData.success) {
-                                                showToast('¡Docente Eliminado!', resData.message, 'fa-trash-can', '#ff4d4d');
-                                                loadTeachers();
-                                            } else {
-                                                customAlert('Error', resData.error || 'No se pudo eliminar el docente.', 'danger');
-                                            }
-                                        } catch (error) {
-                                            console.error('Error deleting teacher:', error);
-                                            customAlert('Error de Conexión', 'No se pudo conectar con el servidor para eliminar al docente.', 'danger');
-                                        }
-                                    }
-                                );
-                            });
-                        }
-
                         tr.addEventListener('click', (e) => {
-                            if (e.target.closest('.btn-toggle-prof-pwd') || e.target.closest('.btn-del-docente') || e.target.closest('input')) {
+                            if (e.target.closest('.btn-toggle-prof-pwd') || e.target.closest('input')) {
                                 return;
                             }
                             openTeacherDetailModal(prof);
@@ -3154,6 +3213,34 @@
             }
         }
 
+        function confirmDeleteTeacher(id, nombre, username) {
+            showDangerConfirm(
+                `⚠️ Eliminar Docente: ${nombre}`,
+                `¿Estás seguro de que deseas eliminar permanentemente a <strong>${nombre}</strong> (${username})?<br><br>Esta acción eliminará de forma <strong>irreversible</strong> todos sus códigos de acceso y todas las partidas jugadas por sus alumnos.`,
+                'Eliminar Docente',
+                async () => {
+                    try {
+                        const response = await fetch(`/api/admin/eliminar-docente/${id}`, {
+                            method: 'DELETE'
+                        });
+                        const resData = await response.json();
+                        if (resData.success) {
+                            showToast('¡Docente Eliminado!', resData.message, 'fa-trash-can', '#ff4d4d');
+                            if (teacherDetailModal) {
+                                teacherDetailModal.classList.remove('show');
+                            }
+                            loadTeachers();
+                        } else {
+                            customAlert('Error', resData.error || 'No se pudo eliminar el docente.', 'danger');
+                        }
+                    } catch (error) {
+                        console.error('Error deleting teacher:', error);
+                        customAlert('Error de Conexión', 'No se pudo conectar con el servidor para eliminar al docente.', 'danger');
+                    }
+                }
+            );
+        }
+
         const teacherDetailModal = document.getElementById('teacher-detail-modal');
         const btnCloseTeacherModal = document.getElementById('btn-close-teacher-modal');
         const teacherDetailName = document.getElementById('teacher-detail-name');
@@ -3167,6 +3254,19 @@
             teacherDetailName.textContent = prof.nombre;
             teacherDetailUsername.innerHTML = `<i class="fa-solid fa-user" style="color: #2a8bbb;"></i> @${prof.username}`;
             teacherDetailCodesCount.textContent = 'Cargando...';
+
+            const isAdminUser = prof.username.toLowerCase() === 'admin.goa';
+            const deleteBtn = document.getElementById('btn-delete-teacher-from-detail');
+            if (deleteBtn) {
+                if (isAdminUser) {
+                    deleteBtn.style.display = 'none';
+                } else {
+                    deleteBtn.style.display = 'flex';
+                    deleteBtn.onclick = () => {
+                        confirmDeleteTeacher(prof.id_profesor, prof.nombre, prof.username);
+                    };
+                }
+            }
             
             teacherDetailCodesList.innerHTML = `
                 <div style="text-align: center; padding: 24px; color: var(--text-muted);">
@@ -3340,6 +3440,12 @@
         // Initial setup on DOM load
         loadCodes();
         refreshHistory();
+
+        // Poll for codes and history updates in the background every 5 seconds
+        setInterval(() => {
+            loadCodes();
+            refreshHistory();
+        }, 5000);
 
         const savedTab = sessionStorage.getItem('activeTab');
         if (savedTab) {
