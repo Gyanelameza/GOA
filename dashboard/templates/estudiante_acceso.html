@@ -1886,17 +1886,31 @@
                     } else {
                         codeInput.classList.remove('valid');
                         codeInput.classList.add('invalid');
-                        codeFeedback.textContent = data.error || 'Código incorrecto.';
+                        codeFeedback.textContent = data.error || 'Código de acceso no válido.';
                         codeFeedback.className = 'input-feedback error';
+                        codeFeedback.style.display = 'block';
                         teacherBadge.style.display = 'none';
                         btnNextStep1.disabled = true;
                         codeInput.disabled = false;
+                        
+                        customAlert(
+                            'Código Inválido',
+                            'El código de partida que ingresaste no existe o ya no se encuentra activo en el sistema. Por favor, verifica el código o solicita uno nuevo a tu docente.',
+                            'danger'
+                        );
                     }
                 } catch (e) {
                     console.error("Error verifying code:", e);
                     codeFeedback.textContent = 'Error al verificar con el servidor.';
                     codeFeedback.className = 'input-feedback error';
+                    codeFeedback.style.display = 'block';
                     codeInput.disabled = false;
+                    
+                    customAlert(
+                        'Error de Conexión',
+                        'Hubo un problema de conexión con el servidor al verificar el código. Por favor, inténtalo de nuevo.',
+                        'danger'
+                    );
                 }
             } else {
                 codeInput.classList.remove('valid', 'invalid');
