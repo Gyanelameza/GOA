@@ -1923,6 +1923,18 @@
 
     <!-- Page Logic -->
     <script>
+        // Global 401 response interceptor to redirect unauthorized/deleted teachers
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = async function(...args) {
+                const response = await originalFetch(...args);
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                }
+                return response;
+            };
+        })();
+
         // Declarations
         let detailModalOrigin = null;
         const IS_ADMIN = {{ 'true' if is_admin else 'false' }};

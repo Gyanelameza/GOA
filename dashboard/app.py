@@ -46,6 +46,27 @@ def docente_required(f):
             if request.path.startswith('/api/'):
                 return jsonify({'error': 'No autorizado. Inicie sesión como docente.'}), 401
             return redirect(url_for('login'))
+            
+        connection = get_db_connection()
+        if not connection:
+            if request.path.startswith('/api/'):
+                return jsonify({'error': 'Error de conexión a la base de datos.'}), 500
+            return "Error de conexión a la base de datos", 500
+            
+        cursor = connection.cursor()
+        try:
+            cursor.execute("SELECT 1 FROM profesores WHERE id_profesor = %s;", (session['profesor_id'],))
+            if not cursor.fetchone():
+                session.clear()
+                if request.path.startswith('/api/'):
+                    return jsonify({'error': 'No autorizado. El docente ya no existe.'}), 401
+                return redirect(url_for('login'))
+        except Exception as e:
+            print(f"Error al verificar la existencia del docente: {e}")
+        finally:
+            cursor.close()
+            connection.close()
+            
         return f(*args, **kwargs)
     return decorated_function
 

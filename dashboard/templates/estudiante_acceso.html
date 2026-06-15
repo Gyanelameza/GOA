@@ -1736,6 +1736,38 @@
         let gameNotes = [];
         let gameQuestions = []; // 5 bank questions
         let gameNudos = []; // 3 story nodes
+        let sessionCheckInterval = null;
+
+        function startSessionChecking() {
+            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+            sessionCheckInterval = setInterval(async () => {
+                if (!gameCode) return;
+                try {
+                    const response = await fetch(`/api/estudiante/verificar-codigo?codigo=${encodeURIComponent(gameCode)}`);
+                    const data = await response.json();
+                    if (!data.success) {
+                        stopSessionChecking();
+                        customAlert(
+                            'Partida Finalizada', 
+                            'Esta partida ha sido finalizada por el docente o el docente ya no se encuentra en el sistema.', 
+                            'warning',
+                            () => {
+                                location.href = '/';
+                            }
+                        );
+                    }
+                } catch (e) {
+                    console.error("Error checking session status:", e);
+                }
+            }, 5000);
+        }
+
+        function stopSessionChecking() {
+            if (sessionCheckInterval) {
+                clearInterval(sessionCheckInterval);
+                sessionCheckInterval = null;
+            }
+        }
         
         let currentEvalIndex = 0;
         let evalAnswers = []; // stores {questionId, chosenOptionText, correctOptionText, isCorrect, feedback}
@@ -1977,6 +2009,9 @@
 
                     // Populate floating notes drawer & sidebar
                     populateNotesUI();
+
+                    // Start checking session status in background
+                    startSessionChecking();
 
                     // Advance to Notes view
                     showStep(stepNotes);
@@ -2372,6 +2407,9 @@
 
             // Hide study notes chest on final report screen
             floatingChestBtn.style.display = 'none';
+
+            // Stop session checking since activity is completed
+            stopSessionChecking();
 
             // Show results step
             showStep(stepResults);
