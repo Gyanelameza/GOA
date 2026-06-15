@@ -1748,9 +1748,9 @@
                     if (!data.success) {
                         stopSessionChecking();
                         customAlert(
-                            'Partida Finalizada', 
-                            'Esta partida ha sido finalizada por el docente o el docente ya no se encuentra en el sistema.', 
-                            'warning',
+                            'Partida Interrumpida', 
+                            'El código de acceso a esta partida ha sido eliminado. Por esta razón, la actividad se ha interrumpido.', 
+                            'danger',
                             () => {
                                 location.href = '/';
                             }

@@ -1925,11 +1925,24 @@
     <script>
         // Global 401 response interceptor to redirect unauthorized/deleted teachers
         (function() {
+            let isRedirecting = false;
             const originalFetch = window.fetch;
             window.fetch = async function(...args) {
                 const response = await originalFetch(...args);
-                if (response.status === 401) {
-                    window.location.href = '/login';
+                if (response.status === 401 && !isRedirecting) {
+                    isRedirecting = true;
+                    if (typeof customAlert === 'function') {
+                        customAlert(
+                            'Sesión Expirada',
+                            'Tu cuenta de docente ha sido eliminada del sistema. Por lo tanto, tu sesión ha sido cerrada.',
+                            'danger',
+                            () => {
+                                window.location.href = '/login?error=Tu+cuenta+de+docente+ha+sido+eliminada+del+sistema.';
+                            }
+                        );
+                    } else {
+                        window.location.href = '/login?error=Tu+cuenta+de+docente+ha+sido+eliminada+del+sistema.';
+                    }
                 }
                 return response;
             };

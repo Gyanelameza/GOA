@@ -123,7 +123,7 @@ def login():
     if 'profesor_id' in session:
         return redirect(url_for('docente_panel'))
         
-    error = None
+    error = request.args.get('error') if request.method == 'GET' else None
     email = ''
     if request.method == 'POST':
         if request.is_json:
