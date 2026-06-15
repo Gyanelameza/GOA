@@ -354,7 +354,7 @@
             height: 44px;
             border-radius: 50px;
         }
-        #btn-toggle-reg-pwd {
+        #btn-toggle-reg-pwd, #btn-toggle-login-pwd {
             position: absolute;
             right: 8px;
             top: 50%;
@@ -375,11 +375,11 @@
             padding: 0;
             outline: none;
         }
-        #btn-toggle-reg-pwd:hover {
+        #btn-toggle-reg-pwd:hover, #btn-toggle-login-pwd:hover {
             color: #2a8bbb;
             background-color: rgba(42, 139, 187, 0.1);
         }
-        #register-modal #reg-password {
+        #register-modal #reg-password, #password {
             padding-right: 44px;
         }
         .opcional-badge {
@@ -448,6 +448,9 @@
                     <i class="fa-solid fa-lock"></i>
                     <input class="form-input" type="password" id="password" name="password" required
                            autocomplete="current-password" placeholder="Introduce tu contraseña">
+                    <button type="button" id="btn-toggle-login-pwd" aria-label="Mostrar/ocultar contraseña">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
                 </div>
             </div>
             <button type="submit" class="btn-submit">
@@ -727,6 +730,24 @@
                     icon.classList.add('fa-eye-slash');
                 } else {
                     regPasswordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        }
+
+        // Toggle password visibility in login form
+        const btnToggleLoginPwd = document.getElementById('btn-toggle-login-pwd');
+        const loginPasswordInput = document.getElementById('password');
+        if (btnToggleLoginPwd && loginPasswordInput) {
+            btnToggleLoginPwd.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (loginPasswordInput.type === 'password') {
+                    loginPasswordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    loginPasswordInput.type = 'password';
                     icon.classList.remove('fa-eye-slash');
                     icon.classList.add('fa-eye');
                 }
