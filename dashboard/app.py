@@ -724,7 +724,18 @@ def docente_panel():
                 if not title.startswith(f"Bloque {b}:"):
                     bloques_map[b] = f"Bloque {b}: {title}"
                 
-        bloques_list = [{'id': b, 'titulo': t.replace(f"Bloque {b}:", "").strip()} for b, t in sorted(bloques_map.items())]
+        bloques_list = []
+        for b, t in sorted(bloques_map.items()):
+            cursor.execute("SELECT icono, color FROM material_estudio WHERE bloque = %s;", (b,))
+            row_ic = cursor.fetchone()
+            icono = row_ic[0] if (row_ic and row_ic[0]) else 'fa-book'
+            color = row_ic[1] if (row_ic and row_ic[1]) else '#2a8bbb'
+            bloques_list.append({
+                'id': b,
+                'titulo': t.replace(f"Bloque {b}:", "").strip(),
+                'icono': icono,
+                'color': color
+            })
             
         return render_template('docente.html', codigos=codigos, historial=historial, nombre_publico=nombre_publico, whatsapp=whatsapp, is_admin=is_admin, bloques_map=bloques_map, bloques_list=bloques_list)
     except Exception as e:
@@ -1320,9 +1331,11 @@ def docente_obtener_bloque(bloque):
     cursor = connection.cursor()
     try:
         # 1. Fetch material de estudio
-        cursor.execute("SELECT contenido FROM material_estudio WHERE bloque = %s;", (bloque,))
+        cursor.execute("SELECT contenido, icono, color FROM material_estudio WHERE bloque = %s;", (bloque,))
         row_material = cursor.fetchone()
         material_content = row_material[0] if row_material else ""
+        icono = row_material[1] if (row_material and len(row_material) > 1 and row_material[1]) else 'fa-book'
+        color = row_material[2] if (row_material and len(row_material) > 2 and row_material[2]) else '#2a8bbb'
         
         # Parse notes
         block_title = ""
@@ -1434,7 +1447,9 @@ def docente_obtener_bloque(bloque):
                 'note3_title': note3_title, 'note3_text': note3_text,
             },
             'preguntas': preguntas,
-            'nudos': nudos
+            'nudos': nudos,
+            'icono': icono,
+            'color': color
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1444,11 +1459,11 @@ def docente_obtener_bloque(bloque):
 
 def reindex_questions_and_nodes(cursor):
     # 1. Re-index material_estudio
-    cursor.execute("SELECT id_material, bloque, contenido FROM material_estudio ORDER BY bloque, id_material;")
+    cursor.execute("SELECT id_material, bloque, contenido, icono, color FROM material_estudio ORDER BY bloque, id_material;")
     materials = cursor.fetchall()
     cursor.execute("TRUNCATE TABLE material_estudio RESTART IDENTITY CASCADE;")
-    for _, bloque, contenido in materials:
-        cursor.execute("INSERT INTO material_estudio (bloque, contenido) VALUES (%s, %s);", (bloque, contenido))
+    for _, bloque, contenido, icono, color in materials:
+        cursor.execute("INSERT INTO material_estudio (bloque, contenido, icono, color) VALUES (%s, %s, %s, %s);", (bloque, contenido, icono, color))
 
     # 2. Re-index banco_preguntas
     cursor.execute("""
@@ -1491,6 +1506,8 @@ def admin_guardar_bloque():
     notes = data.get('notes', {})
     preguntas = data.get('preguntas', [])
     nudos = data.get('nudos', [])
+    icono = data.get('icono', 'fa-book').strip() or 'fa-book'
+    color = data.get('color', '#2a8bbb').strip() or '#2a8bbb'
     
     if not bloque:
         return jsonify({'success': False, 'error': 'Falta el número de bloque.'}), 400
@@ -1555,6 +1572,33 @@ def admin_guardar_bloque():
         
     cursor = connection.cursor()
     try:
+        # Check if the block already exists in any table
+        cursor.execute("""
+            SELECT 1 FROM (
+                SELECT bloque FROM material_estudio WHERE bloque = %s
+                UNION
+                SELECT bloque FROM banco_preguntas WHERE bloque = %s
+                UNION
+                SELECT bloque FROM historia_interactiva WHERE bloque = %s
+            ) as check_block LIMIT 1;
+        """, (bloque, bloque, bloque))
+        is_existing = cursor.fetchone()
+        
+        if not is_existing:
+            # It's a new block registration. Check how many distinct blocks we already have.
+            cursor.execute("""
+                SELECT COUNT(DISTINCT bloque) FROM (
+                    SELECT bloque FROM material_estudio
+                    UNION
+                    SELECT bloque FROM banco_preguntas
+                    UNION
+                    SELECT bloque FROM historia_interactiva
+                ) as all_blocks;
+            """)
+            total_bloques = cursor.fetchone()[0]
+            if total_bloques >= 10:
+                return jsonify({'success': False, 'error': 'Se ha alcanzado el límite máximo de 10 bloques registrados en el sistema.'}), 400
+
         # 1. Assemble material_estudio content string
         material_str = f"{block_title}\n\nI. Kit del Guardián\n\n"
         material_str += f"Nota 1 ({notes.get('note1_title', '').strip()}): {notes.get('note1_text', '').strip()}\n\n"
@@ -1564,9 +1608,9 @@ def admin_guardar_bloque():
         # Upsert material_estudio
         cursor.execute("SELECT 1 FROM material_estudio WHERE bloque = %s;", (bloque,))
         if cursor.fetchone():
-            cursor.execute("UPDATE material_estudio SET contenido = %s WHERE bloque = %s;", (material_str, bloque))
+            cursor.execute("UPDATE material_estudio SET contenido = %s, icono = %s, color = %s WHERE bloque = %s;", (material_str, icono, color, bloque))
         else:
-            cursor.execute("INSERT INTO material_estudio (bloque, contenido) VALUES (%s, %s);", (bloque, material_str))
+            cursor.execute("INSERT INTO material_estudio (bloque, contenido, icono, color) VALUES (%s, %s, %s, %s);", (bloque, material_str, icono, color))
             
         # 2. Update banco_preguntas
         cursor.execute("DELETE FROM banco_preguntas WHERE bloque = %s;", (bloque,))
@@ -1760,12 +1804,14 @@ def datos_bloque():
             
         # 3. Recuperar material_estudio (las 3 notas del bloque)
         cursor.execute("""
-            SELECT contenido 
+            SELECT contenido, icono, color 
             FROM material_estudio 
             WHERE bloque = %s;
         """, (bloque,))
         material_row = cursor.fetchone()
         material_content = material_row[0] if material_row else ""
+        icono = material_row[1] if (material_row and len(material_row) > 1 and material_row[1]) else 'fa-book'
+        color = material_row[2] if (material_row and len(material_row) > 2 and material_row[2]) else '#2a8bbb'
         
         # Parsear las 3 notas
         idx1 = material_content.find("Nota 1")
@@ -1785,7 +1831,9 @@ def datos_bloque():
             'bloque': bloque,
             'preguntas': preguntas,
             'nudos': nudos,
-            'notas': notas
+            'notas': notas,
+            'icono': icono,
+            'color': color
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

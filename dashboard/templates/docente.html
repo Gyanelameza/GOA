@@ -1040,15 +1040,9 @@
                             <i class="fa-solid fa-circle-info" style="color: #2a8bbb; font-size: 16px;"></i> Guía de Bloques de Aprendizaje (Actividades)
                         </h3>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
-                            {% set block_colors = ['#298552', '#2a8bbb', '#d97706', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'] %}
-                            {% set block_icons = ['fa-recycle', 'fa-droplet', 'fa-bolt', 'fa-users', 'fa-seedling', 'fa-circle-info', 'fa-lightbulb', 'fa-earth-americas'] %}
                             {% for b in bloques_list %}
-                            {% set col_idx = (b.id - 1) % block_colors|length %}
-                            {% set icon_idx = (b.id - 1) % block_icons|length %}
-                            {% set col = block_colors[col_idx] %}
-                            {% set icon = block_icons[icon_idx] %}
                             <div style="background: rgba(255,255,255,0.3); padding: 12px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.02); cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.6)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='none';" onclick="verInfoBloque({{ b.id }}, '{{ b.titulo | replace("'", "\\'") }}')">
-                                <div style="width: 38px; height: 38px; border-radius: 12px; background: {{ col }}1f; display: flex; align-items: center; justify-content: center; color: {{ col }}; font-size: 17px; flex-shrink: 0;"><i class="fa-solid {{ icon }}"></i></div>
+                                <div style="width: 38px; height: 38px; border-radius: 12px; background: {{ b.color }}1f; display: flex; align-items: center; justify-content: center; color: {{ b.color }}; font-size: 17px; flex-shrink: 0;"><i class="fa-solid {{ b.icono }}"></i></div>
                                 <div>
                                     <h4 style="margin: 0; font-size: 13px; font-weight: 800; color: #1a3a5c;">Bloque {{ b.id }}</h4>
                                     <p style="margin: 1px 0 0; font-size: 11.5px; color: var(--text-secondary); font-weight: 600;">{{ b.titulo }}</p>
@@ -1330,6 +1324,24 @@
                         <div class="form-group">
                             <label>Título del Bloque / Actividad:</label>
                             <input type="text" id="wizard-block-title" class="form-control" placeholder="Ej. GESTIÓN DE RESIDUOS Y RECICLAJE" value="">
+                        </div>
+
+                        <!-- Selectores de Icono y Color -->
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; background: rgba(255, 255, 255, 0.25); padding: 16px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.35);">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-weight: 700; color: #1a3a5c; margin-bottom: 8px; display: block; font-size: 13px;"><i class="fa-solid fa-icons" style="color:#2a8bbb;"></i> Icono de la Actividad:</label>
+                                <div id="wizard-icon-picker" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 6px;">
+                                    <!-- Dinámico por JS -->
+                                </div>
+                                <input type="hidden" id="wizard-selected-icon" value="fa-book">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-weight: 700; color: #1a3a5c; margin-bottom: 8px; display: block; font-size: 13px;"><i class="fa-solid fa-palette" style="color:#298552;"></i> Color Temático:</label>
+                                <div id="wizard-color-picker" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-top: 6px; align-items: center; min-height: 38px;">
+                                    <!-- Dinámico por JS -->
+                                </div>
+                                <input type="hidden" id="wizard-selected-color" value="#2a8bbb">
+                            </div>
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -1999,6 +2011,92 @@
         let detailModalOrigin = null;
         const IS_ADMIN = {{ 'true' if is_admin else 'false' }};
         const BLOQUES_MAP = {{ bloques_map | tojson if bloques_map else '{}' }};
+
+        // Icon and Color pickers lists and handlers
+        const ICONS_LIST = [
+            { class: 'fa-recycle', label: 'Reciclaje' },
+            { class: 'fa-droplet', label: 'Agua' },
+            { class: 'fa-bolt', label: 'Energía' },
+            { class: 'fa-users', label: 'Comunidad' },
+            { class: 'fa-seedling', label: 'Siembra' },
+            { class: 'fa-heartbeat', label: 'Salud' },
+            { class: 'fa-stethoscope', label: 'Medicina' },
+            { class: 'fa-kit-medical', label: 'Botiquín' },
+            { class: 'fa-leaf', label: 'Naturaleza' },
+            { class: 'fa-lightbulb', label: 'Idea' },
+            { class: 'fa-earth-americas', label: 'Tierra' },
+            { class: 'fa-book', label: 'General' }
+        ];
+        const COLORS_LIST = [
+            '#298552', '#2a8bbb', '#d97706', '#6366f1', '#ef4444', '#ec4899', '#8b5cf6', '#10b981'
+        ];
+
+        function initIconAndColorPickers() {
+            const iconPicker = document.getElementById('wizard-icon-picker');
+            const colorPicker = document.getElementById('wizard-color-picker');
+            if (!iconPicker || !colorPicker) return;
+            
+            iconPicker.innerHTML = '';
+            ICONS_LIST.forEach(ico => {
+                const div = document.createElement('div');
+                div.className = 'icon-picker-item';
+                div.style.cssText = 'height: 38px; border-radius: 8px; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; color: #1a3a5c; transition: all 0.2s ease;';
+                div.setAttribute('data-icon', ico.class);
+                div.title = ico.label;
+                div.innerHTML = `<i class="fa-solid ${ico.class}"></i>`;
+                div.addEventListener('click', () => selectIcon(ico.class));
+                iconPicker.appendChild(div);
+            });
+            
+            colorPicker.innerHTML = '';
+            COLORS_LIST.forEach(col => {
+                const div = document.createElement('div');
+                div.className = 'color-picker-item';
+                div.style.cssText = 'width: 24px; height: 24px; border-radius: 50%; background: ' + col + '; cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.1); justify-self: center;';
+                div.setAttribute('data-color', col);
+                div.addEventListener('click', () => selectColor(col));
+                colorPicker.appendChild(div);
+            });
+            
+            // Set defaults initially
+            selectIcon('fa-book');
+            selectColor('#2a8bbb');
+        }
+
+        function selectIcon(iconClass) {
+            const selectedIconInput = document.getElementById('wizard-selected-icon');
+            if (selectedIconInput) selectedIconInput.value = iconClass;
+            document.querySelectorAll('#wizard-icon-picker .icon-picker-item').forEach(item => {
+                if (item.getAttribute('data-icon') === iconClass) {
+                    item.style.background = 'rgba(42, 139, 187, 0.15)';
+                    item.style.borderColor = '#2a8bbb';
+                    item.style.color = '#2a8bbb';
+                    item.style.fontWeight = '800';
+                } else {
+                    item.style.background = 'rgba(255, 255, 255, 0.4)';
+                    item.style.borderColor = 'rgba(0, 0, 0, 0.1)';
+                    item.style.color = '#1a3a5c';
+                    item.style.fontWeight = 'normal';
+                }
+            });
+        }
+
+        function selectColor(colorHex) {
+            const selectedColorInput = document.getElementById('wizard-selected-color');
+            if (selectedColorInput) selectedColorInput.value = colorHex;
+            document.querySelectorAll('#wizard-color-picker .color-picker-item').forEach(item => {
+                if (item.getAttribute('data-color') === colorHex) {
+                    item.style.transform = 'scale(1.2)';
+                    item.style.borderColor = '#1a3a5c';
+                    item.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.2)';
+                } else {
+                    item.style.transform = 'none';
+                    item.style.borderColor = 'transparent';
+                    item.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
+                }
+            });
+        }
+
         const btnGenerateCode = document.getElementById('btn-generate-code');
         const codesList = document.getElementById('docente-codes-list');
         const statCodesCount = document.getElementById('stat-codes-count');
@@ -3504,7 +3602,7 @@
             const nudosContainer = document.getElementById('block-info-nudos');
 
             // Use GO-A theme color (Ocean Blue) for all block modals
-            const blockColor = '#2a8bbb';
+            let blockColor = '#2a8bbb';
 
             // Color the header icon and text
             modalTitle.innerHTML = `<span style="background: linear-gradient(135deg, ${blockColor}1a, ${blockColor}0d); color: ${blockColor}; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 8px; border: 1px solid ${blockColor}25;"><i class="fa-solid fa-droplet"></i></span> Bloque ${bloqueId}: ${blockName}`;
@@ -3549,8 +3647,29 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    if (data.block_title) {
-                        modalTitle.innerHTML = `<span style="background: linear-gradient(135deg, ${blockColor}1a, ${blockColor}0d); color: ${blockColor}; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 8px; border: 1px solid ${blockColor}25;"><i class="fa-solid fa-droplet"></i></span> Bloque ${bloqueId}: ${data.block_title}`;
+                    blockColor = data.color || '#2a8bbb';
+                    const activeIcon = data.icono || 'fa-droplet';
+
+                    modalTitle.innerHTML = `<span style="background: linear-gradient(135deg, ${blockColor}1a, ${blockColor}0d); color: ${blockColor}; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 8px; border: 1px solid ${blockColor}25;"><i class="fa-solid ${activeIcon}"></i></span> Bloque ${bloqueId}: ${data.block_title || blockName}`;
+
+                    // Update badges/line style
+                    if (notesBadge) {
+                        notesBadge.style.background = `${blockColor}12`;
+                        notesBadge.style.color = blockColor;
+                        notesBadge.style.border = `1px solid ${blockColor}25`;
+                    }
+                    if (questionsBadge) {
+                        questionsBadge.style.background = `${blockColor}12`;
+                        questionsBadge.style.color = blockColor;
+                        questionsBadge.style.border = `1px solid ${blockColor}25`;
+                    }
+                    if (nudosBadge) {
+                        nudosBadge.style.background = `${blockColor}12`;
+                        nudosBadge.style.color = blockColor;
+                        nudosBadge.style.border = `1px solid ${blockColor}25`;
+                    }
+                    if (timelineLine) {
+                        timelineLine.style.background = `linear-gradient(180deg, ${blockColor}80, ${blockColor}10)`;
                     }
 
                     notesContainer.innerHTML = '';
@@ -3784,6 +3903,11 @@
         const wizardSelectBloque = document.getElementById('wizard-select-bloque');
         const confirmBlockNum = document.getElementById('confirm-block-num');
 
+        // Initialize picker options
+        if (typeof initIconAndColorPickers === 'function') {
+            initIconAndColorPickers();
+        }
+
         // Validation Function
         function validarPasoActual(paso) {
             let esValido = true;
@@ -3955,6 +4079,14 @@
                             existingNums.add(val);
                         }
                     }
+                    if (existingNums.size >= 10) {
+                        customAlert(
+                            'Límite de Bloques Alcanzado', 
+                            'No se pueden registrar más de 10 bloques en el sistema. Por favor elimina un bloque existente si deseas agregar uno nuevo.', 
+                            'warning'
+                        );
+                        return;
+                    }
                     let blockNum = 1;
                     while (existingNums.has(blockNum)) {
                         blockNum++;
@@ -4057,6 +4189,10 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    // Icon & Color selectors
+                    selectIcon(data.icono || 'fa-book');
+                    selectColor(data.color || '#2a8bbb');
+
                     // Step 1 Notes
                     document.getElementById('wizard-block-title').value = data.block_title || '';
                     document.getElementById('wizard-note1-title').value = data.notes.note1_title || '';
@@ -4142,6 +4278,8 @@
                 const payload = {
                     bloque: bloque,
                     block_title: document.getElementById('wizard-block-title').value.trim(),
+                    icono: document.getElementById('wizard-selected-icon').value,
+                    color: document.getElementById('wizard-selected-color').value,
                     notes: {
                         note1_title: document.getElementById('wizard-note1-title').value.trim(),
                         note1_text: document.getElementById('wizard-note1-text').value.trim(),
