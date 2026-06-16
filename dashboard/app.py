@@ -1310,9 +1310,9 @@ def admin_list_bloques():
     list_bloques.sort(key=lambda x: x['id'])
     return jsonify({'success': True, 'bloques': list_bloques})
 
-@app.route('/api/admin/obtener-bloque/<int:bloque>', methods=['GET'])
-@admin_required
-def admin_obtener_bloque(bloque):
+@app.route('/api/docente/obtener-bloque/<int:bloque>', methods=['GET'])
+@docente_required
+def docente_obtener_bloque(bloque):
     connection = get_db_connection()
     if not connection:
         return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500

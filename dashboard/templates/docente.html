@@ -1047,7 +1047,7 @@
                             {% set icon_idx = (b.id - 1) % block_icons|length %}
                             {% set col = block_colors[col_idx] %}
                             {% set icon = block_icons[icon_idx] %}
-                            <div style="background: rgba(255,255,255,0.3); padding: 12px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.02);" onmouseover="this.style.background='rgba(255,255,255,0.6)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='none';">
+                            <div style="background: rgba(255,255,255,0.3); padding: 12px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.4); display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.02); cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.6)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='none';" onclick="verInfoBloque({{ b.id }}, '{{ b.titulo | replace("'", "\\'") }}')">
                                 <div style="width: 38px; height: 38px; border-radius: 12px; background: {{ col }}1f; display: flex; align-items: center; justify-content: center; color: {{ col }}; font-size: 17px; flex-shrink: 0;"><i class="fa-solid {{ icon }}"></i></div>
                                 <div>
                                     <h4 style="margin: 0; font-size: 13px; font-weight: 800; color: #1a3a5c;">Bloque {{ b.id }}</h4>
@@ -1853,6 +1853,49 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal overlay for Block Details (Guía de Actividades) -->
+    <div class="modal-overlay" id="block-info-modal">
+        <div class="modal-card" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3 id="block-info-modal-title"><i class="fa-solid fa-book"></i> Detalles del Bloque</h3>
+                <button class="btn-close" id="btn-close-block-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; max-height: 70vh; overflow-y: auto; text-align: left;">
+                
+                <!-- Sección de Material de Estudio / Notas -->
+                <div style="background: rgba(42, 139, 187, 0.06); padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(42, 139, 187, 0.15);">
+                    <h4 style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-file-invoice" style="color: #2a8bbb;"></i> Material de Estudio (Notas)
+                    </h4>
+                    <div id="block-info-notes" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Se poblará con JS -->
+                    </div>
+                </div>
+
+                <!-- Sección de Banco de Preguntas -->
+                <div>
+                    <h4 style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-circle-question" style="color: #2a8bbb;"></i> Banco de Preguntas Evaluativas (Sin respuestas)
+                    </h4>
+                    <ol id="block-info-questions" style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; color: #1c3e5e; font-weight: 700;">
+                        <!-- Se poblará con JS -->
+                    </ol>
+                </div>
+
+                <!-- Sección de Historia Interactiva -->
+                <div>
+                    <h4 style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-scroll" style="color: #2a8bbb;"></i> Historia Interactiva (Nudos / Escenas sin respuestas)
+                    </h4>
+                    <div id="block-info-nudos" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Se poblará con JS -->
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -3415,6 +3458,133 @@
             });
         }
 
+        // Block Detail Modal Handling
+        const blockInfoModal = document.getElementById('block-info-modal');
+        const btnCloseBlockModal = document.getElementById('btn-close-block-modal');
+        
+        if (btnCloseBlockModal) {
+            btnCloseBlockModal.addEventListener('click', () => {
+                blockInfoModal.classList.remove('show');
+            });
+        }
+        if (blockInfoModal) {
+            blockInfoModal.addEventListener('click', (e) => {
+                if (e.target === blockInfoModal) {
+                    blockInfoModal.classList.remove('show');
+                }
+            });
+        }
+
+        async function verInfoBloque(bloqueId, blockName) {
+            const blockInfoModal = document.getElementById('block-info-modal');
+            if (!blockInfoModal) return;
+
+            const modalTitle = document.getElementById('block-info-modal-title');
+            const notesContainer = document.getElementById('block-info-notes');
+            const questionsContainer = document.getElementById('block-info-questions');
+            const nudosContainer = document.getElementById('block-info-nudos');
+
+            modalTitle.innerHTML = `<i class="fa-solid fa-book"></i> Bloque ${bloqueId}: ${blockName}`;
+            
+            notesContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</p>';
+            questionsContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</p>';
+            nudosContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</p>';
+
+            blockInfoModal.classList.add('show');
+
+            try {
+                const response = await fetch(`/api/docente/obtener-bloque/${bloqueId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.block_title) {
+                        modalTitle.innerHTML = `<i class="fa-solid fa-book"></i> Bloque ${bloqueId}: ${data.block_title}`;
+                    }
+
+                    notesContainer.innerHTML = '';
+                    const notes = data.notes || {};
+                    let notesCount = 0;
+                    
+                    if (notes.note1_text) {
+                        notesContainer.appendChild(createNoteElement(1, notes.note1_title || 'Nota 1', notes.note1_text));
+                        notesCount++;
+                    }
+                    if (notes.note2_text) {
+                        notesContainer.appendChild(createNoteElement(2, notes.note2_title || 'Nota 2', notes.note2_text));
+                        notesCount++;
+                    }
+                    if (notes.note3_text) {
+                        notesContainer.appendChild(createNoteElement(3, notes.note3_title || 'Nota 3', notes.note3_text));
+                        notesCount++;
+                    }
+
+                    if (notesCount === 0) {
+                        notesContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted); font-style:italic;">No hay notas registradas para este bloque.</p>';
+                    }
+
+                    questionsContainer.innerHTML = '';
+                    const preguntas = data.preguntas || [];
+                    if (preguntas.length === 0) {
+                        questionsContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted); font-style:italic;">No hay preguntas registradas para este bloque.</p>';
+                    } else {
+                        preguntas.forEach(q => {
+                            const li = document.createElement('li');
+                            li.style.marginBottom = '6px';
+                            li.textContent = q.pregunta;
+                            questionsContainer.appendChild(li);
+                        });
+                    }
+
+                    nudosContainer.innerHTML = '';
+                    const nudos = data.nudos || [];
+                    if (nudos.length === 0) {
+                        nudosContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted); font-style:italic;">No hay escenas de la historia registradas para este bloque.</p>';
+                    } else {
+                        nudos.forEach((n, idx) => {
+                            const div = document.createElement('div');
+                            div.style.cssText = 'background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 12px; padding: 12px 14px;';
+                            div.innerHTML = `
+                                <h5 style="margin: 0 0 6px 0; font-size: 13.5px; font-weight: 800; color: #1a3a5c;">
+                                    Escena ${idx + 1}: ${n.escena_titulo || 'Sin título'}
+                                </h5>
+                                <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4; font-weight: 600;">
+                                    ${n.texto_situacion}
+                                </p>
+                            `;
+                            nudosContainer.appendChild(div);
+                        });
+                    }
+                } else {
+                    showError(data.error || 'No se pudieron obtener los detalles del bloque.');
+                }
+            } catch (err) {
+                console.error(err);
+                showError('Error de conexión al obtener los detalles del bloque.');
+            }
+
+            function createNoteElement(num, title, text) {
+                const div = document.createElement('div');
+                div.style.cssText = 'margin-bottom: 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.05); padding-bottom: 8px;';
+                div.innerHTML = `
+                    <h5 style="margin: 0 0 4px 0; font-size: 13.5px; font-weight: 800; color: #1a3a5c;">
+                        Nota ${num}: ${title}
+                    </h5>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4; font-weight: 600;">
+                        ${text}
+                    </p>
+                `;
+                return div;
+            }
+
+            function showError(msg) {
+                notesContainer.innerHTML = `<p style="font-size:13px; color:#dc2626; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ${msg}</p>`;
+                questionsContainer.innerHTML = '';
+                nudosContainer.innerHTML = '';
+            }
+        }
+        
+        window.verInfoBloque = verInfoBloque;
+
         window.loadTeachers = loadTeachers;
         
         // Print Logic
@@ -3768,7 +3938,7 @@
                 });
             }
             try {
-                const response = await fetch(`/api/admin/obtener-bloque/${bloqueId}`);
+                const response = await fetch(`/api/docente/obtener-bloque/${bloqueId}`);
                 const data = await response.json();
                 
                 if (data.success) {
