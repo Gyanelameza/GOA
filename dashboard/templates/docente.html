@@ -1933,30 +1933,43 @@
                 </div>
 
                 <!-- Asignación de bloque (Visible solo para códigos sin uso) -->
-                <div id="code-modal-assign-block-container" style="display: none; background: rgba(42, 139, 187, 0.08); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(42, 139, 187, 0.15); justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-layer-group" style="color: #2a8bbb; font-size: 18px;"></i>
+                <div id="code-modal-assign-block-container" style="display: none; background: rgba(42, 139, 187, 0.08); padding: 20px; border-radius: 20px; border: 1px solid rgba(42, 139, 187, 0.15); display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Cabecera e Instrucciones Claras para el Docente -->
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(42, 139, 187, 0.12); border: 1px solid rgba(42, 139, 187, 0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                            <i class="fa-solid fa-layer-group" style="color: #2a8bbb; font-size: 15px;"></i>
+                        </div>
                         <div>
-                            <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Asignación de Bloque</span>
-                            <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Fuerza la carga de un bloque específico para este código.</p>
+                            <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Asignación de Bloque de Estudio</span>
+                            <p style="font-size: 12.5px; color: var(--text-secondary); margin: 4px 0 0 0; line-height: 1.45;">
+                                Por defecto, los estudiantes reciben un bloque <strong>aleatorio</strong> al ingresar. Si deseas que todo tu grupo juegue un bloque específico, selecciónalo a continuación y haz clic en <strong>Asignar Bloque</strong>.
+                            </p>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <select id="code-modal-assign-block-select" class="form-control" style="width: 180px; font-weight: 700; height: 38px; border-radius: 10px; padding: 0 10px; cursor: pointer; border: 1px solid rgba(42,139,187,0.25); background: rgba(255,255,255,0.85); color: #1a3a5c; font-family: 'Outfit', sans-serif;">
-                            <option value="">Aleatorio (Por defecto)</option>
-                            {% for b in bloques_list %}
-                            <option value="{{ b.id }}">Bloque {{ b.id }}: {{ b.titulo }}</option>
-                            {% endfor %}
-                        </select>
-                        <button id="btn-save-assigned-block" class="btn btn-primary" style="height: 38px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 10px rgba(42,139,187,0.2); cursor: pointer; transition: all 0.2s;">
-                            <i class="fa-solid fa-floppy-disk"></i> Asignar
+                    <!-- Formulario de Selección y Botón -->
+                    <div style="display: flex; align-items: center; gap: 12px; padding-left: 50px; flex-wrap: wrap;">
+                        <div class="premium-select-wrapper" style="width: 320px;">
+                            <select id="code-modal-assign-block-select" class="premium-select">
+                                <option value="">Aleatorio (Por defecto)</option>
+                                {% for b in bloques_list %}
+                                <option value="{{ b.id }}">Bloque {{ b.id }}: {{ b.titulo }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="select-arrow">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        <button id="btn-save-assigned-block" class="premium-assign-btn">
+                            <i class="fa-solid fa-floppy-disk"></i> Asignar Bloque
                         </button>
                     </div>
                 </div>
 
                 <!-- Read-only Block Assignment (shown when code is in use) -->
-                <div id="code-modal-assigned-block-readonly" style="display: none; background: rgba(0, 0, 0, 0.03); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-layer-group" style="color: var(--text-muted); font-size: 16px;"></i>
+                <div id="code-modal-assigned-block-readonly" style="display: none; background: rgba(0, 0, 0, 0.03); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.06); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i class="fa-solid fa-layer-group" style="color: var(--text-muted); font-size: 14px;"></i>
+                    </div>
                     <span style="font-size: 13px; font-weight: 700; color: var(--text-secondary);">
                         Bloque asignado: <strong id="code-modal-assigned-block-label" style="color: #1a3a5c;">Aleatorio</strong>
                     </span>
@@ -3702,7 +3715,7 @@
                 
                 const selectedVal = selectAssignedBlock.value;
                 btnSaveAssignedBlock.disabled = true;
-                btnSaveAssignedBlock.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                btnSaveAssignedBlock.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Asignando...';
                 
                 try {
                     const response = await fetch('/api/docente/asignar-bloque', {
@@ -3727,7 +3740,7 @@
                     customAlert('Error de Conexión', 'No se pudo conectar con el servidor.', 'danger');
                 } finally {
                     btnSaveAssignedBlock.disabled = false;
-                    btnSaveAssignedBlock.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Asignar';
+                    btnSaveAssignedBlock.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Asignar Bloque';
                 }
             });
         }

@@ -1613,6 +1613,12 @@
                             <p class="story-text" id="story-node-text"></p>
                         </div>
                         
+                        <!-- Interacción: Pregunta en azul antes de mostrar opciones -->
+                        <div id="story-prompt-container" style="display: none; margin: 20px 0 12px; font-weight: 800; color: #1a7abf; font-size: 15.5px; text-align: left; align-items: center; gap: 8px; animation: fadeIn 0.4s ease-out;">
+                            <i class="fa-solid fa-circle-question" style="font-size: 17px; color: #1a7abf;"></i>
+                            <span>¿Qué debes hacer? ¿Qué harías tú?</span>
+                        </div>
+                        
                         <div class="options-list" id="story-options-container">
                             <!-- Injected dynamically -->
                         </div>
@@ -2305,6 +2311,11 @@
             if (typewriterTimeout) clearTimeout(typewriterTimeout);
             storyNodeText.textContent = '';
             storyOptionsContainer.innerHTML = '';
+            
+            const storyPromptContainer = document.getElementById('story-prompt-container');
+            if (storyPromptContainer) {
+                storyPromptContainer.style.display = 'none';
+            }
 
             let fullText = node.texto_situacion || '';
             let charIndex = 0;
@@ -2317,6 +2328,9 @@
                     typewriterTimeout = setTimeout(typeWriter, 15);
                 } else {
                     // Typewriter finished, show option buttons beautifully
+                    if (storyPromptContainer) {
+                        storyPromptContainer.style.display = 'flex';
+                    }
                     renderStoryOptions(options);
                 }
             }
