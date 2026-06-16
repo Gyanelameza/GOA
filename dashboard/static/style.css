@@ -1056,18 +1056,51 @@ textarea#sql-editor:focus {
 
     /* Compress Topbar sizes and padding */
     .topbar {
-        padding: 16px 20px !important;
+        padding: 16px 16px !important;
         min-height: 76px !important;
-        gap: 12px !important;
+        gap: 10px !important;
+    }
+
+    .page-title {
+        flex: 1 !important;
+        min-width: 0 !important;
     }
 
     .page-title h2 {
-        font-size: 18px !important;
-        line-height: 1.2;
+        font-size: 16px !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+        margin: 0 !important;
     }
 
     .page-title p {
         display: none !important; /* Hide description text to maximize space */
+    }
+
+    /* Make topbar action buttons square icon-only on mobile */
+    #btn-refresh {
+        width: 42px !important;
+        height: 42px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        border-radius: 12px !important;
+    }
+    #btn-refresh .refresh-text,
+    #btn-refresh .btn-text {
+        display: none !important;
+    }
+
+    #btn-show-console {
+        width: 42px !important;
+        height: 42px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        border-radius: 12px !important;
+    }
+    #btn-show-console .btn-text {
+        display: none !important;
     }
 
     /* Compress content padding */
