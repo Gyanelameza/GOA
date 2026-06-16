@@ -5336,6 +5336,12 @@
                 btnWizardNext.style.display = 'inline-flex';
                 btnWizardNext.innerHTML = 'Siguiente <i class="fa-solid fa-arrow-right"></i>';
             }
+
+            // Scroll content area back to top when switching steps
+            const contentBody = document.querySelector('.content-body');
+            if (contentBody) {
+                contentBody.scrollTop = 0;
+            }
         }
 
         if (btnWizardPrev && btnWizardNext) {
