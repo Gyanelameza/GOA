@@ -1578,7 +1578,15 @@
                 <div class="transition-badge"><i class="fa-solid fa-check-circle"></i> ¡Evaluación Completada!</div>
                 <div class="transition-icon"><i class="fa-solid fa-award"></i></div>
                 <h2>¡Evaluación Inicial Superada!</h2>
-                <p class="subtitle" style="max-width: 460px; margin: 0 auto 28px;">Has respondido las 5 preguntas teóricas del bloque. Ahora, sumérgete en la historia interactiva y toma las decisiones correctas como líder ambiental.</p>
+                
+                <!-- Custom Story Intro Area -->
+                <div id="story-intro-container" style="display: none; background: rgba(255, 255, 255, 0.45); border: 1.5px solid rgba(255, 255, 255, 0.65); padding: 24px; border-radius: 20px; margin: 15px auto 25px; max-width: 500px; text-align: center; box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05); backdrop-filter: blur(4px);">
+                    <h3 id="player-story-title" style="font-size: 19px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; border-bottom: 1.5px dashed rgba(42, 139, 187, 0.3); padding-bottom: 8px;"></h3>
+                    <p id="player-story-intro" style="font-size: 14.5px; font-weight: 600; color: var(--text-secondary); line-height: 1.6; margin: 0;"></p>
+                </div>
+
+                <p id="default-transition-subtitle" class="subtitle" style="max-width: 460px; margin: 0 auto 28px;">Has respondido las 5 preguntas teóricas del bloque. Ahora, sumérgete en la historia interactiva y toma las decisiones correctas como líder ambiental.</p>
+                
                 <button class="btn btn-primary" id="btn-start-story" style="max-width: 280px; margin: 0 auto;">
                     Entrar a la Historia <i class="fa-solid fa-book-open-reader"></i>
                 </button>
@@ -1592,7 +1600,7 @@
                     <div class="game-progress-container">
                         <div class="game-progress-labels">
                             <span id="story-progress-text">Nudo 1 de 3</span>
-                            <span style="color: #1a7abf; font-weight: 800;"><i class="fa-solid fa-scroll"></i> Historia Interactiva</span>
+                            <span id="story-main-title-label" style="color: #1a7abf; font-weight: 800;"><i class="fa-solid fa-scroll"></i> Historia Interactiva</span>
                         </div>
                         <div class="game-progress-bar-bg">
                             <div class="game-progress-bar-fill" id="story-progress-fill" style="background: linear-gradient(90deg, #2facec, #1a7abf);"></div>
@@ -1737,6 +1745,8 @@
         let gameNotes = [];
         let gameQuestions = []; // 5 bank questions
         let gameNudos = []; // 3 story nodes
+        let gameStoryTitle = '';
+        let gameStoryIntro = '';
         let sessionCheckInterval = null;
 
         function startSessionChecking() {
@@ -2021,6 +2031,8 @@
                     gameNotes = data.notas;
                     gameQuestions = shuffleArray(data.preguntas); // Random order of bank questions
                     gameNudos = data.nudos;
+                    gameStoryTitle = data.story_title || '';
+                    gameStoryIntro = data.story_intro || '';
 
                     // Populate floating notes drawer & sidebar
                     populateNotesUI();
@@ -2226,6 +2238,23 @@
             } else {
                 // Done with initial evaluation, advance to transition screen
                 evalProgressFill.style.width = '100%';
+                
+                // Populate custom story title and introduction if they exist
+                const storyIntroContainer = document.getElementById('story-intro-container');
+                const defaultSubtitle = document.getElementById('default-transition-subtitle');
+                const playerTitle = document.getElementById('player-story-title');
+                const playerIntro = document.getElementById('player-story-intro');
+                
+                if (gameStoryTitle && gameStoryTitle.trim() !== '') {
+                    playerTitle.textContent = gameStoryTitle.trim();
+                    playerIntro.textContent = gameStoryIntro ? gameStoryIntro.trim() : '';
+                    storyIntroContainer.style.display = 'block';
+                    defaultSubtitle.style.display = 'none';
+                } else {
+                    storyIntroContainer.style.display = 'none';
+                    defaultSubtitle.style.display = 'block';
+                }
+                
                 setTimeout(() => {
                     showStep(stepTransition);
                 }, 400);
@@ -2246,6 +2275,16 @@
             storyProgressText.textContent = `Escena ${currentStoryIndex + 1} de 3`;
             storyProgressFill.style.width = `${((currentStoryIndex) / 3) * 100}%`;
             btnNextStoryNode.disabled = true;
+
+            // Update main story header with custom title if defined
+            const storyMainTitleLabel = document.getElementById('story-main-title-label');
+            if (storyMainTitleLabel) {
+                if (gameStoryTitle && gameStoryTitle.trim() !== '') {
+                    storyMainTitleLabel.innerHTML = `<i class="fa-solid fa-scroll"></i> ${gameStoryTitle.trim()}`;
+                } else {
+                    storyMainTitleLabel.innerHTML = `<i class="fa-solid fa-scroll"></i> Historia Interactiva`;
+                }
+            }
 
             // Update title
             storyNodeTitle.textContent = node.escena_titulo || `Nudo ${currentStoryIndex + 1}`;

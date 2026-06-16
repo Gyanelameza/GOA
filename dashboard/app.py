@@ -714,10 +714,10 @@ def docente_panel():
         bloques_map = obtener_info_bloques()
         if not bloques_map:
             bloques_map = {
-                1: 'Bloque 1: Residuos y Reciclaje',
-                2: 'Bloque 2: Agua y Alcantarillado',
-                3: 'Bloque 3: Consumo y Energía',
-                4: 'Bloque 4: Liderazgo y Comunidad'
+                1: 'Bloque 1: Gestión de Residuos y Reciclaje',
+                2: 'Bloque 2: Cuidado del Agua y Alcantarillado',
+                3: 'Bloque 3: Consumo Responsable y Energía',
+                4: 'Bloque 4: Liderazgo y Comunidad Ambiental'
             }
         else:
             for b, title in list(bloques_map.items()):
@@ -1310,10 +1310,10 @@ def admin_list_bloques():
     if not list_bloques:
         # Asegurar que los bloques por defecto 1, 2, 3 y 4 aparezcan si está vacío
         default_titles = {
-            1: 'Residuos y Reciclaje',
-            2: 'Agua y Alcantarillado',
-            3: 'Consumo y Energía',
-            4: 'Liderazgo y Comunidad'
+            1: 'Gestión de Residuos y Reciclaje',
+            2: 'Cuidado del Agua y Alcantarillado',
+            3: 'Consumo Responsable y Energía',
+            4: 'Liderazgo y Comunidad Ambiental'
         }
         for b, title in default_titles.items():
             list_bloques.append({'id': b, 'titulo': title})
@@ -1411,13 +1411,20 @@ def docente_obtener_bloque(bloque):
         # 3. Fetch story nudos (3 nodes)
         cursor.execute("""
             SELECT id_nodo, escena_titulo, texto_situacion, opcion_1, feedback_1, 
-                   opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta 
+                   opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta,
+                   historia_titulo, historia_introduccion 
             FROM historia_interactiva 
             WHERE bloque = %s 
             ORDER BY id_nodo;
         """, (bloque,))
         n_rows = cursor.fetchall()
         nudos = []
+        story_title = ""
+        story_intro = ""
+        if n_rows:
+            story_title = n_rows[0][10] or ""
+            story_intro = n_rows[0][11] or ""
+            
         for r in n_rows:
             correct_val = r[9]
             correct_idx = "1"
@@ -1448,6 +1455,8 @@ def docente_obtener_bloque(bloque):
             },
             'preguntas': preguntas,
             'nudos': nudos,
+            'story_title': story_title,
+            'story_intro': story_intro,
             'icono': icono,
             'color': color
         })
@@ -1484,7 +1493,8 @@ def reindex_questions_and_nodes(cursor):
     # 3. Re-index historia_interactiva
     cursor.execute("""
         SELECT id_nodo, bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
-               opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta 
+               opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta,
+               historia_titulo, historia_introduccion 
         FROM historia_interactiva 
         ORDER BY bloque, id_nodo;
     """)
@@ -1493,8 +1503,9 @@ def reindex_questions_and_nodes(cursor):
     for n in nodes:
         cursor.execute("""
             INSERT INTO historia_interactiva (bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
-                                             opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                                             opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta,
+                                             historia_titulo, historia_introduccion)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """, n[1:])
 
 @app.route('/api/admin/guardar-bloque', methods=['POST'])
@@ -1506,6 +1517,8 @@ def admin_guardar_bloque():
     notes = data.get('notes', {})
     preguntas = data.get('preguntas', [])
     nudos = data.get('nudos', [])
+    story_title = data.get('story_title', '').strip()
+    story_intro = data.get('story_intro', '').strip()
     icono = data.get('icono', 'fa-book').strip() or 'fa-book'
     color = data.get('color', '#2a8bbb').strip() or '#2a8bbb'
     
@@ -1642,8 +1655,8 @@ def admin_guardar_bloque():
             correct_ans = n.get(f'opcion_{correct_idx}', '')
             
             cursor.execute("""
-                INSERT INTO historia_interactiva (bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                INSERT INTO historia_interactiva (bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta, historia_titulo, historia_introduccion)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             """, (
                 bloque,
                 n.get('escena_titulo', '').strip(),
@@ -1654,7 +1667,9 @@ def admin_guardar_bloque():
                 n.get('feedback_2', '').strip(),
                 n.get('opcion_3', '').strip(),
                 n.get('feedback_3', '').strip(),
-                correct_ans.strip()
+                correct_ans.strip(),
+                story_title,
+                story_intro
             ))
             
         # Re-index questions and nodes to make sure there are no gaps
@@ -1781,13 +1796,20 @@ def datos_bloque():
         # 2. Recuperar historia_interactiva (los 3 nudos del bloque)
         cursor.execute("""
             SELECT id_nodo, escena_titulo, texto_situacion, opcion_1, feedback_1, 
-                   opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta 
+                   opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta,
+                   historia_titulo, historia_introduccion 
             FROM historia_interactiva 
             WHERE bloque = %s
             ORDER BY id_nodo;
         """, (bloque,))
         nudos_rows = cursor.fetchall()
         nudos = []
+        story_title = ""
+        story_intro = ""
+        if nudos_rows:
+            story_title = nudos_rows[0][10] or ""
+            story_intro = nudos_rows[0][11] or ""
+            
         for r in nudos_rows:
             nudos.append({
                 'id_nodo': r[0],
@@ -1832,6 +1854,8 @@ def datos_bloque():
             'preguntas': preguntas,
             'nudos': nudos,
             'notas': notas,
+            'story_title': story_title,
+            'story_intro': story_intro,
             'icono': icono,
             'color': color
         })

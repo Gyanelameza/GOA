@@ -10,6 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- ExcelJS for real XLSX generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    <!-- Chart.js for interactive dashboards -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.1.2">
     <style>
@@ -914,6 +918,17 @@
             }
         }
 
+        /* Dashboard Block Cards Style */
+        .block-perf-card {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        }
+        .block-perf-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(30, 90, 150, 0.08) !important;
+            border-color: rgba(42, 139, 187, 0.35) !important;
+            background: rgba(255, 255, 255, 0.75) !important;
+        }
+
         /* Estilos para impresión en PDF se manejan desde static/style.css */
     </style>
 </head>
@@ -954,7 +969,8 @@
             </div>
             
             <ul class="sidebar-menu">
-                <li id="menu-generate" class="active"><i class="fa-solid fa-key"></i> {% if is_admin %}Visualizar Códigos{% else %}Generar Códigos{% endif %}</li>
+                <li id="menu-home" class="active"><i class="fa-solid fa-house"></i> Inicio</li>
+                <li id="menu-generate"><i class="fa-solid fa-key"></i> {% if is_admin %}Visualizar Códigos{% else %}Generar Códigos{% endif %}</li>
                 <li id="menu-history"><i class="fa-solid fa-clock-rotate-left"></i> Historial de Partidas</li>
                 <li id="menu-profile"><i class="fa-solid fa-user-gear"></i> Mi Perfil</li>
                 {% if is_admin %}
@@ -1021,8 +1037,121 @@
             <!-- Content Area -->
             <section class="content-body">
                 
+                <!-- TAB 0: INICIO / DASHBOARD GENERAL -->
+                <div id="tab-home-content" class="tab-content active">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; width: 100%;">
+                        <div class="page-title" style="flex: 1; min-width: 200px;">
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px; margin: 0;">
+                                <i class="fa-solid fa-chart-line" style="color: #2a8bbb;"></i> Resumen General de Rendimiento
+                            </h3>
+                        </div>
+                        <!-- Filtros de Inicio -->
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            {% if is_admin %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap;">Filtrar Docente:</span>
+                                <select id="filter-home-profesor" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px; border-radius: 12px; height: 42px; cursor: pointer; border: 1px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; color: #1a3a5c; font-weight: 700; width: auto; max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    <option value="">Todos los docentes</option>
+                                </select>
+                            </div>
+                            {% endif %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap;">Filtrar Grupo:</span>
+                                <select id="filter-home-codigo" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px; border-radius: 12px; height: 42px; cursor: pointer; border: 1px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; color: #1a3a5c; font-weight: 700; width: auto; max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                    <option value="">Todos los grupos</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Métricas Principales -->
+                    <div class="dashboard-cards" style="width: 100%;">
+                        <div class="stat-card glass">
+                            <div class="stat-icon" style="color: var(--accent-indigo); background-color: rgba(42, 139, 187, 0.1);"><i class="fa-solid fa-gamepad"></i></div>
+                            <div class="stat-info">
+                                <h4>Partidas Jugadas</h4>
+                                <p id="home-stat-games-count">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass">
+                            <div class="stat-icon" style="color: #298552; background-color: rgba(41, 133, 82, 0.1);"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="stat-info">
+                                <h4>Promedio de Aciertos</h4>
+                                <p id="home-stat-avg-pct">0%</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass" id="home-stat-hardest-card" style="align-items: center;">
+                            <div class="stat-icon" style="color: #be123c; background-color: rgba(239, 68, 68, 0.1);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="stat-info" style="display: flex; flex-direction: column; min-width: 0; flex: 1;">
+                                <h4 style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap;">Bloque Desafiante</h4>
+                                <div style="display: flex; flex-direction: column; min-width: 0;">
+                                    <span id="home-stat-hardest-block-num" style="font-size: 1.15rem; font-weight: 800; color: #be123c; line-height: 1.2;">Ninguno</span>
+                                    <span id="home-stat-hardest-block-title" style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;" title=""></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Gráficos Estadísticos -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; margin-bottom: 20px;">
+                        <!-- Gráfico 1: Aciertos vs Errores -->
+                        <div class="data-panel glass" style="padding: 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; min-height: 320px; width: 100%;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; margin-bottom: 5px;">
+                                <h4 style="font-size: 0.95rem; font-weight: 800; color: #1a3a5c; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-chart-pie" style="color: #2a8bbb;"></i> Distribución de Respuestas
+                                </h4>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap;">Bloque:</span>
+                                    <select id="chart-pie-filter-bloque" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-radius: 8px; height: 32px; cursor: pointer; border: 1px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.65); font-family: 'Outfit', sans-serif; color: #1a3a5c; font-weight: 700; width: auto;">
+                                        <option value="">Todos los bloques</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- active block filter badge -->
+                            <div id="pie-active-filter-badge" style="display: none; align-items: center; margin-bottom: 5px;">
+                                <span style="background: rgba(42, 139, 187, 0.12); border: 1px solid rgba(42, 139, 187, 0.2); color: #2a8bbb; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                    <span id="pie-active-filter-text">Filtrado por: Bloque 1</span>
+                                    <i class="fa-solid fa-circle-xmark" id="btn-clear-pie-filter" style="cursor: pointer; color: #be123c; font-size: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'"></i>
+                                </span>
+                            </div>
+
+                            <div style="position: relative; width: 100%; height: 210px; display: flex; align-items: center; justify-content: center; flex: 1;">
+                                <canvas id="chart-pie-accuracy" style="max-height: 210px; max-width: 210px;"></canvas>
+                                <!-- Doughnut Center Text -->
+                                <div id="chart-pie-center-text" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; font-family: 'Outfit', sans-serif; text-align: center;">
+                                    <span id="chart-pie-center-pct" style="font-size: 26px; font-weight: 800; color: #1a3a5c; line-height: 1;">0%</span>
+                                    <span id="chart-pie-center-label" style="font-size: 10px; font-weight: 700; color: var(--text-secondary); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Aciertos</span>
+                                    <span id="chart-pie-center-sub" style="font-size: 9px; font-weight: 600; color: var(--text-muted); margin-top: 1px;">0 respuestas</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico 2: Desempeño por Bloques -->
+                        <div class="data-panel glass" style="padding: 20px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; min-height: 320px;">
+                            <h4 style="font-size: 0.95rem; font-weight: 800; color: #1a3a5c; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-chart-simple" style="color: #2a8bbb;"></i> Precisión Promedio por Bloque
+                            </h4>
+                            <div style="position: relative; flex: 1; width: 100%; height: 220px;">
+                                <canvas id="chart-bar-blocks"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Gráficos de Rendimiento por Bloque -->
+                    <div class="data-panel glass" style="padding: 24px; width: 100%; border-radius: 20px; display: flex; flex-direction: column; gap: 20px;">
+                        <h4 style="font-size: 1rem; font-weight: 800; color: #1a3a5c; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-chart-bar" style="color: #2a8bbb;"></i> Precisión por Temática (Bloques)
+                        </h4>
+                        
+                        <div id="home-blocks-charts-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; width: 100%;">
+                            <!-- Dynamic blocks progress bars populated in JS -->
+                        </div>
+                    </div>
+                </div>
+
                 <!-- TAB 1: GENERAR CÓDIGOS -->
-                <div id="tab-generate-content" class="tab-content active">
+                <div id="tab-generate-content" class="tab-content">
                     <div class="dashboard-cards">
                         <div class="stat-card glass" style="grid-column: span 1;">
                             <div class="stat-icon"><i class="fa-solid fa-key"></i></div>
@@ -1086,7 +1215,7 @@
                     <!-- Tabla del Historial -->
                     <div class="data-panel glass">
                         <div class="panel-header" style="padding: 24px 24px 12px;">
-                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px;">
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px; margin: 0;">
                                 <i class="fa-solid fa-list-check" style="color: #2a8bbb;"></i> Registro de Actividad Estudiantil
                             </h3>
                         </div>
@@ -1096,7 +1225,7 @@
                             <!-- Barra de búsqueda principal (más amplia y espaciosa) -->
                             <div style="position: relative; flex: 1; max-width: 480px; min-width: 280px;">
                                 <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #2a8bbb; font-size: 1rem;"></i>
-                                <input type="search" id="search-history" placeholder="Buscar por estudiante o código..." autocomplete="off"
+                                <input type="search" id="search-history" placeholder="Buscar por estudiante, código o bloque..." autocomplete="off"
                                        style="width: 100%; padding: 12px 16px 12px 48px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.6); font-family: 'Outfit', sans-serif; font-size: 0.92rem; color: #1a3a5c; outline: none; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(30, 90, 150, 0.03);"
                                        onfocus="this.style.borderColor='#2a8bbb'; this.style.boxShadow='0 4px 16px rgba(42, 139, 187, 0.15)';"
                                        onblur="this.style.borderColor='rgba(255,255,255,0.7)'; this.style.boxShadow='0 4px 12px rgba(30, 90, 150, 0.03)';">
@@ -1478,6 +1607,21 @@
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Título e Introducción de la Historia General -->
+                            <div class="sub-card" style="background: rgba(42, 139, 187, 0.08); border: 1.5px solid rgba(42, 139, 187, 0.2); padding: 18px; border-radius: 16px; margin-bottom: 8px;">
+                                <div class="sub-card-title" style="color: #1a3a5c; font-size: 14.5px; font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; border-bottom: 1px dashed rgba(42, 139, 187, 0.25); padding-bottom: 8px;">
+                                    <i class="fa-solid fa-book" style="color: #2a8bbb;"></i> Encabezado General de la Historia
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight: 700; color: #1a3a5c; font-size: 13px;">Título General de la Historia:</label>
+                                    <input type="text" id="wizard-story-title" class="form-control" placeholder="Ej. Un día en el Ana María Vélez" style="font-weight: 600;">
+                                    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Este es el título global de la historia para el bloque actual.</p>
+                                </div>
+                                <div class="form-group" style="margin-top: 14px;">
+                                    <label style="font-weight: 700; color: #1a3a5c; font-size: 13px;">Introducción General de la Historia:</label>
+                                    <textarea id="wizard-story-intro" class="form-control" style="min-height: 80px;" placeholder="Describe la introducción general de la historia (este texto se mostrará a los alumnos al comenzar el reto)..."></textarea>
+                                </div>
+                            </div>
                             {% for i in range(1, 4) %}
                             <div class="sub-card">
                                 <div class="sub-card-title"><i class="fa-solid fa-book-open-reader" style="color: #298552;"></i> Nudo {{ i }} / Escena {{ i }}</div>
@@ -1640,6 +1784,11 @@
                             onmouseout="this.style.background='rgba(42, 139, 187, 0.12)'; this.style.transform='none';">
                         <i class="fa-solid fa-download"></i> Descargar Informe
                     </button>
+                    <button class="btn btn-secondary" id="btn-excel-detail" style="border-radius: 50px; height: 38px; padding: 0 20px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; background: rgba(41, 133, 82, 0.1); border: 1px solid rgba(41, 133, 82, 0.35); color: #298552; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(41, 133, 82, 0.2)'; this.style.transform='scale(1.03)';"
+                            onmouseout="this.style.background='rgba(41, 133, 82, 0.1)'; this.style.transform='none';">
+                        <i class="fa-solid fa-file-excel"></i> Descargar Excel
+                    </button>
                     <button class="btn-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
@@ -1715,6 +1864,11 @@
                             onmouseover="this.style.background='rgba(42, 139, 187, 0.2)'; this.style.transform='scale(1.03)';"
                             onmouseout="this.style.background='rgba(42, 139, 187, 0.12)'; this.style.transform='none';">
                         <i class="fa-solid fa-download"></i> Descargar Informe
+                    </button>
+                    <button class="btn btn-secondary" id="btn-excel-code-detail" style="border-radius: 50px; height: 38px; padding: 0 20px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; background: rgba(41, 133, 82, 0.1); border: 1px solid rgba(41, 133, 82, 0.35); color: #298552; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(41, 133, 82, 0.2)'; this.style.transform='scale(1.03)';"
+                            onmouseout="this.style.background='rgba(41, 133, 82, 0.1)'; this.style.transform='none';">
+                        <i class="fa-solid fa-file-excel"></i> Descargar Excel
                     </button>
                     <button class="btn-close" id="btn-close-code-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -1807,6 +1961,11 @@
                             onmouseover="this.style.background='rgba(42, 139, 187, 0.2)'; this.style.transform='scale(1.03)';"
                             onmouseout="this.style.background='rgba(42, 139, 187, 0.12)'; this.style.transform='none';">
                         <i class="fa-solid fa-download"></i> Descargar Informe
+                    </button>
+                    <button class="btn btn-secondary" id="btn-excel-history-code" style="border-radius: 50px; height: 38px; padding: 0 20px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; background: rgba(41, 133, 82, 0.1); border: 1px solid rgba(41, 133, 82, 0.35); color: #298552; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(41, 133, 82, 0.2)'; this.style.transform='scale(1.03)';"
+                            onmouseout="this.style.background='rgba(41, 133, 82, 0.1)'; this.style.transform='none';">
+                        <i class="fa-solid fa-file-excel"></i> Descargar Excel
                     </button>
                     <button class="btn-close" id="btn-close-history-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -2011,6 +2170,9 @@
         let detailModalOrigin = null;
         const IS_ADMIN = {{ 'true' if is_admin else 'false' }};
         const BLOQUES_MAP = {{ bloques_map | tojson if bloques_map else '{}' }};
+        const BLOQUES_LIST = {{ bloques_list | tojson if bloques_list else '[]' }};
+        let accuracyPieChart = null;
+        let blocksBarChart = null;
 
         // Icon and Color pickers lists and handlers
         const ICONS_LIST = [
@@ -2101,8 +2263,68 @@
         const codesList = document.getElementById('docente-codes-list');
         const statCodesCount = document.getElementById('stat-codes-count');
         const filterHistorySelect = document.getElementById('filter-history-codigo');
+        const filterHistoryBloque = document.getElementById('filter-history-bloque');
         const statGamesCount = document.getElementById('stat-games-count');
+
+        // Populate and initialize block filter dropdowns
+        const chartPieFilterBloque = document.getElementById('chart-pie-filter-bloque');
+        if (chartPieFilterBloque) {
+            chartPieFilterBloque.innerHTML = '<option value="">Todos los bloques</option>';
+            Object.keys(BLOQUES_MAP).map(Number).sort((x, y) => x - y).forEach(bKey => {
+                const opt = document.createElement('option');
+                opt.value = bKey;
+                let text = BLOQUES_MAP[bKey] || `Bloque ${bKey}`;
+                if (!text.toLowerCase().startsWith('bloque')) {
+                    text = `Bloque ${bKey}: ${text}`;
+                }
+                opt.textContent = text;
+                chartPieFilterBloque.appendChild(opt);
+            });
+            chartPieFilterBloque.addEventListener('change', renderHomeDashboard);
+        }
+
+        const btnClearPieFilter = document.getElementById('btn-clear-pie-filter');
+        if (btnClearPieFilter) {
+            btnClearPieFilter.addEventListener('click', () => {
+                if (chartPieFilterBloque) {
+                    chartPieFilterBloque.value = '';
+                    chartPieFilterBloque.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        if (filterHistoryBloque) {
+            filterHistoryBloque.innerHTML = '<option value="">Todos los bloques</option>';
+            Object.keys(BLOQUES_MAP).map(Number).sort((x, y) => x - y).forEach(bKey => {
+                const opt = document.createElement('option');
+                opt.value = bKey;
+                let text = BLOQUES_MAP[bKey] || `Bloque ${bKey}`;
+                if (!text.toLowerCase().startsWith('bloque')) {
+                    text = `Bloque ${bKey}: ${text}`;
+                }
+                opt.textContent = text;
+                filterHistoryBloque.appendChild(opt);
+            });
+            filterHistoryBloque.addEventListener('change', () => refreshHistory(false));
+        }
+
+        const filterHomeProfesor = document.getElementById('filter-home-profesor');
+        if (filterHomeProfesor) {
+            filterHomeProfesor.addEventListener('change', () => {
+                repopulateCodeDropdowns();
+                renderHomeDashboard();
+            });
+        }
+
+        const filterHistoryProfesor = document.getElementById('filter-history-profesor');
+        if (filterHistoryProfesor) {
+            filterHistoryProfesor.addEventListener('change', () => {
+                repopulateCodeDropdowns();
+                refreshHistory(false);
+            });
+        }
         const gamesBadge = document.getElementById('games-badge');
+        const historyCodesContainer = document.getElementById('history-codes-container');
         const historyRowsContainer = document.getElementById('history-rows-container');
 
         const toastNotif = document.getElementById('toast-notif');
@@ -2156,21 +2378,85 @@
             }, 3500);
         }
 
+        // Global cached codes
+        let cachedCodesData = [];
+
+        // Repopulate codes dropdowns according to selected teachers (admin-only)
+        function repopulateCodeDropdowns() {
+            const filterHomeSelect = document.getElementById('filter-home-codigo');
+            const filterHistorySelect = document.getElementById('filter-history-codigo');
+            
+            const filterHomeProfesor = document.getElementById('filter-home-profesor');
+            const selectedHomeTeacher = filterHomeProfesor ? filterHomeProfesor.value : '';
+            
+            const filterHistoryProfesor = document.getElementById('filter-history-profesor');
+            const selectedHistoryTeacher = filterHistoryProfesor ? filterHistoryProfesor.value : '';
+            
+            // Save active values
+            const activeHomeCode = filterHomeSelect ? filterHomeSelect.value : '';
+            const activeHistoryCode = filterHistorySelect ? filterHistorySelect.value : '';
+            
+            // Repopulate Home Codes Dropdown
+            if (filterHomeSelect) {
+                filterHomeSelect.innerHTML = '<option value="">Todos los grupos</option>';
+                const filteredHomeCodes = (IS_ADMIN && selectedHomeTeacher)
+                    ? cachedCodesData.filter(c => c.profesor === selectedHomeTeacher)
+                    : cachedCodesData;
+                
+                filteredHomeCodes.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.codigo;
+                    opt.textContent = IS_ADMIN && item.profesor
+                        ? item.codigo + ' — ' + item.profesor + (item.usado ? ' (usado)' : ' (sin uso)')
+                        : item.codigo + (item.usado ? ' (usado)' : ' (sin uso)');
+                    filterHomeSelect.appendChild(opt);
+                });
+                
+                // Restore value if still present
+                if (activeHomeCode && [...filterHomeSelect.options].some(o => o.value === activeHomeCode)) {
+                    filterHomeSelect.value = activeHomeCode;
+                } else {
+                    filterHomeSelect.value = '';
+                }
+            }
+            
+            // Repopulate History Codes Dropdown
+            if (filterHistorySelect) {
+                filterHistorySelect.innerHTML = '<option value="">Todos los códigos</option>';
+                const filteredHistoryCodes = (IS_ADMIN && selectedHistoryTeacher)
+                    ? cachedCodesData.filter(c => c.profesor === selectedHistoryTeacher)
+                    : cachedCodesData;
+                
+                filteredHistoryCodes.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.codigo;
+                    opt.textContent = IS_ADMIN && item.profesor
+                        ? item.codigo + ' — ' + item.profesor + (item.usado ? ' (usado)' : ' (sin uso)')
+                        : item.codigo + (item.usado ? ' (usado)' : ' (sin uso)');
+                    filterHistorySelect.appendChild(opt);
+                });
+                
+                // Restore value if still present
+                if (activeHistoryCode && [...filterHistorySelect.options].some(o => o.value === activeHistoryCode)) {
+                    filterHistorySelect.value = activeHistoryCode;
+                } else {
+                    filterHistorySelect.value = '';
+                }
+            }
+        }
+
         // Load codes flat
         async function loadCodes() {
             try {
                 const response = await fetch('/api/docente/codigos');
                 const data = await response.json();
                 if (data.success) {
+                    cachedCodesData = data.codigos || [];
                     codesList.innerHTML = '';
                     
-                    const previousValue = filterHistorySelect.value;
-                    const isSelectFocused = (document.activeElement === filterHistorySelect);
-                    if (!isSelectFocused) {
-                        filterHistorySelect.innerHTML = '<option value="">Todos los códigos</option>';
-                    }
+                    const isSelectFocused = (document.activeElement === filterHistorySelect || document.activeElement === document.getElementById('filter-home-codigo'));
                     
-                    if (data.codigos.length === 0) {
+                    if (cachedCodesData.length === 0) {
                         codesList.innerHTML = `
                             <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px 20px;" id="no-codes-msg">
                                 <img src="/static/gotita_estudiando.png" alt="Gotita" style="width: 80px; height: auto; margin-bottom: 12px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
@@ -2178,7 +2464,7 @@
                             </div>
                         `;
                     } else {
-                        data.codigos.forEach(item => {
+                        cachedCodesData.forEach(item => {
                             const div = document.createElement('div');
                             div.className = 'code-item ' + (item.usado ? 'used-code' : 'unused-code');
                             div.style.display = 'flex';
@@ -2215,22 +2501,13 @@
                             });
                             
                             codesList.appendChild(div);
-                            
-                            if (!isSelectFocused) {
-                                const opt = document.createElement('option');
-                                opt.value = item.codigo;
-                                opt.textContent = IS_ADMIN && item.profesor
-                                    ? item.codigo + ' — ' + item.profesor + (item.usado ? ' (usado)' : ' (sin uso)')
-                                    : item.codigo + (item.usado ? ' (usado)' : ' (sin uso)');
-                                filterHistorySelect.appendChild(opt);
-                            }
                         });
                     }
                     
-                    if (!isSelectFocused && previousValue && [...filterHistorySelect.options].some(o => o.value === previousValue)) {
-                        filterHistorySelect.value = previousValue;
+                    if (!isSelectFocused) {
+                        repopulateCodeDropdowns();
                     }
-                    statCodesCount.textContent = data.codigos.length;
+                    statCodesCount.textContent = cachedCodesData.length;
                 }
             } catch (err) {
                 console.error('Fetch error:', err);
@@ -2444,133 +2721,226 @@
             return div;
         }
 
+        // ── cachedHistoryData: global cache variable ──
+        let cachedHistoryData = null;
+
+        // Populate teacher filter dropdowns (admin only)
+        function populateTeacherDropdowns() {
+            if (!IS_ADMIN) return;
+            const filterHomeProfesor = document.getElementById('filter-home-profesor');
+            const filterHistoryProfesor = document.getElementById('filter-history-profesor');
+            
+            // Get unique teacher names from cachedHistoryData
+            const teachers = [...new Set(cachedHistoryData.map(h => h.profesor).filter(Boolean))].sort();
+            
+            if (filterHomeProfesor) {
+                const prevHomeVal = filterHomeProfesor.value;
+                filterHomeProfesor.innerHTML = '<option value="">Todos los docentes</option>';
+                teachers.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    filterHomeProfesor.appendChild(opt);
+                });
+                if (prevHomeVal && teachers.includes(prevHomeVal)) {
+                    filterHomeProfesor.value = prevHomeVal;
+                }
+            }
+            
+            if (filterHistoryProfesor) {
+                const prevHistVal = filterHistoryProfesor.value;
+                filterHistoryProfesor.innerHTML = '<option value="">Todos los docentes</option>';
+                teachers.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    filterHistoryProfesor.appendChild(opt);
+                });
+                if (prevHistVal && teachers.includes(prevHistVal)) {
+                    filterHistoryProfesor.value = prevHistVal;
+                }
+            }
+        }
+
         // ── refreshHistory: lista plana de códigos ──
-        async function refreshHistory() {
+        async function refreshHistory(fetchFromServer = true) {
             try {
-                const selectedCode = filterHistorySelect.value;
-                const url = selectedCode
-                    ? `/api/docente/historial?codigo=${encodeURIComponent(selectedCode)}`
-                    : '/api/docente/historial';
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.success) {
-                    const searchTerm = (document.getElementById('search-history')?.value || '').toLowerCase().trim();
-                    const filtered = searchTerm
-                        ? data.historial.filter(h =>
-                            h.alumno.toLowerCase().includes(searchTerm) ||
-                            h.codigo.toLowerCase().includes(searchTerm)
-                          )
-                        : data.historial;
-
-                    statGamesCount.textContent = filtered.length;
-                    gamesBadge.textContent = `${data.historial.length} partida${data.historial.length !== 1 ? 's' : ''}`;
-                    const searchBadge = document.getElementById('search-count-badge');
-                    if (searchBadge) searchBadge.textContent = searchTerm ? `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}` : '';
-
-                    const codesContainer = document.getElementById('history-all-codes');
-                    if (!codesContainer) return;
-                    codesContainer.innerHTML = '';
-
-                    if (filtered.length === 0) {
-                        codesContainer.innerHTML = `
-                            <div style="grid-column: 1/-1; text-align:center; padding: 48px 24px;">
-                                <img src="/static/gotita_corriendo.png" alt="Gotita" style="width:100px; height:auto; margin-bottom:12px; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
-                                <p style="font-weight:600; font-size:15px; color:var(--text-secondary);">${searchTerm ? 'No se encontraron resultados para tu búsqueda.' : 'Ningún estudiante ha completado una partida usando tus códigos aún.'}</p>
-                            </div>`;
-                        return;
+                if (fetchFromServer || !cachedHistoryData) {
+                    const url = '/api/docente/historial';
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data.success) {
+                        cachedHistoryData = data.historial || [];
+                        populateTeacherDropdowns();
+                    } else {
+                        cachedHistoryData = [];
                     }
+                }
 
-                    // Group by code
-                    const gamesByCode = {};
-                    filtered.forEach(h => {
-                        if (!gamesByCode[h.codigo]) gamesByCode[h.codigo] = [];
-                        gamesByCode[h.codigo].push(h);
+                const selectedCode = filterHistorySelect.value;
+                const filterHistoryBloque = document.getElementById('filter-history-bloque');
+                const selectedBlock = filterHistoryBloque ? filterHistoryBloque.value : '';
+                const filterHistoryProfesor = document.getElementById('filter-history-profesor');
+                const selectedHistoryTeacher = filterHistoryProfesor ? filterHistoryProfesor.value : '';
+                const searchTerm = (document.getElementById('search-history')?.value || '').toLowerCase().trim();
+
+                // 1. Filter by selected teacher (admin only)
+                let filtered = cachedHistoryData;
+                if (IS_ADMIN && selectedHistoryTeacher) {
+                    filtered = filtered.filter(h => h.profesor === selectedHistoryTeacher);
+                }
+
+                // 2. Filter by selected code
+                if (selectedCode) {
+                    filtered = filtered.filter(h => h.codigo === selectedCode);
+                }
+
+                // 3. Filter by selected block
+                if (selectedBlock) {
+                    filtered = filtered.filter(h => String(h.bloque) === selectedBlock);
+                }
+
+                // 4. Filter by search term
+                if (searchTerm) {
+                    filtered = filtered.filter(h => {
+                        const bloqueName = (BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`).toLowerCase();
+                        return h.alumno.toLowerCase().includes(searchTerm) ||
+                               h.codigo.toLowerCase().includes(searchTerm) ||
+                               bloqueName.includes(searchTerm);
                     });
+                }
 
-                    Object.keys(gamesByCode).sort().forEach(code => {
-                        codesContainer.appendChild(createHistoryCodeCard(code, gamesByCode[code]));
-                    });
+                statGamesCount.textContent = filtered.length;
+                let baseFiltered = cachedHistoryData;
+                if (IS_ADMIN && selectedHistoryTeacher) {
+                    baseFiltered = baseFiltered.filter(h => h.profesor === selectedHistoryTeacher);
+                }
+                if (selectedCode) {
+                    baseFiltered = baseFiltered.filter(h => h.codigo === selectedCode);
+                }
+                if (selectedBlock) {
+                    baseFiltered = baseFiltered.filter(h => String(h.bloque) === selectedBlock);
+                }
+                const totalMatchingFilters = baseFiltered.length;
+                gamesBadge.textContent = `${totalMatchingFilters} partida${totalMatchingFilters !== 1 ? 's' : ''}`;
+                const searchBadge = document.getElementById('search-count-badge');
+                if (searchBadge) searchBadge.textContent = searchTerm ? `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}` : '';
 
-                    // Real-time update of history-code-modal if open
-                    if (historyCodeModal && historyCodeModal.classList.contains('show')) {
-                        const activeCode = historyModalCodeValue.textContent;
-                        const studentsList = data.historial.filter(h => h.codigo === activeCode);
-                        if (historyModalStudentsList.children.length !== studentsList.length) {
-                            historyModalStudentCount.textContent = `${studentsList.length} estudiante${studentsList.length !== 1 ? 's' : ''}`;
-                            historyModalStudentsList.innerHTML = '';
-                            studentsList.forEach(h => {
-                                const tr = document.createElement('tr');
-                                tr.className = 'interactive-row';
-                                tr.style.borderBottom = '1px solid rgba(255,255,255,0.3)';
-                                let blockText = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
-                                let total = h.correctas + h.incorrectas;
-                                let pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
-                                tr.innerHTML = `
-                                    <td style="padding: 8px 10px; font-weight: 700; color: #1a3a5c; font-size: 13px;">${h.alumno}</td>
-                                    <td style="padding: 8px 10px; font-weight: 600; color: var(--text-secondary); font-size: 12px;">${blockText}</td>
-                                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #298552; font-weight: 700; white-space: nowrap;">
-                                        <i class="fa-solid fa-circle-check"></i> ${h.correctas}
-                                    </td>
-                                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #be123c; font-weight: 700; white-space: nowrap;">
-                                        <i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}
-                                    </td>
-                                    <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #1e3a5c; font-weight: 700; white-space: nowrap;">
-                                        ${pct}%
-                                    </td>
-                                    <td style="padding: 8px 10px; text-align: center; white-space: nowrap;" class="print-hide">
-                                        <button class="btn btn-primary btn-sm btn-view-ans" 
-                                                style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: #2a8bbb; color: white; border: none; transition: all 0.2s; box-shadow: 0 2px 6px rgba(42, 139, 187, 0.2); margin-right: 4px;"
-                                                onmouseenter="this.style.background='#1e6d94'; this.style.transform='translateY(-1px)';"
-                                                onmouseleave="this.style.background='#2a8bbb'; this.style.transform='none';">
-                                            <i class="fa-solid fa-eye"></i> Ver
-                                        </button>
-                                        <button class="btn-del-partida-modal" title="Eliminar partida"
-                                                style="background: rgba(239, 68, 68, 0.1); border: none; cursor: pointer; color: #dc2626; font-size: .85rem; padding: 6px 8px; border-radius: 8px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;"
-                                                onmouseenter="this.style.background='rgba(239, 68, 68, 0.2)'"
-                                                onmouseleave="this.style.background='rgba(239, 68, 68, 0.1)'">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </td>
-                                `;
-                                tr.querySelector('.btn-view-ans').addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    detailModalOrigin = 'history-code-modal';
-                                    historyCodeModal.classList.remove('show');
-                                    openDetailModal(h);
-                                });
-                                tr.querySelector('.btn-del-partida-modal').addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    showDangerConfirm(
-                                        `⚠️ Eliminar partida de <strong>${h.alumno}</strong>`,
-                                        `Esta acción borrará permanentemente el registro de la partida del código <strong>${h.codigo}</strong> para este estudiante.<br><br>Los datos <strong>no se pueden recuperar</strong>.`,
-                                        'Eliminar Partida',
-                                        async () => {
-                                            const res = await fetch('/api/docente/eliminar-partida', {
-                                                method: 'DELETE',
-                                                headers: {'Content-Type':'application/json'},
-                                                body: JSON.stringify({codigo: h.codigo, alumno: h.alumno, id_resultado: h.id_resultado})
-                                            });
-                                            const d = await res.json();
-                                            if (d.success) {
-                                                showToast('¡Partida eliminada!', 'El registro fue borrado de la base de datos.', 'fa-trash-can', '#ff4d4d');
-                                                tr.remove();
-                                                const currentRows = historyModalStudentsList.querySelectorAll('tr');
-                                                historyModalStudentCount.textContent = `${currentRows.length} estudiante${currentRows.length !== 1 ? 's' : ''}`;
-                                                if (currentRows.length === 0) {
-                                                    historyCodeModal.classList.remove('show');
-                                                }
-                                                refreshHistory();
-                                                loadCodes();
-                                            } else {
-                                                showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
-                                            }
-                                        }
-                                    );
-                                });
-                                historyModalStudentsList.appendChild(tr);
+                // render the home dashboard to keep it in sync
+                renderHomeDashboard();
+
+                const tableWrapper = document.querySelector('#tab-history-content .table-wrapper');
+                if (historyCodesContainer) historyCodesContainer.style.display = 'block';
+
+                const codesContainer = document.getElementById('history-all-codes');
+                if (!codesContainer) return;
+                codesContainer.innerHTML = '';
+
+                if (filtered.length === 0) {
+                    codesContainer.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align:center; padding: 48px 24px;">
+                            <img src="/static/gotita_corriendo.png" alt="Gotita" style="width:100px; height:auto; margin-bottom:12px; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+                            <p style="font-weight:600; font-size:15px; color:var(--text-secondary);">${searchTerm ? 'No se encontraron resultados para tu búsqueda.' : 'Ningún estudiante ha completado una partida usando tus códigos aún.'}</p>
+                        </div>`;
+                    return;
+                }
+
+                // Group by code
+                const gamesByCode = {};
+                filtered.forEach(h => {
+                    if (!gamesByCode[h.codigo]) gamesByCode[h.codigo] = [];
+                    gamesByCode[h.codigo].push(h);
+                });
+
+                Object.keys(gamesByCode).sort().forEach(code => {
+                    codesContainer.appendChild(createHistoryCodeCard(code, gamesByCode[code]));
+                });
+
+                // Real-time update of history-code-modal if open
+                if (historyCodeModal && historyCodeModal.classList.contains('show')) {
+                    const activeCode = historyModalCodeValue.textContent;
+                    const studentsList = filtered.filter(h => h.codigo === activeCode);
+                    if (studentsList.length === 0) {
+                        historyCodeModal.classList.remove('show');
+                    } else {
+                        historyModalStudentCount.textContent = `${studentsList.length} estudiante${studentsList.length !== 1 ? 's' : ''}`;
+                        historyModalStudentsList.innerHTML = '';
+                        studentsList.forEach(h => {
+                            const tr = document.createElement('tr');
+                            tr.className = 'interactive-row';
+                            tr.style.borderBottom = '1px solid rgba(255,255,255,0.3)';
+                            let blockText = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
+                            let total = h.correctas + h.incorrectas;
+                            let pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
+                            tr.innerHTML = `
+                                <td style="padding: 8px 10px; font-weight: 700; color: #1a3a5c; font-size: 13px;">${h.alumno}</td>
+                                <td style="padding: 8px 10px; font-weight: 600; color: var(--text-secondary); font-size: 12px;">${blockText}</td>
+                                <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #298552; font-weight: 700; white-space: nowrap;">
+                                    <i class="fa-solid fa-circle-check"></i> ${h.correctas}
+                                </td>
+                                <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #be123c; font-weight: 700; white-space: nowrap;">
+                                    <i class="fa-solid fa-circle-xmark"></i> ${h.incorrectas}
+                                </td>
+                                <td style="padding: 8px 10px; text-align: center; font-size: 12px; color: #1e3a5c; font-weight: 700; white-space: nowrap;">
+                                    ${pct}%
+                                </td>
+                                <td style="padding: 8px 10px; text-align: center; white-space: nowrap;" class="print-hide">
+                                    <button class="btn btn-primary btn-sm btn-view-ans" 
+                                            style="padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: #2a8bbb; color: white; border: none; transition: all 0.2s; box-shadow: 0 2px 6px rgba(42, 139, 187, 0.2); margin-right: 4px;"
+                                            onmouseenter="this.style.background='#1e6d94'; this.style.transform='translateY(-1px)';"
+                                            onmouseleave="this.style.background='#2a8bbb'; this.style.transform='none';">
+                                        <i class="fa-solid fa-eye"></i> Ver
+                                    </button>
+                                    <button class="btn-del-partida-modal" title="Eliminar partida"
+                                            style="background: rgba(239, 68, 68, 0.1); border: none; cursor: pointer; color: #dc2626; font-size: .85rem; padding: 6px 8px; border-radius: 8px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;"
+                                            onmouseenter="this.style.background='rgba(239, 68, 68, 0.2)'"
+                                            onmouseleave="this.style.background='rgba(239, 68, 68, 0.1)'">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            `;
+                            tr.querySelector('.btn-view-ans').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                detailModalOrigin = 'history-code-modal';
+                                historyCodeModal.classList.remove('show');
+                                openDetailModal(h);
                             });
-                        }
+                            tr.querySelector('.btn-del-partida-modal').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                showDangerConfirm(
+                                    `⚠️ Eliminar partida de <strong>${h.alumno}</strong>`,
+                                    `Esta acción borrará permanentemente el registro de la partida del código <strong>${h.codigo}</strong> para este estudiante.<br><br>Los datos <strong>no se pueden recuperar</strong>.`,
+                                    'Eliminar Partida',
+                                    async () => {
+                                        const res = await fetch('/api/docente/eliminar-partida', {
+                                            method: 'DELETE',
+                                            headers: {'Content-Type':'application/json'},
+                                            body: JSON.stringify({codigo: h.codigo, alumno: h.alumno, id_resultado: h.id_resultado})
+                                        });
+                                        const d = await res.json();
+                                        if (d.success) {
+                                            showToast('¡Partida eliminada!', 'El registro fue borrado de la base de datos.', 'fa-trash-can', '#ff4d4d');
+                                            tr.remove();
+                                            const currentRows = historyModalStudentsList.querySelectorAll('tr');
+                                            historyModalStudentCount.textContent = `${currentRows.length} estudiante${currentRows.length !== 1 ? 's' : ''}`;
+                                            if (currentRows.length === 0) {
+                                                historyCodeModal.classList.remove('show');
+                                            }
+                                            refreshHistory();
+                                            loadCodes();
+                                        } else {
+                                            showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
+                                        }
+                                    }
+                                );
+                            });
+                            tr.addEventListener('click', () => {
+                                detailModalOrigin = 'history-code-modal';
+                                historyCodeModal.classList.remove('show');
+                                openDetailModal(h);
+                            });
+                            historyModalStudentsList.appendChild(tr);
+                        });
                     }
                 }
             } catch (error) {
@@ -2580,7 +2950,7 @@
 
         if (btnRefresh) {
             btnRefresh.addEventListener('click', () => {
-                const activeTab = sessionStorage.getItem('activeTab') || 'generate';
+                const activeTab = sessionStorage.getItem('activeTab') || 'home';
                 if (activeTab === 'teachers') {
                     loadTeachers();
                 } else if (activeTab === 'generate') {
@@ -2595,12 +2965,12 @@
                 }
             });
         }
-        filterHistorySelect.addEventListener('change', refreshHistory);
+        filterHistorySelect.addEventListener('change', () => refreshHistory(false));
 
         // Search bar
         const searchHistoryInput = document.getElementById('search-history');
         if (searchHistoryInput) {
-            searchHistoryInput.addEventListener('input', refreshHistory);
+            searchHistoryInput.addEventListener('input', () => refreshHistory(false));
         }
 
         // ── Custom Dialog System ──
@@ -2692,11 +3062,13 @@
         window.showCustomAlert = showCustomAlert;
 
         // Tab switching logic
+        const menuHome = document.getElementById('menu-home');
         const menuGenerate = document.getElementById('menu-generate');
         const menuHistory = document.getElementById('menu-history');
         const menuProfile = document.getElementById('menu-profile');
         const menuStoryCreator = document.getElementById('menu-story-creator');
         const menuTeachers = document.getElementById('menu-teachers');
+        const tabHomeContent = document.getElementById('tab-home-content');
         const tabGenerateContent = document.getElementById('tab-generate-content');
         const tabHistoryContent = document.getElementById('tab-history-content');
         const tabProfileContent = document.getElementById('tab-profile-content');
@@ -2720,12 +3092,14 @@
             });
 
             // Remove active classes
+            if (menuHome) menuHome.classList.remove('active');
             menuGenerate.classList.remove('active');
             menuHistory.classList.remove('active');
             if (menuProfile) menuProfile.classList.remove('active');
             if (menuStoryCreator) menuStoryCreator.classList.remove('active');
             if (menuTeachers) menuTeachers.classList.remove('active');
             
+            if (tabHomeContent) tabHomeContent.classList.remove('active');
             tabGenerateContent.classList.remove('active');
             tabHistoryContent.classList.remove('active');
             if (tabProfileContent) tabProfileContent.classList.remove('active');
@@ -2738,7 +3112,13 @@
                 tabTeachersContent.style.display = 'none';
             }
             
-            if (target === 'generate') {
+            if (target === 'home') {
+                if (menuHome) menuHome.classList.add('active');
+                if (tabHomeContent) tabHomeContent.classList.add('active');
+                viewTitle.textContent = 'Panel de Inicio y Diagnóstico';
+                viewDesc.textContent = 'Obtén una visión general del rendimiento del grupo y estadísticas por temática.';
+                renderHomeDashboard();
+            } else if (target === 'generate') {
                 menuGenerate.classList.add('active');
                 tabGenerateContent.classList.add('active');
                 viewTitle.textContent = 'Generar Códigos de Acceso';
@@ -2784,6 +3164,7 @@
             }
         }
 
+        if (menuHome) menuHome.addEventListener('click', () => switchTab('home'));
         menuGenerate.addEventListener('click', () => switchTab('generate'));
         menuHistory.addEventListener('click', () => switchTab('history'));
         if (menuProfile) menuProfile.addEventListener('click', () => switchTab('profile'));
@@ -2971,7 +3352,7 @@
         const modalQuestionsContainer = document.getElementById('modal-questions-container');
 
         function openDetailModal(rowOrData) {
-            let alumno, codigo, bloque, correctas, incorrectas, detalles;
+            let alumno, codigo, bloque, correctas, incorrectas, detalles, puntaje;
             
             if (rowOrData instanceof HTMLElement) {
                 alumno = rowOrData.getAttribute('data-alumno');
@@ -2979,6 +3360,7 @@
                 bloque = parseInt(rowOrData.getAttribute('data-bloque'));
                 correctas = parseInt(rowOrData.getAttribute('data-correctas'));
                 incorrectas = parseInt(rowOrData.getAttribute('data-incorrectas'));
+                puntaje = parseInt(rowOrData.getAttribute('data-puntaje')) || 0;
                 const detallesRaw = rowOrData.getAttribute('data-detalles');
                 try {
                     detalles = JSON.parse(detallesRaw);
@@ -2992,8 +3374,13 @@
                 bloque = parseInt(rowOrData.bloque);
                 correctas = parseInt(rowOrData.correctas);
                 incorrectas = parseInt(rowOrData.incorrectas);
+                puntaje = parseInt(rowOrData.puntaje) || 0;
                 detalles = rowOrData.detalles || [];
             }
+
+            // Store for Excel export
+            currentDetailData = { alumno, codigo, bloque, correctas, incorrectas, puntaje, detalles };
+
 
             let blockText = BLOQUES_MAP[bloque] || `Bloque ${bloque}`;
 
@@ -3863,6 +4250,916 @@
             document.body.classList.remove('print-student-detail', 'print-code-detail');
         });
 
+        // ── Excel: detalle individual de estudiante con ExcelJS ──
+        let currentDetailData = null; // filled by openDetailModal
+
+        const btnExcelDetail = document.getElementById('btn-excel-detail');
+        if (btnExcelDetail) {
+            btnExcelDetail.addEventListener('click', async () => {
+                if (!currentDetailData) return;
+                const h = currentDetailData;
+                const bloqueName = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
+                const total = h.correctas + h.incorrectas;
+                const pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
+                const detalles = h.detalles || [];
+                const safeName = h.alumno.replace(/[^\w\s]/g, '').trim().replace(/\s+/g, '_');
+
+                try {
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet('Reporte Estudiante');
+
+                    worksheet.views = [{ showGridLines: true }];
+
+                    const titleFont = { name: 'Arial', size: 16, bold: true, color: { argb: 'FF1A3A5C' } };
+                    const subtitleFont = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF4B6E8A' } };
+                    const sectionFont = { name: 'Arial', size: 12, bold: true, color: { argb: 'FF1A3A5C' } };
+                    const headerFont = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    const normalFont = { name: 'Arial', size: 10 };
+                    const boldNormalFont = { name: 'Arial', size: 10, bold: true };
+                    const monospaceFont = { name: 'Courier New', size: 10, bold: true };
+
+                    const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2A8BBB' } };
+                    const rowAltFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F7FA' } };
+                    const rowWhiteFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                    const labelFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F7FA' } };
+
+                    const borderThin = {
+                        top: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                        left: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                        bottom: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                        right: { style: 'thin', color: { argb: 'FFD0D7DE' } }
+                    };
+
+                    worksheet.columns = [
+                        { key: 'A', width: 8 },
+                        { key: 'B', width: 20 },
+                        { key: 'C', width: 45 },
+                        { key: 'D', width: 30 },
+                        { key: 'E', width: 16 },
+                        { key: 'F', width: 40 }
+                    ];
+
+                    // Title
+                    const titleRow = worksheet.addRow(['GO-A • Reporte Escolar de Resultados']);
+                    titleRow.getCell(1).font = titleFont;
+                    worksheet.mergeCells('A1:F1');
+
+                    // Subtitle
+                    const subtitleRow = worksheet.addRow(['Juego de Concientización Ambiental — Cartagena', '', '', '', '', `Generado: ${new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' })}`]);
+                    subtitleRow.getCell(1).font = subtitleFont;
+                    subtitleRow.getCell(6).font = { name: 'Arial', size: 9, color: { argb: 'FF7A9BB8' } };
+                    subtitleRow.getCell(6).alignment = { horizontal: 'right' };
+                    worksheet.mergeCells('A2:E2');
+
+                    for (let col = 1; col <= 6; col++) {
+                        subtitleRow.getCell(col).border = { bottom: { style: 'medium', color: { argb: 'FF2A8BBB' } } };
+                    }
+
+                    worksheet.addRow([]); // space
+
+                    // Section 1: Info
+                    const s1Row = worksheet.addRow(['Información del Estudiante']);
+                    s1Row.getCell(1).font = sectionFont;
+                    worksheet.mergeCells(`A${s1Row.number}:F${s1Row.number}`);
+
+                    const studentInfo = [
+                        { label: 'Estudiante', val: h.alumno },
+                        { label: 'Código de Partida', val: h.codigo, font: monospaceFont },
+                        { label: 'Bloque Jugado', val: bloqueName },
+                        { label: 'Aciertos', val: h.correctas, colorVal: 'FF298552', boldVal: true },
+                        { label: 'Errores', val: h.incorrectas, colorVal: 'FFBE123C', boldVal: true },
+                        { label: 'Puntaje', val: h.puntaje || 0, boldVal: true },
+                        { label: '% Éxito', val: `${pct}%`, colorVal: 'FF2A8BBB', boldVal: true }
+                    ];
+
+                    studentInfo.forEach(info => {
+                        const row = worksheet.addRow([info.label, info.val]);
+                        worksheet.mergeCells(`B${row.number}:F${row.number}`);
+                        
+                        const cellLabel = row.getCell(1);
+                        cellLabel.font = boldNormalFont;
+                        cellLabel.fill = labelFill;
+                        cellLabel.border = borderThin;
+
+                        for (let col = 2; col <= 6; col++) {
+                            const cell = row.getCell(col);
+                            cell.border = borderThin;
+                            if (info.font) {
+                                cell.font = info.font;
+                            } else {
+                                cell.font = {
+                                    name: 'Arial',
+                                    size: 10,
+                                    bold: info.boldVal || false,
+                                    color: info.colorVal ? { argb: info.colorVal } : undefined
+                                };
+                            }
+                        }
+                    });
+
+                    worksheet.addRow([]); // space
+
+                    // Section 2: Details
+                    if (detalles.length > 0) {
+                        const s2Row = worksheet.addRow(['Respuestas Detalladas']);
+                        s2Row.getCell(1).font = sectionFont;
+                        worksheet.mergeCells(`A${s2Row.number}:F${s2Row.number}`);
+
+                        const headers = ['#', 'Tipo', 'Pregunta', 'Respuesta Elegida', 'Resultado', 'Feedback'];
+                        const headerRow = worksheet.addRow(headers);
+                        headerRow.height = 25;
+                        for (let col = 1; col <= 6; col++) {
+                            const cell = headerRow.getCell(col);
+                            cell.font = headerFont;
+                            cell.fill = headerFill;
+                            cell.border = borderThin;
+                            cell.alignment = { vertical: 'middle', horizontal: col === 1 || col === 5 ? 'center' : 'left' };
+                        }
+
+                        detalles.forEach((q, idx) => {
+                            const tipo = q.tipo === 'inicial' ? 'Pregunta Inicial' : 'Nudo Historia';
+                            const resultado = q.correcta === true ? 'Correcta' : q.correcta === false ? 'Incorrecta' : 'No respondida';
+                            const feedback = String(q.feedback || '').replace(/<[^>]+>/g, '');
+
+                            const dataRow = worksheet.addRow([
+                                idx + 1,
+                                tipo,
+                                q.pregunta || '',
+                                q.opcion_elegida || '',
+                                resultado,
+                                feedback
+                            ]);
+
+                            dataRow.height = 20;
+                            const bgFill = idx % 2 === 0 ? rowWhiteFill : rowAltFill;
+
+                            for (let col = 1; col <= 6; col++) {
+                                const cell = dataRow.getCell(col);
+                                cell.font = normalFont;
+                                cell.border = borderThin;
+                                cell.fill = bgFill;
+                                cell.alignment = { 
+                                    vertical: 'middle', 
+                                    horizontal: col === 1 || col === 5 ? 'center' : 'left',
+                                    wrapText: true 
+                                };
+                            }
+
+                            const resCell = dataRow.getCell(5);
+                            resCell.font = { name: 'Arial', size: 10, bold: true };
+                            if (q.correcta === true) {
+                                resCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD4EDDA' } };
+                                resCell.font.color = { argb: 'FF155724' };
+                            } else if (q.correcta === false) {
+                                resCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8D7DA' } };
+                                resCell.font.color = { argb: 'FF721C24' };
+                            } else {
+                                resCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF3CD' } };
+                                resCell.font.color = { argb: 'FF856404' };
+                            }
+                        });
+                    }
+
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `GOA_${safeName}_${h.codigo}.xlsx`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                } catch (err) {
+                    console.error('Error al exportar Excel:', err);
+                    showCustomDialog({ title: 'Error', message: 'No se pudo generar el archivo Excel.', type: 'danger' });
+                }
+            });
+        }
+
+
+
+
+        // ── Helper: Exportar resumen por código a Excel con ExcelJS ──
+        async function exportCodeExcel(codigo) {
+            if (!codigo || codigo === '-') return;
+
+            try {
+                const response = await fetch(`/api/docente/historial?codigo=${encodeURIComponent(codigo)}`);
+                const data = await response.json();
+                if (!data.success || !data.historial || data.historial.length === 0) {
+                    showCustomDialog({ title: 'Sin datos', message: 'No hay partidas registradas para este código.', type: 'warning' });
+                    return;
+                }
+
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('Resumen de Grupo');
+
+                worksheet.views = [{ showGridLines: true }];
+
+                const titleFont = { name: 'Arial', size: 16, bold: true, color: { argb: 'FF1A3A5C' } };
+                const subtitleFont = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF4B6E8A' } };
+                const sectionFont = { name: 'Arial', size: 12, bold: true, color: { argb: 'FF1A3A5C' } };
+                const headerFont = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                const normalFont = { name: 'Arial', size: 10 };
+                const boldNormalFont = { name: 'Arial', size: 10, bold: true };
+
+                const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2A8BBB' } };
+                const rowAltFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F7FA' } };
+                const rowWhiteFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                const labelFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F7FA' } };
+
+                const borderThin = {
+                    top: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                    left: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                    bottom: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                    right: { style: 'thin', color: { argb: 'FFD0D7DE' } }
+                };
+
+                worksheet.columns = [
+                    { key: 'A', width: 30 },
+                    { key: 'B', width: 25 },
+                    { key: 'C', width: 14 },
+                    { key: 'D', width: 14 },
+                    { key: 'E', width: 14 },
+                    { key: 'F', width: 14 }
+                ];
+
+                // Title
+                const titleRow = worksheet.addRow(['GO-A • Reporte Escolar de Resultados']);
+                titleRow.getCell(1).font = titleFont;
+                worksheet.mergeCells('A1:F1');
+
+                // Subtitle
+                const subtitleRow = worksheet.addRow(['Juego de Concientización Ambiental — Cartagena', '', '', '', '', `Generado: ${new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' })}`]);
+                subtitleRow.getCell(1).font = subtitleFont;
+                subtitleRow.getCell(6).font = { name: 'Arial', size: 9, color: { argb: 'FF7A9BB8' } };
+                subtitleRow.getCell(6).alignment = { horizontal: 'right' };
+                worksheet.mergeCells('A2:E2');
+
+                for (let col = 1; col <= 6; col++) {
+                    subtitleRow.getCell(col).border = { bottom: { style: 'medium', color: { argb: 'FF2A8BBB' } } };
+                }
+
+                worksheet.addRow([]); // space
+
+                // Section 1: Info
+                const s1Row = worksheet.addRow(['Información del Grupo']);
+                s1Row.getCell(1).font = sectionFont;
+                worksheet.mergeCells(`A${s1Row.number}:F${s1Row.number}`);
+
+                const infoHeaders = worksheet.addRow(['Código de Acceso', 'Estado']);
+                worksheet.mergeCells(`B${infoHeaders.number}:F${infoHeaders.number}`);
+                
+                infoHeaders.getCell(1).font = boldNormalFont;
+                infoHeaders.getCell(1).fill = labelFill;
+                infoHeaders.getCell(1).border = borderThin;
+                
+                for (let col = 2; col <= 6; col++) {
+                    const cell = infoHeaders.getCell(col);
+                    cell.font = boldNormalFont;
+                    cell.fill = labelFill;
+                    cell.border = borderThin;
+                }
+
+                const infoValues = worksheet.addRow([codigo, 'Usado']);
+                worksheet.mergeCells(`B${infoValues.number}:F${infoValues.number}`);
+                
+                infoValues.getCell(1).font = { name: 'Courier New', size: 11, bold: true };
+                infoValues.getCell(1).border = borderThin;
+                
+                for (let col = 2; col <= 6; col++) {
+                    const cell = infoValues.getCell(col);
+                    cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF2563EB' } };
+                    cell.border = borderThin;
+                }
+
+                worksheet.addRow([]); // space
+
+                // Section 2: Student Results
+                const s2Row = worksheet.addRow(['Resultados de Estudiantes']);
+                s2Row.getCell(1).font = sectionFont;
+                worksheet.mergeCells(`A${s2Row.number}:F${s2Row.number}`);
+
+                const headers = ['Estudiante', 'Bloque Jugado', 'Aciertos', 'Errores', 'Puntaje', '% Acierto'];
+                const headerRow = worksheet.addRow(headers);
+                headerRow.height = 25;
+                for (let col = 1; col <= 6; col++) {
+                    const cell = headerRow.getCell(col);
+                    cell.font = headerFont;
+                    cell.fill = headerFill;
+                    cell.border = borderThin;
+                    cell.alignment = { vertical: 'middle', horizontal: col >= 3 ? 'center' : 'left' };
+                }
+
+                data.historial.forEach((h, idx) => {
+                    const bloqueName = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
+                    const total = h.correctas + h.incorrectas;
+                    const pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
+                    
+                    const dataRow = worksheet.addRow([
+                        h.alumno,
+                        bloqueName,
+                        h.correctas,
+                        h.incorrectas,
+                        h.puntaje || 0,
+                        `${pct}%`
+                    ]);
+
+                    dataRow.height = 20;
+                    const bgFill = idx % 2 === 0 ? rowWhiteFill : rowAltFill;
+
+                    for (let col = 1; col <= 6; col++) {
+                        const cell = dataRow.getCell(col);
+                        cell.font = col === 1 ? boldNormalFont : normalFont;
+                        cell.border = borderThin;
+                        cell.fill = bgFill;
+                        cell.alignment = { vertical: 'middle', horizontal: col >= 3 ? 'center' : 'left' };
+
+                        if (col === 3) {
+                            cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF298552' } };
+                        } else if (col === 4) {
+                            cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFBE123C' } };
+                        } else if (col === 6) {
+                            cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF2A8BBB' } };
+                        }
+                    }
+                });
+
+                worksheet.addRow([]); // space
+                const footerRow = worksheet.addRow([`Total de partidas: ${data.historial.length}`]);
+                footerRow.getCell(1).font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF7A9BB8' } };
+                worksheet.mergeCells(`A${footerRow.number}:F${footerRow.number}`);
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `GOA_Codigo_${codigo}_${new Date().toISOString().slice(0,10)}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch (err) {
+                console.error('Error al exportar Excel:', err);
+                showCustomDialog({ title: 'Error', message: 'No se pudo generar el archivo Excel.', type: 'danger' });
+            }
+        }
+
+        // Event listener for Active Code details modal Excel
+        const btnExcelCodeDetail = document.getElementById('btn-excel-code-detail');
+        if (btnExcelCodeDetail) {
+            btnExcelCodeDetail.addEventListener('click', () => {
+                const codeEl = document.getElementById('code-modal-value');
+                exportCodeExcel(codeEl ? codeEl.textContent.trim() : '');
+            });
+        }
+
+        // Event listener for History Code details modal Excel
+        const btnExcelHistoryCode = document.getElementById('btn-excel-history-code');
+        if (btnExcelHistoryCode) {
+            btnExcelHistoryCode.addEventListener('click', () => {
+                const codeEl = document.getElementById('history-modal-code-value');
+                exportCodeExcel(codeEl ? codeEl.textContent.trim() : '');
+            });
+        }
+
+        // Event listener for History tab main panel Excel export
+        const btnExportExcel = document.getElementById('btn-export-excel');
+        if (btnExportExcel) {
+            btnExportExcel.addEventListener('click', async () => {
+                if (!cachedHistoryData || cachedHistoryData.length === 0) {
+                    showCustomDialog({ title: 'Sin datos', message: 'No hay registros de partidas para exportar.', type: 'warning' });
+                    return;
+                }
+
+                const filterHistorySelect = document.getElementById('filter-history-codigo');
+                const selectedCode = filterHistorySelect ? filterHistorySelect.value : '';
+                const filterHistoryBloque = document.getElementById('filter-history-bloque');
+                const selectedBlock = filterHistoryBloque ? filterHistoryBloque.value : '';
+                const filterHistoryProfesor = document.getElementById('filter-history-profesor');
+                const selectedHistoryTeacher = filterHistoryProfesor ? filterHistoryProfesor.value : '';
+                const searchTerm = (document.getElementById('search-history')?.value || '').toLowerCase().trim();
+
+                // Apply exactly the same filters as refreshHistory()
+                let filtered = cachedHistoryData;
+                if (IS_ADMIN && selectedHistoryTeacher) {
+                    filtered = filtered.filter(h => h.profesor === selectedHistoryTeacher);
+                }
+                if (selectedCode) {
+                    filtered = filtered.filter(h => h.codigo === selectedCode);
+                }
+                if (selectedBlock) {
+                    filtered = filtered.filter(h => String(h.bloque) === selectedBlock);
+                }
+                if (searchTerm) {
+                    filtered = filtered.filter(h => {
+                        const bloqueName = (BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`).toLowerCase();
+                        return h.alumno.toLowerCase().includes(searchTerm) ||
+                               h.codigo.toLowerCase().includes(searchTerm) ||
+                               bloqueName.includes(searchTerm);
+                    });
+                }
+
+                if (filtered.length === 0) {
+                    showCustomDialog({ title: 'Sin datos', message: 'No hay registros visibles para exportar con los filtros actuales.', type: 'warning' });
+                    return;
+                }
+
+                try {
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet('Historial de Partidas');
+
+                    worksheet.views = [{ showGridLines: true }];
+
+                    const titleFont = { name: 'Arial', size: 16, bold: true, color: { argb: 'FF1A3A5C' } };
+                    const subtitleFont = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF4B6E8A' } };
+                    const sectionFont = { name: 'Arial', size: 12, bold: true, color: { argb: 'FF1A3A5C' } };
+                    const headerFont = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    const normalFont = { name: 'Arial', size: 10 };
+                    const boldNormalFont = { name: 'Arial', size: 10, bold: true };
+
+                    const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2A8BBB' } };
+                    const rowAltFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F7FA' } };
+                    const rowWhiteFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                    
+                    const borderThin = {
+                        top: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                        left: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                        bottom: { style: 'thin', color: { argb: 'FFD0D7DE' } },
+                        right: { style: 'thin', color: { argb: 'FFD0D7DE' } }
+                    };
+
+                    const hasTeacher = IS_ADMIN;
+                    const maxCol = hasTeacher ? 8 : 7;
+
+                    worksheet.columns = [
+                        { key: 'A', width: 28 }, // Estudiante
+                        { key: 'B', width: 14 }, // Código
+                        { key: 'C', width: 35 }, // Bloque
+                        { key: 'D', width: 12 }, // Aciertos
+                        { key: 'E', width: 12 }, // Errores
+                        { key: 'F', width: 12 }, // Puntaje
+                        { key: 'G', width: 14 }  // % Éxito
+                    ];
+                    if (hasTeacher) {
+                        worksheet.columns.push({ key: 'H', width: 25 }); // Docente
+                    }
+
+                    // Title
+                    const titleRow = worksheet.addRow(['GO-A • Reporte General de Resultados']);
+                    titleRow.getCell(1).font = titleFont;
+                    worksheet.mergeCells(1, 1, 1, maxCol);
+
+                    // Subtitle
+                    const subtitleRow = worksheet.addRow([
+                        'Juego de Concientización Ambiental — Cartagena',
+                        '', '', '', '', '', '',
+                        `Generado: ${new Date().toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' })}`
+                    ]);
+                    subtitleRow.getCell(1).font = subtitleFont;
+                    subtitleRow.getCell(maxCol).font = { name: 'Arial', size: 9, color: { argb: 'FF7A9BB8' } };
+                    subtitleRow.getCell(maxCol).alignment = { horizontal: 'right' };
+                    worksheet.mergeCells(2, 1, 2, maxCol - 1);
+
+                    for (let col = 1; col <= maxCol; col++) {
+                        subtitleRow.getCell(col).border = { bottom: { style: 'medium', color: { argb: 'FF2A8BBB' } } };
+                    }
+
+                    worksheet.addRow([]); // space
+
+                    // Section 1: Summary
+                    const summaryHeader = worksheet.addRow(['Resumen de Actividad Estudiantil']);
+                    summaryHeader.getCell(1).font = sectionFont;
+                    worksheet.mergeCells(summaryHeader.number, 1, summaryHeader.number, maxCol);
+                    worksheet.addRow([]); // space
+
+                    // Table headers
+                    const headers = [
+                        'Estudiante',
+                        'Código',
+                        'Bloque Jugado',
+                        'Aciertos',
+                        'Errores',
+                        'Puntaje',
+                        '% Éxito'
+                    ];
+                    if (hasTeacher) {
+                        headers.push('Docente');
+                    }
+                    const headerRow = worksheet.addRow(headers);
+                    headerRow.height = 24;
+
+                    for (let col = 1; col <= maxCol; col++) {
+                        const cell = headerRow.getCell(col);
+                        cell.font = headerFont;
+                        cell.fill = headerFill;
+                        cell.border = borderThin;
+                        cell.alignment = { vertical: 'middle', horizontal: col === 1 || col === 3 || col === 8 ? 'left' : 'center' };
+                    }
+
+                    // Add data rows
+                    filtered.forEach((h, index) => {
+                        const bloqueName = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
+                        const total = h.correctas + h.incorrectas;
+                        const pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
+                        const rowVals = [
+                            h.alumno,
+                            h.codigo,
+                            bloqueName,
+                            h.correctas,
+                            h.incorrectas,
+                            h.puntaje || (h.correctas * 10),
+                            `${pct}%`
+                        ];
+                        if (hasTeacher) {
+                            rowVals.push(h.profesor || '');
+                        }
+
+                        const dataRow = worksheet.addRow(rowVals);
+                        dataRow.height = 20;
+
+                        const fill = index % 2 === 1 ? rowAltFill : rowWhiteFill;
+
+                        for (let col = 1; col <= maxCol; col++) {
+                            const cell = dataRow.getCell(col);
+                            cell.font = normalFont;
+                            cell.fill = fill;
+                            cell.border = borderThin;
+                            cell.alignment = { 
+                                vertical: 'middle', 
+                                horizontal: col === 1 || col === 3 || col === 8 ? 'left' : 'center' 
+                            };
+                        }
+                    });
+
+                    // Download the workbook
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `GOA_Historial_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    showCustomDialog({ title: '¡Descarga lista!', message: `Se exportaron ${filtered.length} registros a Excel de forma exitosa.`, type: 'success' });
+                } catch (err) {
+                    console.error('Error al exportar Excel:', err);
+                    showCustomDialog({ title: 'Error', message: 'No se pudo generar el archivo Excel.', type: 'danger' });
+                }
+            });
+        }
+
+        // ── renderHomeDashboard: dashboard de inicio con CSS bars ──
+        function renderHomeDashboard() {
+            if (!cachedHistoryData) return;
+
+            const filterHomeProfesor = document.getElementById('filter-home-profesor');
+            const selectedTeacher = filterHomeProfesor ? filterHomeProfesor.value : '';
+
+            const filterHomeSelect = document.getElementById('filter-home-codigo');
+            const selectedCode = filterHomeSelect ? filterHomeSelect.value : '';
+            
+            // 1. Filter by teacher if selected (admin only)
+            let filtered = cachedHistoryData;
+            if (IS_ADMIN && selectedTeacher) {
+                filtered = filtered.filter(h => h.profesor === selectedTeacher);
+            }
+
+            // 2. Filter by code if selected
+            if (selectedCode) {
+                filtered = filtered.filter(h => h.codigo === selectedCode);
+            }
+
+            const totalGames = filtered.length;
+            let totalCorrect = 0;
+            let totalAnswers = 0;
+            const blockStats = {};
+
+            filtered.forEach(h => {
+                const b = h.bloque;
+                if (!blockStats[b]) {
+                    blockStats[b] = { correct: 0, total: 0, count: 0 };
+                }
+                blockStats[b].correct += h.correctas;
+                blockStats[b].total += (h.correctas + h.incorrectas);
+                blockStats[b].count += 1;
+
+                totalCorrect += h.correctas;
+                totalAnswers += (h.correctas + h.incorrectas);
+            });
+
+            const avgPct = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
+
+            const homeGamesCount = document.getElementById('home-stat-games-count');
+            const homeAvgPct = document.getElementById('home-stat-avg-pct');
+            const homeHardestBlock = document.getElementById('home-stat-hardest-block');
+
+            if (homeGamesCount) homeGamesCount.textContent = totalGames;
+            if (homeAvgPct) homeAvgPct.textContent = `${avgPct}%`;
+
+            let hardestBlockId = null;
+            let lowestPct = 101;
+
+            // Build blockConfigs dynamically from BLOQUES_LIST
+            const blockConfigs = {};
+            if (typeof BLOQUES_LIST !== 'undefined' && Array.isArray(BLOQUES_LIST)) {
+                BLOQUES_LIST.forEach(b => {
+                    blockConfigs[b.id] = {
+                        title: b.titulo,
+                        icon: b.icono || 'fa-book',
+                        color: b.color || '#2a8bbb'
+                    };
+                });
+            } else {
+                // Fallback for safety
+                blockConfigs[1] = { title: 'Gestión de Residuos y Reciclaje', icon: 'fa-recycle', color: '#298552' };
+                blockConfigs[2] = { title: 'Cuidado del Agua y Alcantarillado', icon: 'fa-droplet', color: '#2a8bbb' };
+                blockConfigs[3] = { title: 'Consumo Responsable y Energía', icon: 'fa-bolt', color: '#d97706' };
+                blockConfigs[4] = { title: 'Liderazgo y Comunidad Ambiental', icon: 'fa-users', color: '#6366f1' };
+            }
+
+            Object.keys(blockStats).forEach(b => {
+                const stats = blockStats[b];
+                const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+                if (pct < lowestPct) {
+                    lowestPct = pct;
+                    hardestBlockId = b;
+                }
+            });
+
+            const hardestCard = document.getElementById('home-stat-hardest-card');
+            const hardestIconContainer = hardestCard ? hardestCard.querySelector('.stat-icon') : null;
+            const hardestBlockNum = document.getElementById('home-stat-hardest-block-num');
+            const hardestBlockTitle = document.getElementById('home-stat-hardest-block-title');
+
+            if (hardestBlockNum && hardestBlockTitle) {
+                if (hardestBlockId && lowestPct < 101) {
+                    hardestBlockNum.textContent = `Bloque ${hardestBlockId}`;
+                    hardestBlockTitle.textContent = blockConfigs[hardestBlockId]?.title || '';
+                    hardestBlockTitle.title = blockConfigs[hardestBlockId]?.title || '';
+                    hardestBlockTitle.style.display = 'block';
+                    hardestBlockNum.style.color = '#be123c';
+                    
+                    if (hardestIconContainer) {
+                        hardestIconContainer.style.color = '#be123c';
+                        hardestIconContainer.style.backgroundColor = 'rgba(190, 18, 60, 0.1)';
+                        hardestIconContainer.style.borderColor = 'rgba(190, 18, 60, 0.2)';
+                        hardestIconContainer.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                    }
+                } else {
+                    hardestBlockNum.textContent = 'Ninguno';
+                    hardestBlockTitle.textContent = '¡Buen rendimiento general!';
+                    hardestBlockTitle.style.display = 'block';
+                    hardestBlockNum.style.color = '#298552';
+                    
+                    if (hardestIconContainer) {
+                        hardestIconContainer.style.color = '#298552';
+                        hardestIconContainer.style.backgroundColor = 'rgba(41, 133, 82, 0.1)';
+                        hardestIconContainer.style.borderColor = 'rgba(41, 133, 82, 0.2)';
+                        hardestIconContainer.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                    }
+                }
+            }
+
+            // Update Active Filter Badge for Pie/Donut Chart
+            const chartPieFilterBloque = document.getElementById('chart-pie-filter-bloque');
+            const selectedPieBlock = chartPieFilterBloque ? chartPieFilterBloque.value : '';
+            const pieFilterBadge = document.getElementById('pie-active-filter-badge');
+            const pieFilterText = document.getElementById('pie-active-filter-text');
+            if (pieFilterBadge && pieFilterText) {
+                if (selectedPieBlock) {
+                    const blockTitle = BLOQUES_MAP[selectedPieBlock] || `Bloque ${selectedPieBlock}`;
+                    const shortTitle = blockTitle.length > 25 ? blockTitle.substring(0, 22) + '...' : blockTitle;
+                    pieFilterText.textContent = `Filtrado por: ${shortTitle}`;
+                    pieFilterBadge.style.display = 'inline-flex';
+                } else {
+                    pieFilterBadge.style.display = 'none';
+                }
+            }
+
+            // Pie/Donut Chart: Distribución Global de Respuestas
+            const ctxPie = document.getElementById('chart-pie-accuracy');
+            if (ctxPie) {
+                // Filter the dataset specifically for the Donut Chart if a block filter is selected
+                const pieFiltered = selectedPieBlock
+                    ? filtered.filter(h => String(h.bloque) === selectedPieBlock)
+                    : filtered;
+
+                const totalCorrect = pieFiltered.reduce((acc, h) => acc + h.correctas, 0);
+                const totalIncorrect = pieFiltered.reduce((acc, h) => acc + h.incorrectas, 0);
+                const totalAnswersVal = totalCorrect + totalIncorrect;
+                
+                if (accuracyPieChart) {
+                    accuracyPieChart.destroy();
+                }
+
+                // Update center text elements
+                const centerPct = document.getElementById('chart-pie-center-pct');
+                const centerSub = document.getElementById('chart-pie-center-sub');
+                if (centerPct && centerSub) {
+                    const pctVal = totalAnswersVal > 0 ? Math.round((totalCorrect / totalAnswersVal) * 100) : 0;
+                    centerPct.textContent = `${pctVal}%`;
+                    centerSub.textContent = `${totalAnswersVal} respuestas`;
+                }
+
+                if (totalCorrect === 0 && totalIncorrect === 0) {
+                    accuracyPieChart = new Chart(ctxPie, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Sin datos'],
+                            datasets: [{
+                                data: [1],
+                                backgroundColor: ['#e2e8f0'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { enabled: false }
+                            },
+                            cutout: '76%'
+                        }
+                    });
+                } else {
+                    accuracyPieChart = new Chart(ctxPie, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Correctas', 'Incorrectas'],
+                            datasets: [{
+                                data: [totalCorrect, totalIncorrect],
+                                backgroundColor: ['#298552', '#be123c'],
+                                hoverBackgroundColor: ['#1e633d', '#990f30'],
+                                borderWidth: 2,
+                                borderColor: 'rgba(255, 255, 255, 0.7)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: { family: 'Outfit', size: 11, weight: '700' },
+                                        color: '#1a3a5c',
+                                        boxWidth: 12
+                                    }
+                                }
+                            },
+                            cutout: '76%'
+                        }
+                    });
+                }
+            }
+
+            // Bar Chart: Precisión por Bloque
+            const ctxBar = document.getElementById('chart-bar-blocks');
+            if (ctxBar) {
+                const activeBlocks = Object.keys(blockConfigs).map(Number).sort((x, y) => x - y);
+                const labels = activeBlocks.map(b => `Bloque ${b}`);
+                const dataValues = activeBlocks.map(b => {
+                    const stats = blockStats[b];
+                    return stats && stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+                });
+                const colors = activeBlocks.map(b => blockConfigs[b].color);
+
+                if (blocksBarChart) {
+                    blocksBarChart.destroy();
+                }
+
+                blocksBarChart = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Precisión (% Aciertos)',
+                            data: dataValues,
+                            backgroundColor: colors.map(c => c + 'cc'),
+                            borderColor: colors,
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        onClick: (event, elements) => {
+                            if (elements && elements.length > 0) {
+                                const elementIndex = elements[0].index;
+                                const blockNum = activeBlocks[elementIndex];
+                                const chartPieFilterBloque = document.getElementById('chart-pie-filter-bloque');
+                                if (chartPieFilterBloque) {
+                                    chartPieFilterBloque.value = blockNum;
+                                    chartPieFilterBloque.dispatchEvent(new Event('change'));
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` ${context.parsed.y}% de aciertos`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 100,
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                ticks: {
+                                    font: { family: 'Outfit', size: 10, weight: '700' },
+                                    color: '#1a3a5c',
+                                    callback: function(value) { return value + '%'; }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { family: 'Outfit', size: 10, weight: '700' },
+                                    color: '#1a3a5c'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const chartsContainer = document.getElementById('home-blocks-charts-container');
+            if (chartsContainer) {
+                chartsContainer.innerHTML = '';
+                const activeBlocks = Object.keys(blockConfigs).map(Number).sort((x, y) => x - y);
+                activeBlocks.forEach(b => {
+                    const cfg = blockConfigs[b];
+                    const stats = blockStats[b] || { correct: 0, total: 0, count: 0 };
+                    const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+                    
+                    let rgbaBg = 'rgba(42, 139, 187, 0.1)';
+                    if (cfg.color && cfg.color.startsWith('#')) {
+                        const hex = cfg.color.replace('#', '');
+                        const r = parseInt(hex.substring(0, 2), 16);
+                        const g = parseInt(hex.substring(2, 4), 16);
+                        const b = parseInt(hex.substring(4, 6), 16);
+                        if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+                            rgbaBg = `rgba(${r}, ${g}, ${b}, 0.1)`;
+                        }
+                    }
+
+                    const cardHtml = `
+                        <div class="block-perf-card glass" style="display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.7); background: rgba(255, 255, 255, 0.55); box-shadow: 0 4px 15px rgba(30, 90, 150, 0.03); width: 100%;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                                    <div style="width: 38px; height: 38px; border-radius: 50%; background: ${rgbaBg}; color: ${cfg.color}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; border: 1px solid ${cfg.color}15;">
+                                        <i class="fa-solid ${cfg.icon}"></i>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                                        <span style="font-weight: 800; color: #1a3a5c; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            Bloque ${b}
+                                        </span>
+                                        <span style="font-size: 11.5px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${cfg.title}">
+                                            ${cfg.title}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span style="background: ${cfg.color}15; color: ${cfg.color}; border: 1px solid ${cfg.color}25; padding: 4px 10px; border-radius: 50px; font-weight: 800; font-size: 12px; white-space: nowrap;">
+                                    ${pct}% aciertos
+                                </span>
+                            </div>
+                            
+                            <div style="width: 100%; height: 10px; background: rgba(0, 0, 0, 0.05); border-radius: 50px; overflow: hidden; border: 1px solid rgba(0,0,0,0.01); position: relative;">
+                                <div style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, ${cfg.color}, ${cfg.color}dd); border-radius: 50px; transition: width 1s cubic-bezier(0.1, 0.8, 0.25, 1); box-shadow: 0 0 8px ${cfg.color}40;"></div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%;">
+                                <span style="background: rgba(42, 139, 187, 0.05); color: #2a8bbb; border: 1px solid rgba(42, 139, 187, 0.1); padding: 4px 8px; border-radius: 8px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-list-check" style="font-size: 10px;"></i> ${stats.correct}/${stats.total} respuestas
+                                </span>
+                                <span style="background: rgba(0, 0, 0, 0.03); color: var(--text-secondary); border: 1px solid rgba(0, 0, 0, 0.05); padding: 4px 8px; border-radius: 8px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i class="fa-solid fa-gamepad" style="font-size: 10px;"></i> ${stats.count} partida${stats.count !== 1 ? 's' : ''}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    const wrapper = document.createElement('div');
+                    wrapper.style.width = '100%';
+                    wrapper.innerHTML = cardHtml;
+                    chartsContainer.appendChild(wrapper.firstElementChild);
+                });
+            }
+        }
+
+        const filterHomeSelect = document.getElementById('filter-home-codigo');
+        if (filterHomeSelect) {
+            filterHomeSelect.addEventListener('change', renderHomeDashboard);
+        }
+
         // Initial setup on DOM load
         loadCodes();
         refreshHistory();
@@ -3876,10 +5173,11 @@
             }
         }, 5000);
 
-        const savedTab = sessionStorage.getItem('activeTab');
+        const savedTab = sessionStorage.getItem('activeTab') || 'home';
         if (savedTab) {
             let isAvailable = false;
-            if (savedTab === 'generate') isAvailable = true;
+            if (savedTab === 'home') isAvailable = true;
+            else if (savedTab === 'generate') isAvailable = true;
             else if (savedTab === 'history') isAvailable = true;
             else if (savedTab === 'profile' && menuProfile) isAvailable = true;
             else if (savedTab === 'story-creator' && menuStoryCreator) isAvailable = true;
@@ -3933,6 +5231,8 @@
                     }
                 }
             } else if (paso === 3) {
+                inputsAValidar.push(document.getElementById('wizard-story-title'));
+                inputsAValidar.push(document.getElementById('wizard-story-intro'));
                 for (let i = 1; i <= 3; i++) {
                     inputsAValidar.push(document.getElementById(`wizard-node${i}-title`));
                     inputsAValidar.push(document.getElementById(`wizard-node${i}-context`));
@@ -4195,6 +5495,14 @@
 
                     // Step 1 Notes
                     document.getElementById('wizard-block-title').value = data.block_title || '';
+                    
+                    // General Story Title & Introduction (Step 3)
+                    if (document.getElementById('wizard-story-title')) {
+                        document.getElementById('wizard-story-title').value = data.story_title || '';
+                    }
+                    if (document.getElementById('wizard-story-intro')) {
+                        document.getElementById('wizard-story-intro').value = data.story_intro || '';
+                    }
                     document.getElementById('wizard-note1-title').value = data.notes.note1_title || '';
                     document.getElementById('wizard-note1-text').value = data.notes.note1_text || '';
                     document.getElementById('wizard-note2-title').value = data.notes.note2_title || '';
@@ -4278,6 +5586,8 @@
                 const payload = {
                     bloque: bloque,
                     block_title: document.getElementById('wizard-block-title').value.trim(),
+                    story_title: document.getElementById('wizard-story-title').value.trim(),
+                    story_intro: document.getElementById('wizard-story-intro').value.trim(),
                     icono: document.getElementById('wizard-selected-icon').value,
                     color: document.getElementById('wizard-selected-color').value,
                     notes: {
