@@ -1085,10 +1085,15 @@
 
                     <!-- Tabla del Historial -->
                     <div class="data-panel glass">
-                        <div class="panel-header" style="padding: 24px 24px 12px;">
-                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px;">
+                        <div class="panel-header" style="padding: 20px 24px;">
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 8px; margin: 0;">
                                 <i class="fa-solid fa-list-check" style="color: #2a8bbb;"></i> Registro de Actividad Estudiantil
                             </h3>
+                            <button id="btn-export-excel" style="padding: 8px 18px; font-size: 13px; border-radius: 12px; height: 42px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; border: 1px solid rgba(41, 133, 82, 0.35); background: rgba(41, 133, 82, 0.1); color: #298552; font-family: 'Outfit', sans-serif; transition: all 0.2s ease;"
+                                    onmouseover="this.style.background='rgba(41, 133, 82, 0.2)'; this.style.transform='scale(1.04)'; this.style.boxShadow='0 4px 14px rgba(41, 133, 82, 0.2)';"
+                                    onmouseout="this.style.background='rgba(41, 133, 82, 0.1)'; this.style.transform='none'; this.style.boxShadow='none';">
+                                <i class="fa-solid fa-file-excel" style="font-size: 15px;"></i> Descargar Excel
+                            </button>
                         </div>
 
                         <!-- Panel de Filtros y Búsqueda Redistribuido -->
@@ -2601,6 +2606,77 @@
         const searchHistoryInput = document.getElementById('search-history');
         if (searchHistoryInput) {
             searchHistoryInput.addEventListener('input', refreshHistory);
+        }
+
+        // ── Excel Export ──
+        const btnExportExcel = document.getElementById('btn-export-excel');
+        if (btnExportExcel) {
+            btnExportExcel.addEventListener('click', async () => {
+                // Fetch the full current history (respecting the code filter)
+                try {
+                    const selectedCode = filterHistorySelect.value;
+                    const url = selectedCode
+                        ? `/api/docente/historial?codigo=${encodeURIComponent(selectedCode)}`
+                        : '/api/docente/historial';
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (!data.success || !data.historial || data.historial.length === 0) {
+                        showCustomDialog({ title: 'Sin datos', message: 'No hay registros de partidas para exportar.', type: 'warning' });
+                        return;
+                    }
+
+                    const searchTerm = (document.getElementById('search-history')?.value || '').toLowerCase().trim();
+                    const rows = searchTerm
+                        ? data.historial.filter(h =>
+                            h.alumno.toLowerCase().includes(searchTerm) ||
+                            h.codigo.toLowerCase().includes(searchTerm)
+                          )
+                        : data.historial;
+
+                    if (rows.length === 0) {
+                        showCustomDialog({ title: 'Sin datos', message: 'No hay registros visibles para exportar.', type: 'warning' });
+                        return;
+                    }
+
+                    // Build CSV with UTF-8 BOM so Excel opens accents correctly
+                    let csv = '\uFEFF';
+                    const headers = IS_ADMIN
+                        ? ['Estudiante', 'Código', 'Bloque', 'Aciertos', 'Errores', 'Puntaje', '% Acierto', 'Docente']
+                        : ['Estudiante', 'Código', 'Bloque', 'Aciertos', 'Errores', 'Puntaje', '% Acierto'];
+                    csv += headers.map(h => `"${h}"`).join(',') + '\n';
+
+                    rows.forEach(h => {
+                        const bloqueName = BLOQUES_MAP[h.bloque] || `Bloque ${h.bloque}`;
+                        const total = h.correctas + h.incorrectas;
+                        const pct = total > 0 ? Math.round((h.correctas / total) * 100) : 0;
+                        const row = [
+                            h.alumno,
+                            h.codigo,
+                            bloqueName,
+                            h.correctas,
+                            h.incorrectas,
+                            h.puntaje,
+                            `${pct}%`
+                        ];
+                        if (IS_ADMIN) row.push(h.profesor || '');
+                        csv += row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',') + '\n';
+                    });
+
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `GOA_Resultados_${new Date().toISOString().slice(0, 10)}.csv`;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showCustomDialog({ title: '¡Descarga lista!', message: `Se exportaron ${rows.length} registros a Excel.`, type: 'success' });
+                } catch (err) {
+                    console.error('Error al exportar:', err);
+                    showCustomDialog({ title: 'Error', message: 'No se pudo generar el archivo Excel.', type: 'danger' });
+                }
+            });
         }
 
         // ── Custom Dialog System ──
