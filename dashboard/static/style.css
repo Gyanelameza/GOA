@@ -1153,5 +1153,15 @@ textarea#sql-editor:focus {
         padding: 14px 16px !important;
         align-self: center !important;
     }
+
+    /* Proportional select dropdowns on mobile to prevent clipping/truncation */
+    #chart-pie-filter-bloque {
+        min-width: 140px !important;
+    }
+
+    #filter-home-codigo,
+    #filter-home-profesor {
+        min-width: 150px !important;
+    }
 }
 
