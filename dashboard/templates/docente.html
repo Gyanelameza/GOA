@@ -3488,12 +3488,11 @@
             const questionsContainer = document.getElementById('block-info-questions');
             const nudosContainer = document.getElementById('block-info-nudos');
 
-            // Define block colors to match theme dynamically
-            const blockColors = ['#298552', '#2a8bbb', '#d97706', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
-            const blockColor = blockColors[(bloqueId - 1) % blockColors.length];
+            // Use GO-A theme color (Ocean Blue) for all block modals
+            const blockColor = '#2a8bbb';
 
             // Color the header icon and text
-            modalTitle.innerHTML = `<span style="background: linear-gradient(135deg, ${blockColor}1a, ${blockColor}0d); color: ${blockColor}; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 8px; border: 1px solid ${blockColor}25;"><i class="fa-solid fa-book"></i></span> Bloque ${bloqueId}: ${blockName}`;
+            modalTitle.innerHTML = `<span style="background: linear-gradient(135deg, ${blockColor}1a, ${blockColor}0d); color: ${blockColor}; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 8px; border: 1px solid ${blockColor}25;"><i class="fa-solid fa-droplet"></i></span> Bloque ${bloqueId}: ${blockName}`;
             
             // Dynamic styling of section badges/pills
             const notesBadge = document.getElementById('block-info-notes-badge');
@@ -3536,7 +3535,7 @@
                 
                 if (data.success) {
                     if (data.block_title) {
-                        modalTitle.innerHTML = `<span style="background: linear-gradient(135deg, ${blockColor}1a, ${blockColor}0d); color: ${blockColor}; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 8px; border: 1px solid ${blockColor}25;"><i class="fa-solid fa-book"></i></span> Bloque ${bloqueId}: ${data.block_title}`;
+                        modalTitle.innerHTML = `<span style="background: linear-gradient(135deg, ${blockColor}1a, ${blockColor}0d); color: ${blockColor}; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 8px; border: 1px solid ${blockColor}25;"><i class="fa-solid fa-droplet"></i></span> Bloque ${bloqueId}: ${data.block_title}`;
                     }
 
                     notesContainer.innerHTML = '';
@@ -3673,6 +3672,15 @@
                 `;
                 return div;
             }
+
+            function showError(msg) {
+                notesContainer.innerHTML = `<p style="font-size:13px; color:#dc2626; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ${msg}</p>`;
+                questionsContainer.innerHTML = '';
+                nudosContainer.innerHTML = '';
+            }
+        }
+        
+        window.verInfoBloque = verInfoBloque;
 
             function showError(msg) {
                 notesContainer.innerHTML = `<p style="font-size:13px; color:#dc2626; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> ${msg}</p>`;
