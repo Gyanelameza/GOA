@@ -1859,36 +1859,38 @@
 
     <!-- Modal overlay for Block Details (Guía de Actividades) -->
     <div class="modal-overlay" id="block-info-modal">
-        <div class="modal-card" style="max-width: 650px;">
-            <div class="modal-header">
-                <h3 id="block-info-modal-title"><i class="fa-solid fa-book"></i> Detalles del Bloque</h3>
+        <div class="modal-card" style="max-width: 700px;">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.45); padding: 20px 28px;">
+                <h3 id="block-info-modal-title" style="font-size: 17px; font-weight: 800; color: #1a3a5c; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-book"></i> Detalles del Bloque
+                </h3>
                 <button class="btn-close" id="btn-close-block-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; max-height: 70vh; overflow-y: auto; text-align: left;">
+            <div class="modal-body" style="padding: 24px 28px; display: flex; flex-direction: column; gap: 24px; max-height: 70vh; overflow-y: auto; text-align: left;">
                 
                 <!-- Sección de Material de Estudio / Notas -->
-                <div style="background: rgba(42, 139, 187, 0.06); padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(42, 139, 187, 0.15);">
-                    <h4 style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <div>
+                    <h4 id="block-info-notes-header" style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-file-invoice" style="color: #2a8bbb;"></i> Material de Estudio (Notas)
                     </h4>
-                    <div id="block-info-notes" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div id="block-info-notes" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- Se poblará con JS -->
                     </div>
                 </div>
 
                 <!-- Sección de Banco de Preguntas -->
                 <div>
-                    <h4 style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <h4 id="block-info-questions-header" style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-circle-question" style="color: #2a8bbb;"></i> Banco de Preguntas Evaluativas (Sin respuestas)
                     </h4>
-                    <ol id="block-info-questions" style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; color: #1c3e5e; font-weight: 700;">
+                    <div id="block-info-questions" style="display: flex; flex-direction: column; gap: 10px;">
                         <!-- Se poblará con JS -->
-                    </ol>
+                    </div>
                 </div>
 
                 <!-- Sección de Historia Interactiva -->
                 <div>
-                    <h4 style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <h4 id="block-info-nudos-header" style="font-size: 14.5px; font-weight: 800; color: #1a3a5c; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
                         <i class="fa-solid fa-scroll" style="color: #2a8bbb;"></i> Historia Interactiva (Nudos / Escenas sin respuestas)
                     </h4>
                     <div id="block-info-nudos" style="display: flex; flex-direction: column; gap: 12px;">
@@ -3484,11 +3486,24 @@
             const questionsContainer = document.getElementById('block-info-questions');
             const nudosContainer = document.getElementById('block-info-nudos');
 
-            modalTitle.innerHTML = `<i class="fa-solid fa-book"></i> Bloque ${bloqueId}: ${blockName}`;
+            // Define block colors to match theme dynamically
+            const blockColors = ['#298552', '#2a8bbb', '#d97706', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+            const blockColor = blockColors[(bloqueId - 1) % blockColors.length];
+
+            // Color the header icons
+            modalTitle.innerHTML = `<span style="background: ${blockColor}1a; color: ${blockColor}; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 4px;"><i class="fa-solid fa-book"></i></span> Bloque ${bloqueId}: ${blockName}`;
             
-            notesContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</p>';
-            questionsContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</p>';
-            nudosContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando...</p>';
+            const iconNotes = document.querySelector('#block-info-notes-header i');
+            if (iconNotes) iconNotes.style.color = blockColor;
+            const iconQuestions = document.querySelector('#block-info-questions-header i');
+            if (iconQuestions) iconQuestions.style.color = blockColor;
+            const iconNudos = document.querySelector('#block-info-nudos-header i');
+            if (iconNudos) iconNudos.style.color = blockColor;
+
+            const loadingHtml = `<p style="font-size:13px; color:var(--text-muted); font-weight:600;"><i class="fa-solid fa-circle-notch fa-spin" style="color: ${blockColor};"></i> Cargando...</p>`;
+            notesContainer.innerHTML = loadingHtml;
+            questionsContainer.innerHTML = loadingHtml;
+            nudosContainer.innerHTML = loadingHtml;
 
             blockInfoModal.classList.add('show');
 
@@ -3498,7 +3513,7 @@
                 
                 if (data.success) {
                     if (data.block_title) {
-                        modalTitle.innerHTML = `<i class="fa-solid fa-book"></i> Bloque ${bloqueId}: ${data.block_title}`;
+                        modalTitle.innerHTML = `<span style="background: ${blockColor}1a; color: ${blockColor}; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 4px;"><i class="fa-solid fa-book"></i></span> Bloque ${bloqueId}: ${data.block_title}`;
                     }
 
                     notesContainer.innerHTML = '';
@@ -3527,11 +3542,18 @@
                     if (preguntas.length === 0) {
                         questionsContainer.innerHTML = '<p style="font-size:13px; color:var(--text-muted); font-style:italic;">No hay preguntas registradas para este bloque.</p>';
                     } else {
-                        preguntas.forEach(q => {
-                            const li = document.createElement('li');
-                            li.style.marginBottom = '6px';
-                            li.textContent = q.pregunta;
-                            questionsContainer.appendChild(li);
+                        preguntas.forEach((q, idx) => {
+                            const div = document.createElement('div');
+                            div.style.cssText = `background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 14px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 4px 12px rgba(30, 90, 150, 0.02);`;
+                            div.innerHTML = `
+                                <div style="background: ${blockColor}1a; color: ${blockColor}; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 800; flex-shrink: 0; border: 1px solid ${blockColor}33;">
+                                    ${idx + 1}
+                                </div>
+                                <p style="margin: 0; font-size: 13px; color: var(--text-primary); font-weight: 700; line-height: 1.45; padding-top: 2px;">
+                                    ${q.pregunta}
+                                </p>
+                            `;
+                            questionsContainer.appendChild(div);
                         });
                     }
 
@@ -3542,13 +3564,18 @@
                     } else {
                         nudos.forEach((n, idx) => {
                             const div = document.createElement('div');
-                            div.style.cssText = 'background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 12px; padding: 12px 14px;';
+                            div.style.cssText = `background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255, 255, 255, 0.55); border-radius: 16px; padding: 16px 20px; box-shadow: 0 4px 16px rgba(30, 90, 150, 0.02); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255, 255, 255, 0.7);`;
                             div.innerHTML = `
-                                <h5 style="margin: 0 0 6px 0; font-size: 13.5px; font-weight: 800; color: #1a3a5c;">
-                                    Escena ${idx + 1}: ${n.escena_titulo || 'Sin título'}
-                                </h5>
-                                <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4; font-weight: 600;">
-                                    ${n.texto_situacion}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: ${blockColor}15; color: ${blockColor}; width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-scroll"></i>
+                                    </span>
+                                    <h5 style="margin: 0; font-size: 14px; font-weight: 800; color: #1a3a5c;">
+                                        Escena ${idx + 1}: ${n.escena_titulo || 'Sin título'}
+                                    </h5>
+                                </div>
+                                <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-weight: 600; font-style: italic; padding-left: 34px;">
+                                    "${n.texto_situacion}"
                                 </p>
                             `;
                             nudosContainer.appendChild(div);
@@ -3564,12 +3591,13 @@
 
             function createNoteElement(num, title, text) {
                 const div = document.createElement('div');
-                div.style.cssText = 'margin-bottom: 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.05); padding-bottom: 8px;';
+                div.style.cssText = `background: rgba(255, 255, 255, 0.45); border-left: 4px solid ${blockColor}; border-radius: 14px; padding: 14px 18px; box-shadow: 0 4px 12px rgba(30, 90, 150, 0.02); border-top: 1px solid rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(255, 255, 255, 0.3); border-bottom: 1px solid rgba(255, 255, 255, 0.3);`;
                 div.innerHTML = `
-                    <h5 style="margin: 0 0 4px 0; font-size: 13.5px; font-weight: 800; color: #1a3a5c;">
-                        Nota ${num}: ${title}
-                    </h5>
-                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4; font-weight: 600;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <span style="background: ${blockColor}15; color: ${blockColor}; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Nota ${num}</span>
+                        <h5 style="margin: 0; font-size: 14px; font-weight: 800; color: #1a3a5c;">${title}</h5>
+                    </div>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-weight: 600;">
                         ${text}
                     </p>
                 `;
