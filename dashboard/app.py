@@ -1038,13 +1038,13 @@ def get_codigos():
         # 1. Fetch codes (with teacher info for admin)
         if is_admin:
             cursor.execute("""
-                SELECT s.codigo_acceso, p.nombre, p.username
+                SELECT s.codigo_acceso, p.nombre, p.username, s.bloque_asignado
                 FROM sesiones s
                 JOIN profesores p ON s.id_profesor = p.id_profesor
                 ORDER BY s.codigo_acceso;
             """)
         else:
-            cursor.execute("SELECT codigo_acceso, NULL, NULL FROM sesiones WHERE id_profesor = %s ORDER BY codigo_acceso;", (profesor_id,))
+            cursor.execute("SELECT codigo_acceso, NULL, NULL, bloque_asignado FROM sesiones WHERE id_profesor = %s ORDER BY codigo_acceso;", (profesor_id,))
         sesiones = cursor.fetchall()
         
         # 2. Fetch blocks played for each code
@@ -1066,11 +1066,13 @@ def get_codigos():
         # Map outcomes and teacher info in Python
         code_to_blocks = {}
         code_to_teacher = {}
+        code_to_assigned_block = {}
         for code_row in sesiones:
             code_to_blocks[code_row[0]] = set()
             # nombre_publico or email as fallback
             teacher_name = code_row[1] if code_row[1] else (code_row[2] if code_row[2] else 'Docente')
             code_to_teacher[code_row[0]] = teacher_name
+            code_to_assigned_block[code_row[0]] = code_row[3]
             
         for res_row in resultados:
             c = res_row[0]
@@ -1083,7 +1085,8 @@ def get_codigos():
             entry = {
                 'codigo': c,
                 'usado': len(b_set) > 0,
-                'bloques': list(b_set)
+                'bloques': list(b_set),
+                'bloque_asignado': code_to_assigned_block.get(c)
             }
             if is_admin:
                 entry['profesor'] = code_to_teacher.get(c, 'Docente')
@@ -1091,6 +1094,59 @@ def get_codigos():
         return jsonify({'success': True, 'codigos': codigos})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+# New endpoint: assign a block to a session code (only if code is unused)
+@app.route('/api/docente/asignar-bloque', methods=['POST'])
+@docente_required
+def asignar_bloque():
+    data = request.json or {}
+    codigo = data.get('codigo', '').strip().upper()
+    bloque = data.get('bloque') # Can be int (1, 2, 3...) or None/""
+    
+    if not codigo:
+        return jsonify({'success': False, 'error': 'Código de acceso no proporcionado.'}), 400
+        
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
+        
+    cursor = connection.cursor()
+    try:
+        # Verify ownership
+        is_admin = session.get('admin_logged_in', False)
+        profesor_id = session.get('profesor_id')
+        
+        cursor.execute("SELECT id_profesor FROM sesiones WHERE codigo_acceso = %s;", (codigo,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'success': False, 'error': 'Código de acceso no encontrado.'}), 404
+        if not is_admin and row[0] != profesor_id:
+            return jsonify({'success': False, 'error': 'No estás autorizado a modificar este código.'}), 403
+            
+        # Verify if code has results (i.e. is used).
+        cursor.execute("SELECT COUNT(*) FROM resultados_estudiantes WHERE codigo_acceso = %s;", (codigo,))
+        count = cursor.fetchone()[0]
+        if count > 0:
+            return jsonify({'success': False, 'error': 'No se puede cambiar la asignación de bloque porque el código ya tiene partidas registradas.'}), 400
+            
+        # Update assigned block
+        if bloque == "" or bloque is None:
+            bloque_val = None
+        else:
+            try:
+                bloque_val = int(bloque)
+            except ValueError:
+                return jsonify({'success': False, 'error': 'Bloque inválido.'}), 400
+                
+        cursor.execute("UPDATE sesiones SET bloque_asignado = %s WHERE codigo_acceso = %s;", (bloque_val, codigo))
+        connection.commit()
+        return jsonify({'success': True, 'message': 'Asignación de bloque actualizada con éxito.'})
+    except Exception as e:
+        connection.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         cursor.close()
         connection.close()
@@ -1755,18 +1811,29 @@ def verificar_codigo():
 
 @app.route('/api/estudiante/datos-bloque', methods=['GET'])
 def datos_bloque():
+    codigo = request.args.get('codigo', '').strip().upper()
     connection = get_db_connection()
     if not connection:
         return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
         
     cursor = connection.cursor()
     try:
-        # Obtener dinámicamente todos los bloques que tengan preguntas cargadas
-        cursor.execute("SELECT DISTINCT bloque FROM banco_preguntas;")
-        bloques = [row[0] for row in cursor.fetchall()]
-        if not bloques:
-            bloques = [1, 2, 3, 4]  # fallback
-        bloque = random.choice(bloques)
+        bloque = None
+        # Check if the code has a specific block assigned
+        if codigo:
+            cursor.execute("SELECT bloque_asignado FROM sesiones WHERE codigo_acceso = %s;", (codigo,))
+            row = cursor.fetchone()
+            if row and row[0] is not None:
+                bloque = row[0]
+                
+        # If no block is assigned, choose randomly
+        if bloque is None:
+            # Obtener dinámicamente todos los bloques que tengan preguntas cargadas
+            cursor.execute("SELECT DISTINCT bloque FROM banco_preguntas;")
+            bloques = [row[0] for row in cursor.fetchall()]
+            if not bloques:
+                bloques = [1, 2, 3, 4]  # fallback
+            bloque = random.choice(bloques)
         
         # 1. Recuperar banco_preguntas (las 5 del bloque)
         cursor.execute("""

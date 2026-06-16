@@ -1932,6 +1932,37 @@
                     </div>
                 </div>
 
+                <!-- Asignación de bloque (Visible solo para códigos sin uso) -->
+                <div id="code-modal-assign-block-container" style="display: none; background: rgba(42, 139, 187, 0.08); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(42, 139, 187, 0.15); justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-layer-group" style="color: #2a8bbb; font-size: 18px;"></i>
+                        <div>
+                            <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Asignación de Bloque</span>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 0 0;">Fuerza la carga de un bloque específico para este código.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <select id="code-modal-assign-block-select" class="form-control" style="width: 180px; font-weight: 700; height: 38px; border-radius: 10px; padding: 0 10px; cursor: pointer; border: 1px solid rgba(42,139,187,0.25); background: rgba(255,255,255,0.85); color: #1a3a5c; font-family: 'Outfit', sans-serif;">
+                            <option value="">Aleatorio (Por defecto)</option>
+                            {% for b in bloques_list %}
+                            <option value="{{ b.id }}">Bloque {{ b.id }}: {{ b.titulo }}</option>
+                            {% endfor %}
+                        </select>
+                        <button id="btn-save-assigned-block" class="btn btn-primary" style="height: 38px; padding: 0 16px; border-radius: 10px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 10px rgba(42,139,187,0.2); cursor: pointer; transition: all 0.2s;">
+                            <i class="fa-solid fa-floppy-disk"></i> Asignar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Read-only Block Assignment (shown when code is in use) -->
+                <div id="code-modal-assigned-block-readonly" style="display: none; background: rgba(0, 0, 0, 0.03); padding: 16px 20px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-layer-group" style="color: var(--text-muted); font-size: 16px;"></i>
+                    <span style="font-size: 13px; font-weight: 700; color: var(--text-secondary);">
+                        Bloque asignado: <strong id="code-modal-assigned-block-label" style="color: #1a3a5c;">Aleatorio</strong>
+                    </span>
+                    <span style="font-size: 11px; color: var(--text-muted); margin-left: auto;">(No modificable, código en uso)</span>
+                </div>
+
                 <!-- Lista de alumnos / respuestas -->
                 <div>
                     <h4 style="font-size: 14px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
@@ -3547,6 +3578,33 @@
                 codeModalStatusBadge.innerHTML = `<span class="code-badge" style="font-size:12px; background:rgba(239, 68, 68, 0.12); border-color:rgba(239, 68, 68, 0.3); color:#dc2626;">Sin Uso</span>`;
             }
             
+            // Setup block assignment visibility and values
+            const assignBlockContainer = document.getElementById('code-modal-assign-block-container');
+            const assignBlockSelect = document.getElementById('code-modal-assign-block-select');
+            const assignedBlockReadonly = document.getElementById('code-modal-assigned-block-readonly');
+            const assignedBlockLabel = document.getElementById('code-modal-assigned-block-label');
+            
+            if (assignBlockContainer && assignBlockSelect && assignedBlockReadonly && assignedBlockLabel) {
+                assignBlockSelect.value = item.bloque_asignado || '';
+                
+                if (item.usado) {
+                    assignBlockContainer.style.display = 'none';
+                    assignedBlockReadonly.style.display = 'flex';
+                    
+                    let blockLabelText = 'Aleatorio (Por defecto)';
+                    if (item.bloque_asignado) {
+                        blockLabelText = 'Bloque ' + item.bloque_asignado;
+                        if (BLOQUES_MAP && BLOQUES_MAP[item.bloque_asignado]) {
+                            blockLabelText += ': ' + BLOQUES_MAP[item.bloque_asignado].replace('Bloque ' + item.bloque_asignado + ':', '').trim();
+                        }
+                    }
+                    assignedBlockLabel.textContent = blockLabelText;
+                } else {
+                    assignBlockContainer.style.display = 'flex';
+                    assignedBlockReadonly.style.display = 'none';
+                }
+            }
+            
             codeModalStudentsList.innerHTML = `
                 <tr>
                     <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
@@ -3633,6 +3691,45 @@
                         </td>
                     </tr>`;
             }
+        }
+
+        const btnSaveAssignedBlock = document.getElementById('btn-save-assigned-block');
+        const selectAssignedBlock = document.getElementById('code-modal-assign-block-select');
+        
+        if (btnSaveAssignedBlock && selectAssignedBlock) {
+            btnSaveAssignedBlock.addEventListener('click', async () => {
+                if (!currentActiveCodeItem) return;
+                
+                const selectedVal = selectAssignedBlock.value;
+                btnSaveAssignedBlock.disabled = true;
+                btnSaveAssignedBlock.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                
+                try {
+                    const response = await fetch('/api/docente/asignar-bloque', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            codigo: currentActiveCodeItem.codigo,
+                            bloque: selectedVal === '' ? null : parseInt(selectedVal)
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('¡Asignado!', data.message, 'fa-circle-check', '#298552');
+                        currentActiveCodeItem.bloque_asignado = selectedVal === '' ? null : parseInt(selectedVal);
+                        // Refresh the codes list locally to keep cache updated
+                        loadCodes();
+                    } else {
+                        customAlert('Error', data.error || 'No se pudo guardar la asignación.', 'danger');
+                    }
+                } catch (err) {
+                    console.error("Error saving block assignment:", err);
+                    customAlert('Error de Conexión', 'No se pudo conectar con el servidor.', 'danger');
+                } finally {
+                    btnSaveAssignedBlock.disabled = false;
+                    btnSaveAssignedBlock.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Asignar';
+                }
+            });
         }
 
         btnCloseCodeModal.addEventListener('click', () => {

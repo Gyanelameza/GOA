@@ -2022,8 +2022,8 @@
             btnNextStep2.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Cargando Actividad...';
 
             try {
-                // Fetch random block data from backend
-                const response = await fetch('/api/estudiante/datos-bloque');
+                // Fetch block data from backend (sending access code to see if there is an assigned block)
+                const response = await fetch('/api/estudiante/datos-bloque?codigo=' + encodeURIComponent(gameCode));
                 const data = await response.json();
                 
                 if (data.success) {
