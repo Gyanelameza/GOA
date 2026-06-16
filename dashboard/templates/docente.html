@@ -2169,11 +2169,7 @@
         // History and Codes Refreshing (AJAX)
         const btnRefresh = document.getElementById('btn-refresh');
 
-        if (btnRefresh) {
-            btnRefresh.addEventListener('click', () => {
-                location.reload();
-            });
-        }
+        // Click listener moved to unified handler below
 
         // ── elements for history code details modal ──
         const historyCodeModal = document.getElementById('history-code-modal');
@@ -2484,7 +2480,23 @@
             }
         }
 
-        if (btnRefresh) btnRefresh.addEventListener('click', refreshHistory);
+        if (btnRefresh) {
+            btnRefresh.addEventListener('click', () => {
+                const activeTab = sessionStorage.getItem('activeTab') || 'generate';
+                if (activeTab === 'teachers') {
+                    loadTeachers();
+                } else if (activeTab === 'generate') {
+                    loadCodes();
+                } else if (activeTab === 'story-creator') {
+                    const selectEl = document.getElementById('wizard-select-bloque');
+                    if (selectEl) {
+                        cargarDatosBloque(selectEl.value);
+                    }
+                } else {
+                    refreshHistory();
+                }
+            });
+        }
         filterHistorySelect.addEventListener('change', refreshHistory);
 
         // Search bar
@@ -3198,18 +3210,20 @@
         }
 
         // Teacher Management AJAX Loader
-        async function loadTeachers() {
+        async function loadTeachers(isBackground = false) {
             const tableBody = document.getElementById('teachers-table-body');
             const teachersCount = document.getElementById('stat-teachers-count');
             const teachersSlots = document.getElementById('stat-teachers-slots');
             if (!tableBody) return;
 
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
-                        <i class="fa-solid fa-circle-notch fa-spin"></i> Cargando información de docentes...
-                    </td>
-                </tr>`;
+            if (!isBackground || tableBody.children.length === 0 || tableBody.innerHTML.includes('Cargando')) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Cargando información de docentes...
+                        </td>
+                    </tr>`;
+            }
 
             try {
                 const response = await fetch('/api/admin/profesores');
@@ -3738,6 +3752,9 @@
         setInterval(() => {
             loadCodes();
             refreshHistory();
+            if (IS_ADMIN && sessionStorage.getItem('activeTab') === 'teachers') {
+                loadTeachers(true);
+            }
         }, 5000);
 
         const savedTab = sessionStorage.getItem('activeTab');
