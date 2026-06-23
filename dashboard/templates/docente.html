@@ -3863,7 +3863,7 @@
                             <td style="padding: 12px 10px; font-family: monospace; color: var(--text-secondary);">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <input type="password" value="${prof.contrasena}" readonly 
-                                           style="background:none; border:none; color:var(--text-secondary); font-family:monospace; font-size:14px; width:80px; padding:0; outline:none;" id="prof-pwd-${prof.id_profesor}">
+                                           style="background:none; border:none; color:var(--text-secondary); font-family:monospace; font-size:14px; width:130px; padding:0; outline:none;" id="prof-pwd-${prof.id_profesor}">
                                     <button type="button" class="btn-toggle-prof-pwd" data-id="${prof.id_profesor}" style="background:none; border:none; cursor:pointer; color:#5c8bb0; font-size:13px; padding:0; display:flex; align-items:center;">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
@@ -5832,6 +5832,7 @@
                     const data = await res.json();
                     if (data.success) {
                         const list = data.notifications || [];
+                        lastNotificationCount = list.length;
                         updateNotificationBadge(list.length);
                         
                         if (list.length === 0) {
@@ -5870,6 +5871,33 @@
             });
         }
 
+        // Sonido de notificación y estado de control de nuevas notificaciones
+        const notificationSound = new Audio('/static/notification.mp3');
+        let lastNotificationCount = null;
+
+        async function playNotificationSound() {
+            try {
+                notificationSound.currentTime = 0;
+                await notificationSound.play();
+            } catch (err) {
+                console.log('El audio de notificación fue bloqueado, se intentará tras interacción:', err);
+                const playDelayed = async () => {
+                    if (lastNotificationCount > 0) {
+                        try {
+                            notificationSound.currentTime = 0;
+                            await notificationSound.play();
+                            document.removeEventListener('click', playDelayed);
+                        } catch (e) {
+                            // Sigue intentando si vuelve a fallar
+                        }
+                    } else {
+                        document.removeEventListener('click', playDelayed);
+                    }
+                };
+                document.addEventListener('click', playDelayed);
+            }
+        }
+
         function updateNotificationBadge(count) {
             if (count > 0) {
                 notificationBadge.textContent = count;
@@ -5885,6 +5913,7 @@
                     const res = await fetch('/api/admin/notifications/read', { method: 'POST' });
                     const data = await res.json();
                     if (data.success) {
+                        lastNotificationCount = 0;
                         updateNotificationBadge(0);
                         notificationsList.innerHTML = '<p style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin: 15px 0;">No hay notificaciones activas</p>';
                         notificationsDropdown.style.display = 'none';
@@ -5907,7 +5936,14 @@
                 const data = await res.json();
                 if (data.success) {
                     const list = data.notifications || [];
-                    updateNotificationBadge(list.length);
+                    const currentCount = list.length;
+                    
+                    if ((lastNotificationCount === null && currentCount > 0) || (lastNotificationCount !== null && currentCount > lastNotificationCount)) {
+                        playNotificationSound();
+                    }
+                    lastNotificationCount = currentCount;
+                    
+                    updateNotificationBadge(currentCount);
                     
                     // Actualizar el contenido en tiempo real si el desplegable está abierto
                     if (notificationsDropdown && notificationsDropdown.style.display === 'block') {
@@ -5945,5 +5981,6 @@
         loadNotificationsBadgeOnly();
     </script>
     {% endif %}
+    <script src="{{ url_for('static', filename='sound_click.js') }}?v=4"></script>
 </body>
 </html>

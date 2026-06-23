@@ -92,6 +92,30 @@
         /* ── Orbs (hidden — using fixed portal-bg instead) ── */
         .bg-orb { display: none; }
 
+        /* ── TTS button styling ── */
+        .tts-btn {
+            background: rgba(42, 139, 187, 0.1);
+            border: 1px solid rgba(42, 139, 187, 0.25);
+            color: #1a7abf;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .tts-btn:hover {
+            background: rgba(42, 139, 187, 0.2) !important;
+            transform: scale(1.08);
+            color: #1a7abf !important;
+        }
+        .tts-btn:active {
+            transform: scale(0.95);
+        }
+
         /* ── Main card: glass panel like portal-card ── */
         .game-container {
             position: relative;
@@ -1525,7 +1549,12 @@
 
         <!-- ================== STEP 3: REVELACIÓN SECUENCIAL DE NOTAS ================== -->
         <div class="step-panel" id="step-notes">
-            <h2>🌿 Tu Kit del Guardián: Material de Estudio</h2>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px;">
+                <h2 style="margin: 0;">🌿 Tu Kit del Guardián: Material de Estudio</h2>
+                <button id="btn-tts-all-notes" class="tts-btn" title="Escuchar todo el material de estudio" style="width: 38px; height: 38px;">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
             <p class="subtitle">Lee con atención estas tres notas de tu "Kit del Guardián". Te servirán para superar el reto escolar.</p>
             
             <div class="notes-list" id="notes-fading-container">
@@ -1608,7 +1637,12 @@
                     </div>
 
                     <div class="question-box">
-                        <h2 id="story-node-title" style="text-align: left; font-size: 20px; color: #1a3a5c; margin-bottom: 16px;">Nudo 1: El descarte tras el descanso</h2>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; border-bottom: 1.5px dashed rgba(42, 139, 187, 0.15); padding-bottom: 10px;">
+                            <h2 id="story-node-title" style="text-align: left; font-size: 20px; color: #1a3a5c; margin: 0;">Nudo 1: El descarte tras el descanso</h2>
+                            <button id="btn-tts-story" class="tts-btn" title="Escuchar situación">
+                                <i class="fa-solid fa-volume-high"></i>
+                            </button>
+                        </div>
                         <div class="story-text-container">
                             <p class="story-text" id="story-node-text"></p>
                         </div>
@@ -1669,9 +1703,14 @@
 
     <!-- Study notes side drawer -->
     <div class="notes-drawer" id="notes-sidebar-drawer">
-        <div class="notes-drawer-header">
-            <h3><i class="fa-solid fa-toolbox"></i> Cofre de Notas</h3>
-            <button class="close-drawer-btn" id="close-drawer-btn"><i class="fa-solid fa-xmark"></i></button>
+        <div class="notes-drawer-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 style="margin: 0;"><i class="fa-solid fa-toolbox"></i> Cofre de Notas</h3>
+                <button id="btn-tts-drawer-all-notes" class="tts-btn" title="Escuchar todas las notas" style="width: 32px; height: 32px; font-size: 13px;">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+            <button class="close-drawer-btn" id="close-drawer-btn" style="margin-left: auto;"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="notes-list" id="drawer-notes-list" style="margin-top: 10px;">
             <!-- Injected on start -->
@@ -1784,6 +1823,157 @@
                 clearInterval(sessionCheckInterval);
                 sessionCheckInterval = null;
             }
+        }
+
+        // ================== BACKGROUND MUSIC SYSTEM ==================
+        let bgMusic = null;
+        function playBackgroundMusic(src, loop = true) {
+            if (bgMusic) {
+                // Si ya se está reproduciendo este audio, no reiniciarlo
+                if (bgMusic.src.includes(src)) return;
+                bgMusic.pause();
+            }
+            bgMusic = new Audio(src);
+            bgMusic.loop = loop;
+            bgMusic.volume = 0.45; // Volumen sutil de fondo
+            bgMusic.play().catch(err => console.log('Música bloqueada por el navegador:', err));
+        }
+        
+        function stopBackgroundMusic() {
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic = null;
+            }
+        }
+
+        // ================== TEXT TO SPEECH (TTS) SYSTEM ==================
+        let activeTtsButton = null;
+        let isSpeaking = false;
+        let activeUtterance = null; // Track current active utterance object
+        
+        function speakText(text, btnElement) {
+            if (isSpeaking && activeTtsButton === btnElement) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                activeUtterance = null;
+                resetTTSButtons();
+                if (bgMusic) bgMusic.volume = 0.45; // Restaurar volumen de música de fondo
+                return;
+            }
+            
+            window.speechSynthesis.cancel(); // Detener cualquier otra lectura
+            resetTTSButtons();
+            
+            activeTtsButton = btnElement;
+            const utterance = new SpeechSynthesisUtterance(text);
+            activeUtterance = utterance; // Set as current active
+            
+            // Selección inteligente de la mejor voz en español (preferencia por español latino y voces naturales)
+            const voices = window.speechSynthesis.getVoices();
+            let bestVoice = null;
+            let bestScore = -1;
+            
+            voices.forEach(voice => {
+                const name = voice.name.toLowerCase();
+                const lang = voice.lang.toLowerCase();
+                
+                if (lang.startsWith('es')) {
+                    let score = 0;
+                    
+                    // Preferencia: Español Latino (México, Colombia, Argentina, EE.UU., etc.)
+                    if (lang.includes('mx') || lang.includes('co') || lang.includes('ar') || lang.includes('419') || lang.includes('us')) {
+                        score += 100;
+                    } else if (lang.includes('es')) {
+                        score += 50; // España es el fallback
+                    } else {
+                        score += 30; // Otros dialectos
+                    }
+                    
+                    // Alta Calidad: Voces naturales / neurales (Microsoft Natural, etc.)
+                    if (name.includes('natural') || name.includes('neural')) {
+                        score += 200;
+                    }
+                    
+                    // Google Voices (suenan muy natural en Chrome/Android)
+                    if (name.includes('google')) {
+                        score += 40;
+                    }
+                    
+                    // Microsoft Voices
+                    if (name.includes('microsoft')) {
+                        score += 20;
+                    }
+                    
+                    // Nombres conocidos de voces con excelente entonación
+                    if (name.includes('dalia') || name.includes('siri') || name.includes('sabina') || name.includes('jorge') || name.includes('raul') || name.includes('monica')) {
+                        score += 10;
+                    }
+                    
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestVoice = voice;
+                    }
+                }
+            });
+            
+            if (bestVoice) {
+                utterance.voice = bestVoice;
+                utterance.lang = bestVoice.lang;
+                console.log(`TTS: Seleccionada la voz "${bestVoice.name}" (${bestVoice.lang})`);
+            } else {
+                utterance.lang = 'es-MX'; // Fallback a español latino genérico
+                console.log("TTS: Usando configuración de idioma por defecto (es-MX)");
+            }
+            
+            utterance.onstart = () => {
+                // Only act if this is still the active utterance
+                if (activeUtterance !== utterance) return;
+                
+                isSpeaking = true;
+                if (bgMusic) bgMusic.volume = 0.12; // Ducking de música de fondo
+                if (activeTtsButton) {
+                    activeTtsButton.innerHTML = '<i class="fa-solid fa-stop"></i>';
+                    activeTtsButton.style.color = '#dc2626';
+                    activeTtsButton.style.background = 'rgba(220, 38, 38, 0.1)';
+                    activeTtsButton.style.borderColor = 'rgba(220, 38, 38, 0.25)';
+                }
+            };
+            
+            const handleSpeechEnd = () => {
+                // Ignore end events from previous canceled utterances
+                if (activeUtterance !== utterance) return;
+                
+                isSpeaking = false;
+                activeTtsButton = null;
+                activeUtterance = null;
+                if (bgMusic) bgMusic.volume = 0.45; // Restaurar volumen de música
+                resetTTSButtons();
+            };
+            
+            utterance.onend = handleSpeechEnd;
+            utterance.onerror = handleSpeechEnd;
+            
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        function resetTTSButtons() {
+            const ttsButtons = document.querySelectorAll('.tts-btn');
+            ttsButtons.forEach(btn => {
+                btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                btn.style.color = '#1a7abf';
+                btn.style.background = 'rgba(42, 139, 187, 0.1)';
+                btn.style.borderColor = 'rgba(42, 139, 187, 0.25)';
+            });
+            activeTtsButton = null;
+            activeUtterance = null;
+        }
+
+        // Pre-cargar las voces del navegador
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
         }
         
         let currentEvalIndex = 0;
@@ -1938,11 +2128,13 @@
         });
 
         btnNextStep1.addEventListener('click', () => {
+            if (window.playClickSound) window.playClickSound();
             showStep(stepName);
         });
 
         document.getElementById('btn-back-to-step-1').addEventListener('click', (e) => {
             e.preventDefault();
+            if (window.playClickSound) window.playClickSound();
             codeInput.disabled = false;
             showStep(stepCode);
         });
@@ -2009,6 +2201,7 @@
         });
 
         btnNextStep2.addEventListener('click', async () => {
+            if (window.playClickSound) window.playClickSound();
             const nameValRaw = studentNameInput.value;
             const error = validateStudentName(nameValRaw);
 
@@ -2129,7 +2322,7 @@
                 
                 card.innerHTML = `
                     <img class="note-mascot-left" src="${gotitaActiva}" alt="gotita">
-                    <div class="note-card-content">
+                    <div class="note-card-content" style="flex-grow: 1; padding-right: 10px;">
                         <h4>${iconHtml} Nota ${noteNum}: ${cleanTitle}</h4>
                         <p>${noteBodyStyled}</p>
                     </div>
@@ -2144,6 +2337,53 @@
                     <p>${noteBodyStyled}</p>
                 `;
                 drawerNotesList.appendChild(drawerCard);
+            });
+        }
+
+        function readAllNotesText() {
+            let fullText = "Material de estudio. ";
+            gameNotes.forEach((noteText, idx) => {
+                let noteNum = idx + 1;
+                let cleanTitle = '';
+                let noteBodyStyled = noteText;
+                
+                const regex = /^Nota\s+(\d+)\s*\(([^)]+)\)\s*:\s*([\s\S]+)$/i;
+                const match = noteText.match(regex);
+                
+                if (match) {
+                    noteNum = match[1];
+                    cleanTitle = match[2].trim();
+                    noteBodyStyled = match[3].trim();
+                } else {
+                    const splitIndex = noteText.indexOf(':');
+                    if (splitIndex !== -1) {
+                        const titlePart = noteText.substring(0, splitIndex).trim();
+                        noteBodyStyled = noteText.substring(splitIndex + 1).trim();
+                        const numMatch = titlePart.match(/^Nota\s+(\d+)/i);
+                        if (numMatch) noteNum = numMatch[1];
+                        cleanTitle = titlePart.replace(/^Nota\s+\d+\s*\(?/, '').replace(/\)?$/, '').trim();
+                    } else {
+                        cleanTitle = `Material de Apoyo`;
+                    }
+                }
+                
+                const cleanBody = noteBodyStyled.replace(/<[^>]*>/g, '');
+                fullText += `Nota ${noteNum}: ${cleanTitle}. ${cleanBody}. `;
+            });
+            return fullText;
+        }
+
+        const btnTtsAllNotes = document.getElementById('btn-tts-all-notes');
+        if (btnTtsAllNotes) {
+            btnTtsAllNotes.addEventListener('click', () => {
+                speakText(readAllNotesText(), btnTtsAllNotes);
+            });
+        }
+
+        const btnTtsDrawerAllNotes = document.getElementById('btn-tts-drawer-all-notes');
+        if (btnTtsDrawerAllNotes) {
+            btnTtsDrawerAllNotes.addEventListener('click', () => {
+                speakText(readAllNotesText(), btnTtsDrawerAllNotes);
             });
         }
 
@@ -2167,6 +2407,10 @@
         }
 
         btnStartEvaluation.addEventListener('click', () => {
+            if (window.playClickSound) window.playClickSound();
+            window.speechSynthesis.cancel(); // Stop notes reading
+            isSpeaking = false;
+            resetTTSButtons();
             showStep(stepEvaluation);
             // Enable floating chest button
             floatingChestBtn.style.display = 'flex';
@@ -2198,7 +2442,12 @@
 
             // Render container html
             evalQuestionContainer.innerHTML = `
-                <h3>${q.pregunta}</h3>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; border-bottom: 1.5px dashed rgba(42, 139, 187, 0.15); padding-bottom: 10px;">
+                    <h3 style="margin: 0; text-align: left; font-size: 19px;">${q.pregunta}</h3>
+                    <button class="tts-btn btn-tts-eval" title="Escuchar pregunta">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
                 <div class="options-list">
                     ${options.map(o => `
                         <button class="option-btn" data-letter="${o.letter}" data-text="${o.text.replace(/"/g, '&quot;')}" data-feedback="${o.feedback.replace(/"/g, '&quot;')}">
@@ -2208,6 +2457,17 @@
                     `).join('')}
                 </div>
             `;
+
+            // Attach click listener to TTS button
+            const btnTtsEval = evalQuestionContainer.querySelector('.btn-tts-eval');
+            if (btnTtsEval) {
+                btnTtsEval.addEventListener('click', () => {
+                    let textToRead = q.pregunta;
+                    const optionsText = options.map(o => `Opción ${o.letter}. ${o.text}`).join('. ');
+                    textToRead += `. ${optionsText}`;
+                    speakText(textToRead, btnTtsEval);
+                });
+            }
 
             // Attach click listeners to option buttons
             const optionBtns = evalQuestionContainer.querySelectorAll('.option-btn');
@@ -2221,6 +2481,11 @@
         }
 
         btnNextEvalQuestion.addEventListener('click', () => {
+            if (window.playClickSound) window.playClickSound();
+            window.speechSynthesis.cancel(); // Stop reading
+            isSpeaking = false;
+            resetTTSButtons();
+
             const selectedBtn = evalQuestionContainer.querySelector('.option-btn.selected');
             const chosenText = selectedBtn.getAttribute('data-text');
             const feedbackText = selectedBtn.getAttribute('data-feedback');
@@ -2235,7 +2500,8 @@
                 opcion_elegida: chosenText,
                 correcta: isCorrect,
                 feedback: feedbackText,
-                tipo: 'inicial'
+                tipo: 'inicial',
+                respuesta_correcta: correctText
             });
 
             currentEvalIndex++;
@@ -2244,6 +2510,9 @@
             } else {
                 // Done with initial evaluation, advance to transition screen
                 evalProgressFill.style.width = '100%';
+                
+                // Reproducir música de aventura al terminar la evaluación
+                playBackgroundMusic('/static/adventure_music.mp3');
                 
                 // Populate custom story title and introduction if they exist
                 const storyIntroContainer = document.getElementById('story-intro-container');
@@ -2269,12 +2538,44 @@
 
         // ================== STEP 5: TRANSICIÓN A LA HISTORIA ==================
         btnStartStory.addEventListener('click', () => {
+            if (window.playClickSound) window.playClickSound();
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+            resetTTSButtons();
+            stopBackgroundMusic(); // Detener música de aventura al continuar
             showStep(stepStory);
             renderStoryNode();
         });
 
+        const btnTtsStory = document.getElementById('btn-tts-story');
+        if (btnTtsStory) {
+            btnTtsStory.addEventListener('click', () => {
+                const node = gameNudos[currentStoryIndex];
+                if (node && node.texto_situacion) {
+                    let textToRead = node.texto_situacion;
+                    
+                    const nodeOpts = [
+                        node.opcion_1,
+                        node.opcion_2,
+                        node.opcion_3
+                    ].filter(o => o);
+                    
+                    if (nodeOpts.length > 0) {
+                        const optionsText = nodeOpts.map((text, idx) => `Opción ${String.fromCharCode(65 + idx)}. ${text}`).join('. ');
+                        textToRead += `. ${optionsText}`;
+                    }
+                    speakText(textToRead, btnTtsStory);
+                }
+            });
+        }
+
         // ================== STEP 6: HISTORIA INTERACTIVA (3 NUDOS) ==================
         function renderStoryNode() {
+            // Stop speech when rendering a new story node
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+            resetTTSButtons();
+
             const node = gameNudos[currentStoryIndex];
             
             // Progress indicators
@@ -2358,6 +2659,11 @@
         }
 
         btnNextStoryNode.addEventListener('click', async () => {
+            if (window.playClickSound) window.playClickSound();
+            window.speechSynthesis.cancel(); // Stop reading
+            isSpeaking = false;
+            resetTTSButtons();
+
             const selectedBtn = storyOptionsContainer.querySelector('.option-btn.selected');
             const chosenText = selectedBtn.getAttribute('data-text');
             const feedbackText = selectedBtn.getAttribute('data-feedback');
@@ -2372,7 +2678,8 @@
                 opcion_elegida: chosenText,
                 correcta: isCorrect,
                 feedback: feedbackText,
-                tipo: 'historia'
+                tipo: 'historia',
+                respuesta_correcta: correctText
             });
 
             currentStoryIndex++;
@@ -2451,26 +2758,64 @@
                 
                 // Format the question text nicely (e.g. cut nudo prefix if very long in header)
                 let headerText = ans.pregunta;
+                let fullQuestionText = ans.pregunta; // Keep full text for TTS reading
                 if (ans.tipo === 'historia' && headerText.includes(':')) {
                     headerText = headerText.split(':')[0]; // Just show scene title
                 }
 
-                itemCard.innerHTML = `
-                    <div class="result-item-header">
-                        <span class="result-item-text">${idx + 1}. ${headerText}</span>
-                        <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                            <span class="result-badge ${typeClass}">${typeText}</span>
-                            <span class="result-badge ${statusClass}">${statusText}</span>
+                // Show correct answer if student got it incorrect
+                let correctTextHTML = '';
+                if (!ans.correcta && ans.respuesta_correcta) {
+                    correctTextHTML = `
+                        <div class="result-correct" style="text-align: left; margin-top: 6px; color: var(--accent-green); font-size: 13.5px; font-weight: 700;">
+                            <strong>Respuesta correcta:</strong> "${ans.respuesta_correcta}"
                         </div>
+                    `;
+                }
+
+                itemCard.innerHTML = `
+                    <div class="result-item-header" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;">
+                        <div style="display: flex; flex-direction: column; text-align: left; gap: 4px; flex-grow: 1;">
+                            <span class="result-item-text" style="font-weight: 700; font-size: 15px;">${idx + 1}. ${headerText}</span>
+                            <div style="display: flex; gap: 6px; margin-top: 4px;">
+                                <span class="result-badge ${typeClass}">${typeText}</span>
+                                <span class="result-badge ${statusClass}">${statusText}</span>
+                            </div>
+                        </div>
+                        <button class="tts-btn btn-tts-result" title="Escuchar respuesta y retroalimentación" style="width: 32px; height: 32px; font-size: 13px;">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
                     </div>
-                    <div class="result-chosen">
+                    <div class="result-chosen" style="text-align: left; margin-top: 8px;">
                         <strong>Tu elección:</strong> "${ans.opcion_elegida}"
                     </div>
-                    <div class="result-feedback">
+                    <div class="result-feedback" style="text-align: left; margin-top: 6px;">
                         ${ans.feedback || 'Sin retroalimentación adicional.'}
                     </div>
+                    ${correctTextHTML}
                 `;
                 resultItemsContainer.appendChild(itemCard);
+
+                // Attach click listener for this result card's speaker
+                const btnTtsResult = itemCard.querySelector('.btn-tts-result');
+                if (btnTtsResult) {
+                    btnTtsResult.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (window.playClickSound) window.playClickSound();
+                        
+                        // Clean up text
+                        const cleanQuestion = fullQuestionText.replace(/<[^>]*>/g, '');
+                        const cleanChoice = ans.opcion_elegida.replace(/<[^>]*>/g, '');
+                        const cleanFeedback = (ans.feedback || 'Sin retroalimentación adicional.').replace(/<[^>]*>/g, '');
+                        
+                        let textToRead = `${typeText} número ${idx + 1}. Pregunta: ${cleanQuestion}. Tu respuesta fue: ${cleanChoice}, lo cual es ${statusText}.`;
+                        textToRead += ` Retroalimentación: ${cleanFeedback}.`;
+                        if (!ans.correcta && ans.respuesta_correcta) {
+                            textToRead += ` La respuesta correcta era: ${ans.respuesta_correcta.replace(/<[^>]*>/g, '')}.`;
+                        }
+                        speakText(textToRead, btnTtsResult);
+                    });
+                }
             });
 
             // Hide study notes chest on final report screen
@@ -2480,13 +2825,21 @@
             stopSessionChecking();
 
             // Show results step
+            playBackgroundMusic('/static/celebration_music.mp3');
             showStep(stepResults);
         }
 
-        btnFinishChallenge.addEventListener('click', () => {
-            // Redirect to main portal page
-            location.href = '/';
+        btnFinishChallenge.addEventListener('click', (e) => {
+            if (window.playClickSound) window.playClickSound();
+            window.speechSynthesis.cancel(); // Stop reading
+            isSpeaking = false;
+            resetTTSButtons();
+            stopBackgroundMusic(); // Stop music
+            setTimeout(() => {
+                location.href = '/';
+            }, 220);
         });
     </script>
+    <script src="{{ url_for('static', filename='sound_click.js') }}?v=4"></script>
 </body>
 </html>
