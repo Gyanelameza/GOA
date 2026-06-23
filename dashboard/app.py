@@ -1311,12 +1311,19 @@ def admin_profesor_detalles(id_profesor):
 @app.route('/api/admin/eliminar-docente/<int:id_docente>', methods=['DELETE'])
 @admin_required
 def admin_eliminar_docente(id_docente):
-    current_admin_id = session.get('profesor_id')
     connection = get_db_connection()
     if not connection:
         return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
     cursor = connection.cursor()
     try:
+        # Sync and retrieve the correct current admin ID from database
+        cursor.execute("SELECT id_profesor FROM profesores WHERE username = 'admin.goa';")
+        admin_row = cursor.fetchone()
+        if admin_row:
+            session['profesor_id'] = admin_row[0]
+            
+        current_admin_id = session.get('profesor_id')
+        
         # Check that we aren't trying to delete the active admin
         if id_docente == current_admin_id:
             return jsonify({'success': False, 'error': 'No puedes eliminar tu propia cuenta de administrador activa.'}), 400
