@@ -555,6 +555,7 @@
 <!-- ══ INTRO: video sin controles ══ -->
 <div id="intro">
     <video id="intro-video"
+           preload="auto"
            muted playsinline
            disablepictureinpicture
            controlslist="nodownload nofullscreen noremoteplayback">
@@ -626,6 +627,10 @@
 
 <script>
     const video = document.getElementById('intro-video');
+    // Forzar la precarga del video inmediatamente al cargar la página
+    if (video) {
+        video.load();
+    }
     const skip  = document.getElementById('skip');
     const btnStart = document.getElementById('btn-start-adventure');
     const welcomeScreen = document.getElementById('welcome-screen');
