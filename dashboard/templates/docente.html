@@ -5875,6 +5875,32 @@
         const notificationSound = new Audio('/static/notification.mp3');
         notificationSound.preload = 'auto';
         notificationSound.load(); // Forzar precarga para evitar latencia de red
+
+        // Desbloquear sonido de notificación en móviles en la primera interacción
+        function unlockNotificationSound() {
+            const originalVolume = notificationSound.volume;
+            notificationSound.volume = 0;
+            const playPromise = notificationSound.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    notificationSound.pause();
+                    notificationSound.currentTime = 0;
+                    notificationSound.volume = originalVolume;
+                }).catch(err => {
+                    console.log('Error al desbloquear sonido de notificación:', err);
+                    notificationSound.volume = originalVolume;
+                });
+            } else {
+                notificationSound.pause();
+                notificationSound.currentTime = 0;
+                notificationSound.volume = originalVolume;
+            }
+            document.removeEventListener('click', unlockNotificationSound);
+            document.removeEventListener('touchstart', unlockNotificationSound);
+        }
+        document.addEventListener('click', unlockNotificationSound);
+        document.addEventListener('touchstart', unlockNotificationSound);
+
         let lastNotificationCount = null;
 
         async function playNotificationSound() {

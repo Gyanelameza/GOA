@@ -1826,16 +1826,72 @@
         }
 
         // ================== BACKGROUND MUSIC SYSTEM ==================
+        const tracks = {
+            adventure: new Audio('/static/adventure_music.mp3'),
+            celebration: new Audio('/static/celebration_music.mp3')
+        };
+        tracks.adventure.preload = 'auto';
+        tracks.adventure.loop = true;
+        tracks.adventure.volume = 0.45;
+        tracks.adventure.load(); // Precargar música de aventura
+
+        tracks.celebration.preload = 'auto';
+        tracks.celebration.loop = true;
+        tracks.celebration.volume = 0.45;
+        tracks.celebration.load(); // Precargar música de triunfo
+
+        // Desbloquear audio en móviles en el primer clic o toque en la pantalla
+        function unlockMobileAudio() {
+            const unlockTracks = [tracks.adventure, tracks.celebration];
+            unlockTracks.forEach(track => {
+                if (track) {
+                    const originalVolume = track.volume;
+                    track.volume = 0;
+                    const playPromise = track.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            track.pause();
+                            track.currentTime = 0;
+                            track.volume = originalVolume;
+                        }).catch(err => {
+                            console.log('Error al desbloquear pista en móvil:', err);
+                            track.volume = originalVolume;
+                        });
+                    } else {
+                        track.pause();
+                        track.currentTime = 0;
+                        track.volume = originalVolume;
+                    }
+                }
+            });
+            document.removeEventListener('click', unlockMobileAudio);
+            document.removeEventListener('touchstart', unlockMobileAudio);
+        }
+        document.addEventListener('click', unlockMobileAudio);
+        document.addEventListener('touchstart', unlockMobileAudio);
+
         let bgMusic = null;
         function playBackgroundMusic(src, loop = true) {
+            let selectedTrack = null;
+            if (src.includes('adventure_music')) {
+                selectedTrack = tracks.adventure;
+            } else if (src.includes('celebration_music')) {
+                selectedTrack = tracks.celebration;
+            } else {
+                selectedTrack = new Audio(src);
+                selectedTrack.preload = 'auto';
+                selectedTrack.loop = loop;
+                selectedTrack.volume = 0.45;
+                selectedTrack.load();
+            }
+
             if (bgMusic) {
-                // Si ya se está reproduciendo este audio, no reiniciarlo
-                if (bgMusic.src.includes(src)) return;
+                if (bgMusic === selectedTrack) return;
                 bgMusic.pause();
             }
-            bgMusic = new Audio(src);
+
+            bgMusic = selectedTrack;
             bgMusic.loop = loop;
-            bgMusic.volume = 0.45; // Volumen sutil de fondo
             bgMusic.play().catch(err => console.log('Música bloqueada por el navegador:', err));
         }
         
