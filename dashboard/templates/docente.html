@@ -5873,6 +5873,8 @@
 
         // Sonido de notificación y estado de control de nuevas notificaciones
         const notificationSound = new Audio('/static/notification.mp3');
+        notificationSound.preload = 'auto';
+        notificationSound.load(); // Forzar precarga para evitar latencia de red
         let lastNotificationCount = null;
 
         async function playNotificationSound() {
@@ -5925,10 +5927,10 @@
             });
         }
 
-        // Poll notifications every 2 seconds
+        // Poll notifications every 1 second (más responsivo para pruebas en Render)
         setInterval(() => {
             loadNotificationsBadgeOnly();
-        }, 2000);
+        }, 1000);
 
         async function loadNotificationsBadgeOnly() {
             try {
