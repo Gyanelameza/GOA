@@ -1857,7 +1857,10 @@
                 isSpeaking = false;
                 activeUtterance = null;
                 resetTTSButtons();
-                if (bgMusic) bgMusic.volume = 0.45; // Restaurar volumen de música de fondo
+                if (bgMusic) {
+                    bgMusic.play().catch(err => console.log('Error al reproducir música:', err));
+                    bgMusic.volume = 0.45; // Restaurar volumen de música de fondo
+                }
                 return;
             }
             
@@ -1930,7 +1933,9 @@
                 if (activeUtterance !== utterance) return;
                 
                 isSpeaking = true;
-                if (bgMusic) bgMusic.volume = 0.12; // Ducking de música de fondo
+                if (bgMusic) {
+                    bgMusic.pause(); // Pausar la música de fondo por completo
+                }
                 if (activeTtsButton) {
                     activeTtsButton.innerHTML = '<i class="fa-solid fa-stop"></i>';
                     activeTtsButton.style.color = '#dc2626';
@@ -1946,7 +1951,10 @@
                 isSpeaking = false;
                 activeTtsButton = null;
                 activeUtterance = null;
-                if (bgMusic) bgMusic.volume = 0.45; // Restaurar volumen de música
+                if (bgMusic) {
+                    bgMusic.play().catch(err => console.log('Error al reanudar música:', err));
+                    bgMusic.volume = 0.45; // Restaurar volumen de música
+                }
                 resetTTSButtons();
             };
             
@@ -1981,6 +1989,7 @@
         
         let currentStoryIndex = 0;
         let storyAnswers = []; // stores {nodeId, chosenOptionText, correctOptionText, isCorrect, feedback}
+        let currentShuffledStoryOptions = []; // stores currently shuffled options for the active story node
         
         let typewriterTimeout = null;
 
@@ -2554,14 +2563,11 @@
                 if (node && node.texto_situacion) {
                     let textToRead = node.texto_situacion;
                     
-                    const nodeOpts = [
-                        node.opcion_1,
-                        node.opcion_2,
-                        node.opcion_3
-                    ].filter(o => o);
+                    // Incluir la pregunta intermedia en el audio
+                    textToRead += `. ¿Qué debes hacer? ¿Qué harías tú?`;
                     
-                    if (nodeOpts.length > 0) {
-                        const optionsText = nodeOpts.map((text, idx) => `Opción ${String.fromCharCode(65 + idx)}. ${text}`).join('. ');
+                    if (currentShuffledStoryOptions && currentShuffledStoryOptions.length > 0) {
+                        const optionsText = currentShuffledStoryOptions.map(o => `Opción ${o.letter}. ${o.text}`).join('. ');
                         textToRead += `. ${optionsText}`;
                     }
                     speakText(textToRead, btnTtsStory);
@@ -2607,6 +2613,7 @@
             options.forEach((o, index) => {
                 o.letter = String.fromCharCode(65 + index); // A, B, C
             });
+            currentShuffledStoryOptions = options;
 
             // Trigger Typewriter text animation
             if (typewriterTimeout) clearTimeout(typewriterTimeout);

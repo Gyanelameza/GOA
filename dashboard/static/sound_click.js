@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Si el elemento redirige (tiene href o data-href), retrasamos la navegación
             // para permitir escuchar el sonido completo de agua/burbuja
             const href = target.getAttribute('href') || target.getAttribute('data-href');
-            if (href && href !== '#' && !href.startsWith('javascript:') && !target.getAttribute('target')) {
+            const isDownload = target.hasAttribute('download') || (href && (href.startsWith('blob:') || href.startsWith('data:')));
+            if (href && href !== '#' && !href.startsWith('javascript:') && !target.getAttribute('target') && !isDownload) {
                 e.preventDefault();
                 setTimeout(() => {
                     window.location.href = href;
