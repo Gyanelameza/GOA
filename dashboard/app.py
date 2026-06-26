@@ -8,12 +8,13 @@ import json
 app = Flask(__name__)
 app.secret_key = 'goa_secret_key_for_session_management_2026'
 
-# Prevent aggressive browser caching of pages/assets
+# Prevent aggressive browser caching of pages/assets, but allow caching of static files for performance
 @app.after_request
 def add_header(response):
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
+    if not request.path.startswith('/static/'):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
     response.headers['X-App-Version'] = '1.1.2'
     return response
 

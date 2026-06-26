@@ -1717,6 +1717,10 @@
         </div>
     </div>
 
+    <!-- Preload Audio Elements -->
+    <audio id="audio-adventure" src="{{ url_for('static', filename='adventure_music.mp3') }}" preload="auto" loop></audio>
+    <audio id="audio-celebration" src="{{ url_for('static', filename='celebration_music.mp3') }}" preload="auto" loop></audio>
+
     <!-- Page JavaScript Logic -->
     <script>
         // ── Custom Dialog System ──
@@ -1827,24 +1831,24 @@
 
         // ================== BACKGROUND MUSIC SYSTEM ==================
         const tracks = {
-            adventure: new Audio('/static/adventure_music.mp3'),
-            celebration: new Audio('/static/celebration_music.mp3')
+            adventure: document.getElementById('audio-adventure'),
+            celebration: document.getElementById('audio-celebration')
         };
-        tracks.adventure.preload = 'auto';
-        tracks.adventure.loop = true;
         tracks.adventure.volume = 0.45;
-        tracks.adventure.load(); // Precargar música de aventura
-
-        tracks.celebration.preload = 'auto';
-        tracks.celebration.loop = true;
         tracks.celebration.volume = 0.45;
-        tracks.celebration.load(); // Precargar música de triunfo
 
-        // Desbloquear audio en móviles en el primer clic o toque en la pantalla
+        // Desbloquear audio en móviles en la primera interacción y reproducir música inicial
         function unlockMobileAudio() {
+            const currentActiveStep = document.querySelector('.step-panel.active');
+            const shouldPlayInitial = (currentActiveStep === stepCode || currentActiveStep === stepName);
+
             const unlockTracks = [tracks.adventure, tracks.celebration];
             unlockTracks.forEach(track => {
                 if (track) {
+                    if (track === tracks.adventure && shouldPlayInitial) {
+                        playBackgroundMusic('/static/adventure_music.mp3');
+                        return;
+                    }
                     const originalVolume = track.volume;
                     track.volume = 0;
                     const playPromise = track.play();
@@ -1866,9 +1870,11 @@
             });
             document.removeEventListener('click', unlockMobileAudio);
             document.removeEventListener('touchstart', unlockMobileAudio);
+            document.removeEventListener('keydown', unlockMobileAudio);
         }
         document.addEventListener('click', unlockMobileAudio);
         document.addEventListener('touchstart', unlockMobileAudio);
+        document.addEventListener('keydown', unlockMobileAudio);
 
         let bgMusic = null;
         function playBackgroundMusic(src, loop = true) {
@@ -2118,6 +2124,14 @@
                 step.classList.remove('active');
             });
             targetStep.classList.add('active');
+
+            // Detener la música de aventura cuando se muestran las notas
+            if (targetStep === stepNotes) {
+                stopBackgroundMusic();
+                document.removeEventListener('click', unlockMobileAudio);
+                document.removeEventListener('touchstart', unlockMobileAudio);
+                document.removeEventListener('keydown', unlockMobileAudio);
+            }
 
             // Toggle compact header class during active educational steps
             const header = document.querySelector('.portal-header');
