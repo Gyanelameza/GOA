@@ -81,11 +81,15 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def obtener_info_bloques():
-    connection = get_db_connection()
-    if not connection:
-        return {}
-    cursor = connection.cursor()
+def obtener_info_bloques(cursor=None):
+    close_conn = False
+    connection = None
+    if cursor is None:
+        connection = get_db_connection()
+        if not connection:
+            return {}
+        cursor = connection.cursor()
+        close_conn = True
     try:
         cursor.execute("""
             SELECT DISTINCT bloque FROM (
@@ -98,13 +102,16 @@ def obtener_info_bloques():
         """)
         bloques = [row[0] for row in cursor.fetchall()]
         
+        cursor.execute("SELECT bloque, contenido FROM material_estudio;")
+        material_rows = cursor.fetchall()
+        material_map = {row[0]: row[1] for row in material_rows}
+        
         info = {}
         for b in bloques:
-            cursor.execute("SELECT contenido FROM material_estudio WHERE bloque = %s;", (b,))
-            row = cursor.fetchone()
+            contenido = material_map.get(b)
             title = ""
-            if row and row[0]:
-                lines = row[0].split('\n')
+            if contenido:
+                lines = contenido.split('\n')
                 if lines:
                     title = lines[0].strip()
             info[b] = title or f"Bloque {b}"
@@ -113,8 +120,11 @@ def obtener_info_bloques():
         print(f"Error al obtener info de bloques: {e}")
         return {}
     finally:
-        cursor.close()
-        connection.close()
+        if close_conn:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
 
 @app.route('/')
 def index():
@@ -538,46 +548,91 @@ def run_query():
         cursor.close()
         connection.close()
 
-def obtener_detalles_completos(cursor, bloque, detalles_estudiante):
-    # 1. Obtener las 5 preguntas del banco de preguntas para este bloque
+def preinicializar_preguntas_por_bloque(cursor):
+    # Fetch all questions from banco_preguntas
     cursor.execute("""
-        SELECT pregunta, respuesta_correcta 
+        SELECT bloque, pregunta, respuesta_correcta 
         FROM banco_preguntas 
-        WHERE bloque = %s 
-        ORDER BY id_pregunta;
-    """, (bloque,))
-    preguntas_db = cursor.fetchall()
+        ORDER BY bloque, id_pregunta;
+    """)
+    preguntas_raw = cursor.fetchall()
     
-    # 2. Obtener los 3 nudos de la historia interactiva para este bloque
+    # Fetch all nodes from historia_interactiva
     cursor.execute("""
-        SELECT escena_titulo, texto_situacion, respuesta_correcta 
+        SELECT bloque, escena_titulo, texto_situacion, respuesta_correcta 
         FROM historia_interactiva 
-        WHERE bloque = %s 
-        ORDER BY id_nodo;
-    """, (bloque,))
-    nudos_db = cursor.fetchall()
+        ORDER BY bloque, id_nodo;
+    """)
+    nudos_raw = cursor.fetchall()
     
-    # Construir lista de las 8 preguntas del bloque
-    preguntas_bloque = []
+    preguntas_por_bloque = {}
     
-    # Agregar las del banco (Iniciales)
-    for p in preguntas_db:
-        preguntas_bloque.append({
-            'pregunta': p[0],
-            'respuesta_correcta': p[1],
+    # Group banco_preguntas by block
+    for bloque, pregunta, respuesta_correcta in preguntas_raw:
+        if bloque not in preguntas_por_bloque:
+            preguntas_por_bloque[bloque] = []
+        preguntas_por_bloque[bloque].append({
+            'pregunta': pregunta,
+            'respuesta_correcta': respuesta_correcta,
             'tipo': 'inicial'
         })
         
-    # Agregar los nudos (Historia)
-    for n in nudos_db:
-        titulo = n[0]
-        texto = n[1]
+    # Group historia_interactiva by block
+    for bloque, titulo, texto, respuesta_correcta in nudos_raw:
+        if bloque not in preguntas_por_bloque:
+            preguntas_por_bloque[bloque] = []
         pregunta_texto = f"{titulo}: {texto}" if titulo else texto
-        preguntas_bloque.append({
+        preguntas_por_bloque[bloque].append({
             'pregunta': pregunta_texto,
-            'respuesta_correcta': n[2],
+            'respuesta_correcta': respuesta_correcta,
             'tipo': 'historia'
         })
+        
+    return preguntas_por_bloque
+
+def obtener_detalles_completos(cursor, bloque, detalles_estudiante, preguntas_por_bloque=None):
+    if preguntas_por_bloque is not None:
+        preguntas_bloque = preguntas_por_bloque.get(bloque, [])
+    else:
+        # 1. Obtener las 5 preguntas del banco de preguntas para este bloque
+        cursor.execute("""
+            SELECT pregunta, respuesta_correcta 
+            FROM banco_preguntas 
+            WHERE bloque = %s 
+            ORDER BY id_pregunta;
+        """, (bloque,))
+        preguntas_db = cursor.fetchall()
+        
+        # 2. Obtener los 3 nudos de la historia interactiva para este bloque
+        cursor.execute("""
+            SELECT escena_titulo, texto_situacion, respuesta_correcta 
+            FROM historia_interactiva 
+            WHERE bloque = %s 
+            ORDER BY id_nodo;
+        """, (bloque,))
+        nudos_db = cursor.fetchall()
+        
+        # Construir lista de las 8 preguntas del bloque
+        preguntas_bloque = []
+        
+        # Agregar las del banco (Iniciales)
+        for p in preguntas_db:
+            preguntas_bloque.append({
+                'pregunta': p[0],
+                'respuesta_correcta': p[1],
+                'tipo': 'inicial'
+            })
+            
+        # Agregar los nudos (Historia)
+        for n in nudos_db:
+            titulo = n[0]
+            texto = n[1]
+            pregunta_texto = f"{titulo}: {texto}" if titulo else texto
+            preguntas_bloque.append({
+                'pregunta': pregunta_texto,
+                'respuesta_correcta': n[2],
+                'tipo': 'historia'
+            })
         
     # Función para limpiar palabras y comparar
     def get_clean_words(s):
@@ -696,11 +751,14 @@ def docente_panel():
             """, (profesor_id,))
         historial_raw = cursor.fetchall()
         
+        # Preinitialise questions mapping to prevent N+1 queries in the loop
+        preguntas_por_bloque = preinicializar_preguntas_por_bloque(cursor)
+
         historial = []
         for row in historial_raw:
             bloque = row[5] if row[5] is not None else 1
             detalles_raw = row[6] if row[6] is not None else []
-            detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw)
+            detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw, preguntas_por_bloque)
             historial.append({
                 'alumno': capitalize_name(row[0]),
                 'codigo': row[1],
@@ -711,8 +769,8 @@ def docente_panel():
                 'detalles': detalles_completos,
                 'id_resultado': row[7]
             })
-        # Obtener bloques dinámicos
-        bloques_map = obtener_info_bloques()
+        # Obtener bloques dinámicos reutilizando el cursor
+        bloques_map = obtener_info_bloques(cursor)
         if not bloques_map:
             bloques_map = {
                 1: 'Bloque 1: Gestión de Residuos y Reciclaje',
@@ -725,12 +783,14 @@ def docente_panel():
                 if not title.startswith(f"Bloque {b}:"):
                     bloques_map[b] = f"Bloque {b}: {title}"
                 
+        # Batch fetch icons and colors for material_estudio to prevent N+1 queries
+        cursor.execute("SELECT bloque, icono, color FROM material_estudio;")
+        material_icons_colors = cursor.fetchall()
+        material_style_map = {row[0]: (row[1], row[2]) for row in material_icons_colors}
+
         bloques_list = []
         for b, t in sorted(bloques_map.items()):
-            cursor.execute("SELECT icono, color FROM material_estudio WHERE bloque = %s;", (b,))
-            row_ic = cursor.fetchone()
-            icono = row_ic[0] if (row_ic and row_ic[0]) else 'fa-book'
-            color = row_ic[1] if (row_ic and row_ic[1]) else '#2a8bbb'
+            icono, color = material_style_map.get(b, ('fa-book', '#2a8bbb'))
             bloques_list.append({
                 'id': b,
                 'titulo': t.replace(f"Bloque {b}:", "").strip(),
@@ -1000,11 +1060,14 @@ def api_historial():
                 """, (profesor_id,))
         historial_raw = cursor.fetchall()
         
+        # Preinitialise questions mapping to prevent N+1 queries in the loop
+        preguntas_por_bloque = preinicializar_preguntas_por_bloque(cursor)
+
         historial = []
         for row in historial_raw:
             bloque = row[5] if row[5] is not None else 1
             detalles_raw = row[6] if row[6] is not None else []
-            detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw)
+            detalles_completos = obtener_detalles_completos(cursor, bloque, detalles_raw, preguntas_por_bloque)
             entry = {
                 'alumno': capitalize_name(row[0]),
                 'codigo': row[1],
