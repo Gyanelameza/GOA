@@ -126,6 +126,162 @@ def obtener_info_bloques(cursor=None):
             if connection:
                 connection.close()
 
+def obtener_todos_detalles_bloques(cursor):
+    try:
+        # 1. Fetch material de estudio for all blocks
+        cursor.execute("SELECT bloque, contenido, icono, color FROM material_estudio;")
+        materials = cursor.fetchall()
+        
+        # 2. Fetch questions for all blocks
+        cursor.execute("""
+            SELECT bloque, id_pregunta, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
+                   opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta 
+            FROM banco_preguntas 
+            ORDER BY bloque, id_pregunta;
+        """)
+        questions_raw = cursor.fetchall()
+        
+        # 3. Fetch story nodes for all blocks
+        cursor.execute("""
+            SELECT bloque, id_nodo, escena_titulo, texto_situacion, opcion_1, feedback_1, 
+                   opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta,
+                   historia_titulo, historia_introduccion 
+            FROM historia_interactiva 
+            ORDER BY bloque, id_nodo;
+        """)
+        nodes_raw = cursor.fetchall()
+        
+        # Group questions by block
+        questions_by_block = {}
+        for r in questions_raw:
+            b = r[0]
+            correct_val = r[11]
+            correct_idx = "1"
+            if correct_val == r[3]: correct_idx = "1"
+            elif correct_val == r[5]: correct_idx = "2"
+            elif correct_val == r[7]: correct_idx = "3"
+            elif correct_val == r[9]: correct_idx = "4"
+            
+            q_data = {
+                'id_pregunta': r[1],
+                'pregunta': r[2],
+                'opcion_1': r[3],
+                'feedback_1': r[4],
+                'opcion_2': r[5],
+                'feedback_2': r[6],
+                'opcion_3': r[7],
+                'feedback_3': r[8],
+                'opcion_4': r[9],
+                'feedback_4': r[10],
+                'correcta': correct_idx
+            }
+            if b not in questions_by_block:
+                questions_by_block[b] = []
+            questions_by_block[b].append(q_data)
+            
+        # Group nodes by block
+        nodes_by_block = {}
+        story_info_by_block = {}
+        for r in nodes_raw:
+            b = r[0]
+            correct_val = r[10]
+            correct_idx = "1"
+            if correct_val == r[4]: correct_idx = "1"
+            elif correct_val == r[6]: correct_idx = "2"
+            elif correct_val == r[8]: correct_idx = "3"
+            
+            n_data = {
+                'id_nodo': r[1],
+                'escena_titulo': r[2],
+                'texto_situacion': r[3],
+                'opcion_1': r[4],
+                'feedback_1': r[5],
+                'opcion_2': r[6],
+                'feedback_2': r[7],
+                'opcion_3': r[8],
+                'feedback_3': r[9],
+                'correcta': correct_idx
+            }
+            if b not in nodes_by_block:
+                nodes_by_block[b] = []
+            nodes_by_block[b].append(n_data)
+            
+            if b not in story_info_by_block:
+                story_info_by_block[b] = {
+                    'story_title': r[11] or "",
+                    'story_intro': r[12] or ""
+                }
+
+        # Process materials and build cache dict
+        cache = {}
+        for row in materials:
+            b = row[0]
+            material_content = row[1] if row[1] else ""
+            icono = row[2] if row[2] else 'fa-book'
+            color = row[3] if row[3] else '#2a8bbb'
+            
+            # Parse notes
+            block_title = ""
+            note1_title, note1_text = "", ""
+            note2_title, note2_text = "", ""
+            note3_title, note3_text = "", ""
+            
+            if material_content:
+                lines = material_content.split('\n')
+                if lines:
+                    block_title = lines[0].strip()
+                
+                idx1 = material_content.find("Nota 1")
+                idx2 = material_content.find("Nota 2")
+                idx3 = material_content.find("Nota 3")
+                
+                if idx1 != -1 and idx2 != -1 and idx3 != -1:
+                    nota1 = material_content[idx1:idx2].strip()
+                    nota2 = material_content[idx2:idx3].strip()
+                    nota3 = material_content[idx3:].strip()
+                    
+                    # Extract Title & Text for Nota 1
+                    if "(" in nota1 and ")" in nota1:
+                        note1_title = nota1[nota1.find("(")+1 : nota1.find(")")]
+                        note1_text = nota1[nota1.find("):")+2:].strip()
+                    else:
+                        note1_text = nota1
+                        
+                    if "(" in nota2 and ")" in nota2:
+                        note2_title = nota2[nota2.find("(")+1 : nota2.find(")")]
+                        note2_text = nota2[nota2.find("):")+2:].strip()
+                    else:
+                        note2_text = nota2
+                        
+                    if "(" in nota3 and ")" in nota3:
+                        note3_title = nota3[nota3.find("(")+1 : nota3.find(")")]
+                        note3_text = nota3[nota3.find("):")+2:].strip()
+                    else:
+                        note3_text = nota3
+
+            story_title = story_info_by_block.get(b, {}).get('story_title', '')
+            story_intro = story_info_by_block.get(b, {}).get('story_intro', '')
+            
+            cache[b] = {
+                'success': True,
+                'block_title': block_title,
+                'notes': {
+                    'note1_title': note1_title, 'note1_text': note1_text,
+                    'note2_title': note2_title, 'note2_text': note2_text,
+                    'note3_title': note3_title, 'note3_text': note3_text,
+                },
+                'preguntas': questions_by_block.get(b, []),
+                'nudos': nodes_by_block.get(b, []),
+                'story_title': story_title,
+                'story_intro': story_intro,
+                'icono': icono,
+                'color': color
+            }
+        return cache
+    except Exception as e:
+        print(f"Error al obtener todos los detalles de bloques: {e}")
+        return {}
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -798,7 +954,10 @@ def docente_panel():
                 'color': color
             })
             
-        return render_template('docente.html', codigos=codigos, historial=historial, nombre_publico=nombre_publico, whatsapp=whatsapp, is_admin=is_admin, bloques_map=bloques_map, bloques_list=bloques_list)
+        # Obtener todos los detalles de bloques para el caché inmediato del frontend
+        todos_detalles_bloques = obtener_todos_detalles_bloques(cursor)
+            
+        return render_template('docente.html', codigos=codigos, historial=historial, nombre_publico=nombre_publico, whatsapp=whatsapp, is_admin=is_admin, bloques_map=bloques_map, bloques_list=bloques_list, detalles_bloques=todos_detalles_bloques)
     except Exception as e:
         return f"Error en el servidor: {str(e)}", 500
     finally:
@@ -994,6 +1153,12 @@ def generar_codigo():
         
     cursor = connection.cursor()
     try:
+        # Check active code count for this professor (max 5)
+        cursor.execute("SELECT COUNT(*) FROM sesiones WHERE id_profesor = %s;", (profesor_id,))
+        count = cursor.fetchone()[0]
+        if count >= 5:
+            return jsonify({'error': 'Has alcanzado el límite máximo de 5 códigos de acceso activos. Por favor, elimina un código antiguo para poder generar uno nuevo. Si necesitas conservar la información de ese código o de sus partidas, recuerda descargar los reportes en Excel o PDF antes de borrarlo.'}), 400
+
         max_attempts = 10
         for _ in range(max_attempts):
             codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -1595,31 +1760,33 @@ def docente_obtener_bloque(bloque):
 
 def reindex_questions_and_nodes(cursor):
     # 1. Re-index material_estudio
-    cursor.execute("SELECT id_material, bloque, contenido, icono, color FROM material_estudio ORDER BY bloque, id_material;")
+    cursor.execute("SELECT bloque, contenido, icono, color FROM material_estudio ORDER BY bloque, id_material;")
     materials = cursor.fetchall()
     cursor.execute("TRUNCATE TABLE material_estudio RESTART IDENTITY CASCADE;")
-    for _, bloque, contenido, icono, color in materials:
-        cursor.execute("INSERT INTO material_estudio (bloque, contenido, icono, color) VALUES (%s, %s, %s, %s);", (bloque, contenido, icono, color))
+    if materials:
+        args_str = ','.join(cursor.mogrify("(%s, %s, %s, %s)", x).decode('utf-8') for x in materials)
+        cursor.execute("INSERT INTO material_estudio (bloque, contenido, icono, color) VALUES " + args_str)
 
     # 2. Re-index banco_preguntas
     cursor.execute("""
-        SELECT id_pregunta, bloque, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
+        SELECT bloque, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
                opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta 
         FROM banco_preguntas 
         ORDER BY bloque, id_pregunta;
     """)
     questions = cursor.fetchall()
     cursor.execute("TRUNCATE TABLE banco_preguntas RESTART IDENTITY CASCADE;")
-    for q in questions:
+    if questions:
+        args_str = ','.join(cursor.mogrify("(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", q).decode('utf-8') for q in questions)
         cursor.execute("""
             INSERT INTO banco_preguntas (bloque, pregunta, opcion_1, feedback_1, opcion_2, feedback_2, 
                                         opcion_3, feedback_3, opcion_4, feedback_4, respuesta_correcta)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-        """, q[1:])
+            VALUES 
+        """ + args_str)
         
     # 3. Re-index historia_interactiva
     cursor.execute("""
-        SELECT id_nodo, bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
+        SELECT bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
                opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta,
                historia_titulo, historia_introduccion 
         FROM historia_interactiva 
@@ -1627,13 +1794,14 @@ def reindex_questions_and_nodes(cursor):
     """)
     nodes = cursor.fetchall()
     cursor.execute("TRUNCATE TABLE historia_interactiva RESTART IDENTITY CASCADE;")
-    for n in nodes:
+    if nodes:
+        args_str = ','.join(cursor.mogrify("(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", n).decode('utf-8') for n in nodes)
         cursor.execute("""
             INSERT INTO historia_interactiva (bloque, escena_titulo, texto_situacion, opcion_1, feedback_1, 
                                              opcion_2, feedback_2, opcion_3, feedback_3, respuesta_correcta,
                                              historia_titulo, historia_introduccion)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-        """, n[1:])
+            VALUES 
+        """ + args_str)
 
 @app.route('/api/admin/guardar-bloque', methods=['POST'])
 @admin_required
@@ -1862,6 +2030,17 @@ def verificar_codigo():
         
     cursor = connection.cursor()
     try:
+        # Check if the code exists first
+        cursor.execute("SELECT 1 FROM sesiones WHERE codigo_acceso = %s;", (codigo,))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'error': 'Código de acceso no válido o inexistente.'})
+
+        # Check total games/results for this code (max 30)
+        cursor.execute("SELECT COUNT(*) FROM resultados_estudiantes WHERE codigo_acceso = %s;", (codigo,))
+        games_count = cursor.fetchone()[0]
+        if games_count >= 30:
+            return jsonify({'success': False, 'error': 'Este código de acceso ya alcanzó el límite máximo de 30 partidas. Por favor, solicita uno nuevo a tu docente.'})
+
         cursor.execute("""
             SELECT p.nombre, p.username 
             FROM sesiones s 
@@ -2017,12 +2196,21 @@ def guardar_resultado():
     if not codigo or not nombre:
         return jsonify({'success': False, 'error': 'Código o nombre del alumno faltante.'}), 400
         
+    if len(nombre) > 14:
+        return jsonify({'success': False, 'error': 'El nombre del estudiante no puede superar los 14 caracteres.'}), 400
+
     connection = get_db_connection()
     if not connection:
         return jsonify({'success': False, 'error': 'No se pudo conectar a la base de datos.'}), 500
         
     cursor = connection.cursor()
     try:
+        # Check total games/results for this code (max 30)
+        cursor.execute("SELECT COUNT(*) FROM resultados_estudiantes WHERE codigo_acceso = %s;", (codigo,))
+        games_count = cursor.fetchone()[0]
+        if games_count >= 30:
+            return jsonify({'success': False, 'error': 'Este código de acceso ya alcanzó el límite máximo de 30 partidas. Por favor, solicita uno nuevo a tu docente.'}), 400
+
         detalles_json = json.dumps(detalles)
         cursor.execute("""
             INSERT INTO resultados_estudiantes (codigo_acceso, nombre_alumno, puntaje, correctas, incorrectas, bloque, detalles) 

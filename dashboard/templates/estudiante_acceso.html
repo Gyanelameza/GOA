@@ -1531,7 +1531,7 @@
                 <label class="input-label" for="student-name-input">Nombre y Apellido</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-user-graduate"></i>
-                    <input type="text" id="student-name-input" class="form-input" autocomplete="off" placeholder="Ej. Andrés Mendoza" style="text-transform: capitalize;">
+                    <input type="text" id="student-name-input" class="form-input" autocomplete="off" maxlength="14" placeholder="Ej. Andrés Mendoza" style="text-transform: capitalize;">
                 </div>
                 <div class="input-feedback" id="name-feedback"></div>
             </div>
@@ -2222,6 +2222,10 @@
         function validateStudentName(nameValRaw) {
             if (!nameValRaw) {
                 return "El nombre no puede estar vacío.";
+            }
+
+            if (nameValRaw.length > 14) {
+                return "El nombre y apellido no deben superar los 14 caracteres en total.";
             }
 
             // 1. Check if only spaces are typed
