@@ -2507,6 +2507,39 @@
             }
         }
 
+        // Helper to remove code from UI immediately (Optimistic Update)
+        function removeCodeFromUI(code) {
+            // 1. Filter out from cached global array of codes
+            cachedCodesData = cachedCodesData.filter(c => c.codigo !== code);
+            
+            // 2. Filter out from cached global array of history data
+            if (cachedHistoryData) {
+                cachedHistoryData = cachedHistoryData.filter(h => h.codigo !== code);
+            }
+            
+            // 3. Update stats count
+            if (statCodesCount) statCodesCount.textContent = cachedCodesData.length;
+            
+            // 4. Remove DOM elements from active codes list and history list
+            document.querySelectorAll(`.code-item[data-code="${code}"]`).forEach(el => el.remove());
+            
+            // 5. Repopulate dropdowns
+            repopulateCodeDropdowns();
+            
+            // 6. If active codes list is empty, show empty state message
+            if (codesList && codesList.children.length === 0) {
+                codesList.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px 20px;" id="no-codes-msg">
+                        <img src="/static/gotita_estudiando.png" alt="Gotita" style="width: 80px; height: auto; margin-bottom: 12px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+                        <p style="font-weight: 600; font-size: 14px; color: var(--text-secondary);">No has generado códigos de acceso todavía. Genera uno nuevo arriba.</p>
+                    </div>
+                `;
+            }
+            
+            // 7. Refresh the history view locally to update counts and handle empty state
+            refreshHistory(false);
+        }
+
         // Load codes flat
         async function loadCodes() {
             try {
@@ -2529,6 +2562,7 @@
                         cachedCodesData.forEach(item => {
                             const div = document.createElement('div');
                             div.className = 'code-item ' + (item.usado ? 'used-code' : 'unused-code');
+                            div.setAttribute('data-code', item.codigo);
                             div.style.display = 'flex';
                             div.style.flexDirection = 'column';
                             div.style.gap = '4px';
@@ -2635,10 +2669,9 @@
                             const res = await fetch(`/api/docente/eliminar-codigo/${encodeURIComponent(code)}`, { method: 'DELETE' });
                             const d = await res.json();
                             if (d.success) {
+                                removeCodeFromUI(code);
                                 showToast('¡Código eliminado!', `Se borraron ${d.partidas_eliminadas || 0} partida(s) del código ${code}.`, 'fa-trash-can', '#ff4d4d');
                                 historyCodeModal.classList.remove('show');
-                                refreshHistory();
-                                loadCodes();
                             } else {
                                 showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
                             }
@@ -2751,6 +2784,7 @@
         function createHistoryCodeCard(code, studentsList) {
             const div = document.createElement('div');
             div.className = 'code-item used-code';
+            div.setAttribute('data-code', code);
             div.style.cursor = 'pointer';
             div.style.display = 'flex';
             div.style.flexDirection = 'column';
@@ -3768,8 +3802,8 @@
                         const r = await fetch(`/api/docente/eliminar-codigo/${item.codigo}`, {method:'DELETE'});
                         const d = await r.json();
                         if (d.success) {
+                            removeCodeFromUI(item.codigo);
                             showToast('¡Código eliminado!', `Se borraron ${d.partidas_eliminadas} partida${d.partidas_eliminadas !== 1 ? 's' : ''} junto con el código.`, 'fa-trash-can', '#ff4d4d');
-                            loadCodes(); refreshHistory();
                         } else {
                             showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
                         }
@@ -3781,7 +3815,7 @@
                     const r = await fetch(`/api/docente/eliminar-codigo/${item.codigo}`, {method:'DELETE'});
                     const d = await r.json();
                     if (d.success) {
-                        loadCodes(); refreshHistory();
+                        removeCodeFromUI(item.codigo);
                         showToast('¡Código Eliminado!', 'El código fue eliminado correctamente.', 'fa-trash-can', '#ff4d4d');
                     } else {
                         showToast('Error', d.error || 'No se pudo eliminar.', 'fa-circle-xmark', '#ff4d4d');
@@ -5953,10 +5987,10 @@
             });
         }
 
-        // Poll notifications every 1 second (más responsivo para pruebas en Render)
+        // Poll notifications every 30 seconds (más estable para evitar saturar la base de datos)
         setInterval(() => {
             loadNotificationsBadgeOnly();
-        }, 1000);
+        }, 30000);
 
         async function loadNotificationsBadgeOnly() {
             try {
