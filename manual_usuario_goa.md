@@ -12,10 +12,11 @@ Para acceder a la plataforma en vivo y ver los videos explicativos en formato de
 * 📺 **Lista de Reproducción de Videos Tutoriales (YouTube):** [Tutoriales GO-A](https://youtube.com/playlist?list=PLEicLP17_e7c&si=abfnRF0KE0c8T350)
 * 📖 **Manual de Usuario en Línea:** [goa-wcnb.onrender.com/manual](https://goa-wcnb.onrender.com/manual) (Una vez desplegado)
 
+## 📖 Introducción al Proyecto
+
+**GO-A (Guardianes del Océano y el Ambiente)** es un juego educativo interactivo diseñado especialmente para promover la cultura ambiental y el desarrollo sostenible en las escuelas de Cartagena de Indias. La plataforma permite a los estudiantes sumergirse en una aventura de aprendizaje basada en la toma de decisiones ecológicas, mientras proporciona a los docentes y administradores herramientas sólidas para el seguimiento escolar, administración de contenidos y evaluación pedagógica en tiempo real.
+
 ---
-
-
-
 ## 🎮 1. Modo Estudiante (Aventura de Aprendizaje)
 
 Los estudiantes acceden al juego sin necesidad de registrarse con un correo electrónico. Acceden de forma temporal mediante un **Código de Acceso** proporcionado por su profesor.
