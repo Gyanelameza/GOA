@@ -14,20 +14,7 @@ Para acceder a la plataforma en vivo y ver los videos explicativos en formato de
 
 ---
 
-## 🗺️ Mapa de Navegación del Sistema
 
-GO-A es un juego educativo interactivo diseñado para promover la cultura ambiental en las escuelas de Cartagena de Indias. El sistema cuenta con tres roles principales:
-
-```mermaid
-graph TD
-    A[Inicio / Landing Page] --> B{Seleccionar Modo}
-    B -->|Estudiante| C[Portal de Acceso Estudiantes]
-    B -->|Docente / Admin| D[Login Docentes / Admins]
-    D -->|Rol Docente| E[Panel del Docente]
-    D -->|Rol Administrador| F[Panel del Administrador]
-```
-
----
 
 ## 🎮 1. Modo Estudiante (Aventura de Aprendizaje)
 
