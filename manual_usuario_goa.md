@@ -54,9 +54,9 @@ Los estudiantes acceden al juego sin necesidad de registrarse con un correo elec
   * **Botón "Comenzar Evaluación":** Se activa únicamente después de mostrar las 3 notas completas.
 
 #### Paso 4: Evaluación Inicial (5 Preguntas)
-* **Descripción:** Cuestionario de 5 preguntas de selección múltiple con feedback interactivo.
+* **Descripción:** Cuestionario de 5 preguntas de selección múltiple.
 * **Componentes e Interfaces:**
-  * **Botones de Opción (A, B, C, D):** Al presionar una opción, se colorea de azul y despliega la explicación pedagógica abajo.
+  * **Botones de Opción (A, B, C, D):** Al presionar una opción, se colorea de azul.
   * **Botón de Parlante:** Lector de voz para la pregunta actual.
   * **Botón "Siguiente Pregunta":** Se activa al responder y avanza en el examen.
   * **Botón Flotante "Cofre de Notas":** Esquina inferior derecha (icono de caja de herramientas). Abre un panel lateral (Drawer) con las 3 notas de estudio para consulta durante la prueba.
