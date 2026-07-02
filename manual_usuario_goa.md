@@ -91,7 +91,7 @@ El docente gestiona el juego, genera códigos para sus estudiantes y descarga re
 ### 🔑 Inicio de Sesión y Registro de Docentes
 1. **Acceso:** Inicie sesión desde el menú de docentes.
 2. **Registro:** Registro restringido a un máximo de **5 docentes** en todo el sistema. Requiere clave de al menos 6 caracteres y WhatsApp con formato `+57 3XXXXXXXXX`.
-3. **Auto-recuperación de Clave:** Tras 3 intentos fallidos, se avisa automáticamente al administrador por WhatsApp para que brinde soporte de recuperación de contraseña.
+3. **Auto-recuperación de Clave:** Tras 3 intentos fallidos, se notifica automáticamente al administrador a través del sistema. El administrador se pondrá en contacto con el docente a través de WhatsApp (usando el número registrado en su cuenta) para brindarle soporte.
 
 ---
 
