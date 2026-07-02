@@ -285,6 +285,11 @@ def obtener_todos_detalles_bloques(cursor):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/manual')
+def ver_manual():
+    return render_template('manual_usuario_goa.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'profesor_id' in session:
