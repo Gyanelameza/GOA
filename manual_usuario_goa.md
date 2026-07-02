@@ -91,7 +91,7 @@ El docente gestiona el juego, genera códigos para sus estudiantes y descarga re
 ### 🔑 Inicio de Sesión y Registro de Docentes
 1. **Acceso:** Inicie sesión desde el menú de docentes.
 2. **Registro:** Registro restringido a un máximo de **5 docentes** en todo el sistema. Requiere clave de al menos 6 caracteres y WhatsApp con formato `+57 3XXXXXXXXX`.
-3. **Auto-recuperación de Clave:** Tras 3 intentos fallidos, se habilita el botón <span class="btn-ref">Notificar al Administrador</span> para restablecer la contraseña por WhatsApp.
+3. **Auto-recuperación de Clave:** Tras 3 intentos fallidos, se avisa automáticamente al administrador por WhatsApp para que brinde soporte de recuperación de contraseña.
 
 ---
 
@@ -144,7 +144,7 @@ El administrador supervisa todo el sistema y gestiona el contenido escolar. Inic
 * En **Panel de Inicio y Diagnóstico**, **Generar Códigos de Acceso** e **Historial de Partidas**, visualiza y gestiona las partidas de todos los profesores del sistema.
 
 #### 2. Campana de Soporte (Topbar)
-* Permite atender solicitudes de docentes bloqueados con el botón <span class="btn-ref">WhatsApp</span> para abrir un chat directo con el profesor y ayudarle a restablecer su clave.
+* Permite atender solicitudes de docentes con inconvenientes de acceso con el botón <span class="btn-ref">WhatsApp</span> para abrir un chat directo con el profesor y ayudarle a restablecer su clave.
 
 ---
 
