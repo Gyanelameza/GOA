@@ -644,67 +644,6 @@
                 border: 1px solid #cbd5e1 !important;
             }
         }
-
-        /* Floating Audio Control */
-        .audio-control {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            width: 54px;
-            height: 54px;
-            background: rgba(255, 255, 255, 0.7);
-            border: 2px solid var(--accent-indigo);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 8px 32px rgba(30, 90, 150, 0.15);
-            z-index: 1000;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: var(--transition-smooth);
-        }
-
-        .audio-control:hover {
-            transform: scale(1.1);
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 12px 40px rgba(42, 139, 187, 0.3);
-        }
-
-        .audio-control i {
-            font-size: 1.35rem;
-            color: var(--accent-indigo);
-            transition: var(--transition-smooth);
-        }
-
-        .audio-control.playing {
-            animation: pulse-border 2s infinite;
-            background: var(--accent-indigo);
-            border-color: transparent;
-        }
-
-        .audio-control.playing i {
-            color: #ffffff;
-        }
-
-        @keyframes pulse-border {
-            0% { box-shadow: 0 0 0 0 rgba(42, 139, 187, 0.5); }
-            70% { box-shadow: 0 0 0 15px rgba(42, 139, 187, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(42, 139, 187, 0); }
-        }
-
-        @media (max-width: 768px) {
-            .audio-control {
-                bottom: 20px;
-                left: 20px;
-                width: 48px;
-                height: 48px;
-            }
-            .audio-control i {
-                font-size: 1.15rem;
-            }
-        }
     </style>
 </head>
 <body>
@@ -1024,39 +963,5 @@
             <li><strong>Consistencia de Bloques:</strong> Al crear o modificar bloques en la pestaña **Creador de Historias y Contenido**, asegúrese de completar todos los campos (3 notas, 5 preguntas teóricas con feedbacks y 3 escenas con dilemas) para que el juego del estudiante cargue de forma exitosa.</li>
         </ul>
     </div>
-
-    <!-- Floating Audio Ambient Control -->
-    <div class="audio-control no-print" id="audio-toggle" title="Sonido de burbujas">
-        <i class="fa-solid fa-volume-xmark" id="audio-icon"></i>
-        <audio id="ambient-audio" loop>
-            <source src="https://goa-wcnb.onrender.com/static/bubbles_ambient.ogg" type="audio/ogg">
-        </audio>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const audioToggle = document.getElementById('audio-toggle');
-            const audioIcon = document.getElementById('audio-icon');
-            const ambientAudio = document.getElementById('ambient-audio');
-            
-            // Set volume to a relaxing 25%
-            ambientAudio.volume = 0.25;
-
-            audioToggle.addEventListener('click', () => {
-                if (ambientAudio.paused) {
-                    ambientAudio.play().then(() => {
-                        audioToggle.classList.add('playing');
-                        audioIcon.className = 'fa-solid fa-volume-high';
-                    }).catch(err => {
-                        console.error("Audio playback blocked or failed:", err);
-                    });
-                } else {
-                    ambientAudio.pause();
-                    audioToggle.classList.remove('playing');
-                    audioIcon.className = 'fa-solid fa-volume-xmark';
-                }
-            });
-        });
-    </script>
 </body>
 </html>
