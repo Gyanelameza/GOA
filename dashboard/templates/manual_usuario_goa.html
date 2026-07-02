@@ -469,7 +469,7 @@
             }
 
             .container {
-                padding: 30px 20px;
+                padding: 30px 15px;
                 border-radius: 20px;
             }
 
@@ -515,13 +515,60 @@
                 padding: 16px;
             }
 
-            .flow-column {
-                min-width: 100%;
+            /* FLOWCHART MOBILE ADAPTABILITY REDESIGN (KEEP BRANCHES SIDE-BY-SIDE) */
+            .nav-flowchart {
+                gap: 8px !important;
+                margin: 25px 0 !important;
             }
 
-            .flow-branch {
-                flex-direction: column;
-                gap: 12px;
+            .nav-flowchart > .flow-branch {
+                flex-wrap: nowrap !important; /* Force side-by-side columns to show branching */
+                gap: 8px !important;
+            }
+
+            .flow-column {
+                min-width: 140px !important;
+                flex: 1 !important;
+                padding: 10px !important;
+                border-radius: 12px !important;
+                gap: 8px !important;
+            }
+
+            /* Make subrows stack inside the column instead of side-by-side */
+            .flow-column .flow-branch {
+                flex-direction: column !important;
+                gap: 6px !important;
+                flex-wrap: nowrap !important;
+            }
+
+            .flow-step {
+                padding: 8px 6px !important;
+                font-size: 0.76rem !important;
+                border-radius: 10px !important;
+                flex-direction: column !important; /* Stack icon on top of text to save width */
+                gap: 4px !important;
+                width: 100% !important;
+                margin: 0 !important;
+            }
+
+            .flow-step i {
+                font-size: 1rem !important;
+            }
+
+            .flow-label {
+                font-size: 0.65rem !important;
+                letter-spacing: 0.5px !important;
+                margin-bottom: 2px !important;
+            }
+
+            .flow-column p {
+                font-size: 0.72rem !important;
+                line-height: 1.3 !important;
+                margin: 0 !important;
+            }
+
+            .flow-arrow {
+                font-size: 0.9rem !important;
             }
         }
 
