@@ -319,6 +319,7 @@
             align-items: center;
             gap: 10px;
             transition: var(--transition-smooth);
+            margin: 4px 0; /* Add margin default to avoid touching on print wrap */
         }
 
         .flow-step:hover {
@@ -527,30 +528,73 @@
         /* Print styling optimized for PDF export */
         @media print {
             body {
-                background: white !important;
-                color: black !important;
-                padding: 0;
+                background: #ffffff !important;
+                color: #1a3a5c !important;
+                padding: 0 !important;
             }
 
             .container {
-                border: none;
-                box-shadow: none;
-                padding: 0;
-                max-width: 100%;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
                 background: transparent !important;
                 backdrop-filter: none !important;
             }
 
-            h2, h3 {
-                page-break-after: avoid;
-            }
-
-            tr, pre, blockquote, .doc-card {
-                page-break-inside: avoid;
-            }
-
             .no-print, .bubble {
                 display: none !important;
+            }
+
+            /* Force printing of background colors and borders */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Spacing and page breaks */
+            h2, h3, .doc-card, .table-wrapper, .nav-flowchart {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            h2 {
+                margin-top: 35px !important;
+                border-bottom: 2px solid rgba(42, 139, 187, 0.3) !important;
+            }
+
+            /* Clean backgrounds for print cards */
+            .doc-card {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                border-left: 6px solid var(--accent-indigo) !important;
+                margin-bottom: 15px !important;
+                padding: 15px !important;
+            }
+            
+            .doc-card.card-student { border-left-color: var(--accent-green) !important; background-color: #f0fdf4 !important; }
+            .doc-card.card-admin { border-left-color: var(--accent-gold) !important; background-color: #fffbeb !important; }
+
+            .flow-column {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                padding: 15px !important;
+                margin-bottom: 10px !important;
+            }
+
+            .flow-step {
+                background: #ffffff !important;
+                border: 2px solid var(--accent-indigo) !important;
+                margin: 8px 0 !important;
+                box-shadow: none !important;
+                padding: 8px 14px !important;
+            }
+            .flow-step.student { border-color: var(--accent-green) !important; background-color: #f0fdf4 !important; }
+            .flow-step.admin { border-color: var(--accent-gold) !important; background-color: #fffbeb !important; }
+            
+            .btn-ref {
+                background: #f1f5f9 !important;
+                border: 1px solid #cbd5e1 !important;
             }
         }
     </style>
