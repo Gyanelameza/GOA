@@ -12,15 +12,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #1c3e5e;
-            --secondary: #3b5c7e;
-            --accent-blue: #2a8bbb;
-            --accent-green: #298552;
-            --accent-orange: #d97706;
-            --accent-rose: #be123c;
-            --bg-light: #f4f9fd;
-            --card-bg: #ffffff;
-            --border-color: rgba(42, 139, 187, 0.15);
+            /* Themes colors from GO-A platform */
+            --bg-secondary: rgba(255, 255, 255, 0.42);
+            --bg-card: rgba(255, 255, 255, 0.42);
+            --border-color: rgba(255, 255, 255, 0.55);
+            --border-glow: rgba(42, 139, 187, 0.3);
+            
+            --accent-indigo: #2a8bbb; /* Ocean Blue */
+            --accent-purple: #45a2d8; /* Light Ocean Blue */
+            --accent-glow: #1a3a5c;   /* Dark Ocean Blue */
+            --accent-emerald: #298552; /* Forest Green */
+            --accent-rose: #be123c;   /* Rose Red */
+            --accent-gold: #d97706;   /* Golden Amber */
+            
+            --text-primary: #1a3a5c;   /* Very dark slate/blue */
+            --text-secondary: #3b5c7e; /* Medium dark slate/blue */
+            --text-muted: #4b6e8a;     /* Muted blue */
+            
+            --shadow-premium: 0 12px 40px rgba(30, 90, 150, 0.08);
+            --transition-smooth: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
         * {
@@ -31,28 +41,66 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--primary);
+            background: radial-gradient(circle at 50% -20%, #e8f5fd 0%, #b8def3 45%, #8ecce9 75%, #59afd5 100%);
+            color: var(--text-primary);
             line-height: 1.6;
-            padding: 40px 20px;
+            padding: 45px 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
         }
 
+        /* Floating Oceanic Bubbles Background */
+        .bubble {
+            position: fixed;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            bottom: -150px;
+            z-index: -1;
+            pointer-events: none;
+            animation: float-up 12s infinite ease-in-out;
+        }
+
+        .bubble:nth-child(1) { width: 80px; height: 80px; left: 10%; animation-duration: 10s; animation-delay: 0s; }
+        .bubble:nth-child(2) { width: 120px; height: 120px; left: 25%; animation-duration: 14s; animation-delay: 2s; }
+        .bubble:nth-child(3) { width: 60px; height: 60px; left: 45%; animation-duration: 9s; animation-delay: 1s; }
+        .bubble:nth-child(4) { width: 100px; height: 100px; left: 60%; animation-duration: 16s; animation-delay: 3s; }
+        .bubble:nth-child(5) { width: 50px; height: 50px; left: 80%; animation-duration: 8s; animation-delay: 0.5s; }
+        .bubble:nth-child(6) { width: 90px; height: 90px; left: 90%; animation-duration: 11s; animation-delay: 4s; }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% {
+                transform: translateY(-115vh) scale(1.2) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
-            background: var(--card-bg);
+            background: rgba(255, 255, 255, 0.45);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 40px 50px;
-            box-shadow: 0 10px 30px rgba(30, 90, 150, 0.05);
+            border-radius: 30px;
+            padding: 50px 60px;
+            box-shadow: var(--shadow-premium);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: relative;
+            z-index: 2;
         }
 
         header {
             text-align: center;
-            border-bottom: 2px solid var(--accent-blue);
+            border-bottom: 2px solid rgba(42, 139, 187, 0.3);
             padding-bottom: 30px;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
 
         .logo-area {
@@ -60,63 +108,72 @@
             align-items: center;
             justify-content: center;
             gap: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .logo-area i {
-            font-size: 3rem;
-            color: var(--accent-blue);
-            transition: transform 0.3s ease;
+            font-size: 3.5rem;
+            color: var(--accent-indigo);
+            filter: drop-shadow(0 4px 10px rgba(42, 139, 187, 0.25));
+            animation: pulse-icon 3s infinite ease-in-out;
         }
-        
-        .logo-area:hover i {
-            transform: rotate(15deg);
+
+        @keyframes pulse-icon {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
         }
 
         h1 {
-            font-size: 2.2rem;
+            font-size: 2.6rem;
             font-weight: 900;
-            color: var(--primary);
-            text-transform: uppercase;
+            background: linear-gradient(to right, #1a3a5c, #2a8bbb);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
         }
 
         .subtitle {
-            font-size: 1.1rem;
-            color: var(--secondary);
-            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            font-weight: 700;
             margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Resource Links styling */
         .resources-bar {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 16px;
+            gap: 18px;
             margin-bottom: 35px;
         }
 
         .resource-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 249, 255, 0.9) 100%);
-            border: 1.5px solid rgba(42, 139, 187, 0.22);
-            border-radius: 18px;
-            padding: 18px 20px;
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 20px;
             display: flex;
             align-items: center;
             gap: 15px;
-            box-shadow: 0 6px 20px rgba(30, 90, 150, 0.04);
+            box-shadow: 0 6px 20px rgba(30, 90, 150, 0.03);
             text-decoration: none;
-            transition: transform 0.25s ease, box-shadow 0.25s, border-color 0.25s;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition-smooth);
         }
 
         .resource-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(30, 90, 150, 0.08);
-            border-color: var(--accent-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(30, 90, 150, 0.1);
+            border-color: var(--accent-indigo);
+            background: rgba(255, 255, 255, 0.85);
         }
 
         .resource-card i {
-            font-size: 2rem;
+            font-size: 2.2rem;
             flex-shrink: 0;
         }
 
@@ -127,66 +184,115 @@
         }
 
         .resource-title {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 800;
-            color: var(--primary);
+            color: var(--text-primary);
         }
 
         .resource-desc {
-            font-size: 0.78rem;
-            color: var(--secondary);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
         }
 
         h2 {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-top: 40px;
-            margin-bottom: 20px;
-            border-bottom: 1.5px dashed var(--border-color);
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            margin-top: 45px;
+            margin-bottom: 22px;
+            border-bottom: 2px dashed rgba(42, 139, 187, 0.25);
             padding-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+        }
+
+        h2 i {
+            color: var(--accent-indigo);
         }
 
         h3 {
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             font-weight: 800;
-            color: var(--primary);
-            margin-top: 25px;
-            margin-bottom: 12px;
-        }
-
-        h4 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--accent-blue);
-            margin-top: 18px;
-            margin-bottom: 6px;
+            color: var(--text-primary);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         p {
-            margin-bottom: 15px;
-            color: var(--secondary);
-            font-size: 0.95rem;
+            margin-bottom: 18px;
+            color: var(--text-secondary);
+            font-size: 0.98rem;
             text-align: justify;
         }
 
         strong {
-            font-weight: 700;
-            color: var(--primary);
+            font-weight: 800;
+            color: var(--text-primary);
         }
 
-        ul, ol {
-            margin-bottom: 20px;
-            padding-left: 25px;
-            color: var(--secondary);
-            font-size: 0.95rem;
+        /* Documentation step-cards instead of bullets */
+        .step-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 20px 0 30px 0;
         }
 
-        li {
+        .doc-card {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-left: 6px solid var(--accent-indigo);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(30, 90, 150, 0.02);
+            transition: var(--transition-smooth);
+        }
+
+        .doc-card:hover {
+            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.75);
+            border-color: rgba(42, 139, 187, 0.4);
+            box-shadow: 0 6px 20px rgba(30, 90, 150, 0.05);
+        }
+
+        .doc-card.card-student { border-left-color: var(--accent-green); }
+        .doc-card.card-teacher { border-left-color: var(--accent-indigo); }
+        .doc-card.card-admin { border-left-color: var(--accent-gold); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 8px;
+        }
+
+        .card-header i {
+            font-size: 1.15rem;
+            color: var(--accent-indigo);
+        }
+        .doc-card.card-student .card-header i { color: var(--accent-green); }
+        .doc-card.card-admin .doc-card.card-student .card-header i { color: var(--accent-gold); }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .card-body ul {
+            padding-left: 18px;
+            margin-top: 8px;
+            margin-bottom: 0;
         }
 
         /* Responsive Flowchart Diagram */
@@ -195,23 +301,29 @@
             flex-direction: column;
             align-items: center;
             gap: 12px;
-            margin: 30px 0;
+            margin: 35px 0;
             width: 100%;
         }
 
         .flow-step {
-            background: #e0f2fe;
-            border: 2px solid var(--accent-blue);
-            color: var(--primary);
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid var(--accent-indigo);
+            color: var(--text-primary);
+            padding: 12px 22px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 0.95rem;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(42, 139, 187, 0.08);
+            box-shadow: 0 4px 15px rgba(30, 90, 150, 0.05);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            transition: var(--transition-smooth);
+        }
+
+        .flow-step:hover {
+            transform: scale(1.03);
+            border-color: var(--accent-purple);
         }
 
         .flow-branch {
@@ -230,34 +342,42 @@
             flex: 1;
             min-width: 240px;
             max-width: 420px;
-            background: rgba(244, 249, 253, 0.6);
-            padding: 15px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.35);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .flow-arrow {
-            color: var(--accent-blue);
-            font-size: 1.1rem;
+            color: var(--accent-indigo);
+            font-size: 1.2rem;
+            animation: bounce 2.5s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(4px); }
         }
 
         .flow-label {
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: var(--secondary);
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             margin-bottom: 4px;
         }
 
         .flow-step.student {
             border-color: var(--accent-green);
-            background: #f0fdf4;
+            background: rgba(240, 253, 244, 0.9);
         }
 
         .flow-step.admin {
-            border-color: var(--accent-orange);
-            background: #fffbeb;
+            border-color: var(--accent-gold);
+            background: rgba(255, 251, 235, 0.9);
         }
 
         /* Responsive Tables Wrapper */
@@ -265,34 +385,35 @@
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            margin: 20px 0;
-            border-radius: 14px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 12px rgba(30, 90, 150, 0.02);
+            margin: 25px 0;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-premium);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 0;
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             min-width: 580px;
+            background: rgba(255, 255, 255, 0.4);
         }
 
         th, td {
-            padding: 14px 18px;
+            padding: 15px 20px;
             border: none;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
             text-align: left;
         }
 
         th {
-            background-color: var(--bg-light);
-            color: var(--primary);
+            background-color: rgba(255, 255, 255, 0.65);
+            color: var(--text-primary);
             font-weight: 800;
             font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
 
         tr:last-child td {
@@ -300,50 +421,55 @@
         }
 
         tr:nth-child(even) {
-            background-color: rgba(244, 249, 253, 0.4);
+            background-color: rgba(255, 255, 255, 0.25);
         }
 
         /* Alert boxes */
         .alert-box {
-            background: rgba(42, 139, 187, 0.06);
-            border-left: 5px solid var(--accent-blue);
+            background: rgba(255, 255, 255, 0.45);
+            border-left: 6px solid var(--accent-indigo);
             padding: 16px 20px;
             border-radius: 0 16px 16px 0;
-            margin: 22px 0;
-            font-size: 0.92rem;
-            border-top: 1px solid rgba(42, 139, 187, 0.08);
-            border-bottom: 1px solid rgba(42, 139, 187, 0.08);
-            border-right: 1px solid rgba(42, 139, 187, 0.08);
+            margin: 25px 0;
+            font-size: 0.95rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            border-right: 1px solid rgba(255, 255, 255, 0.5);
         }
+
+        .alert-box.alert-student { border-left-color: var(--accent-green); }
+        .alert-box.alert-admin { border-left-color: var(--accent-gold); }
 
         .alert-box p {
             margin: 0;
-            color: var(--secondary);
+            color: var(--text-secondary);
+            font-weight: 600;
         }
 
         /* Buttons references styling */
         .btn-ref {
             display: inline-block;
-            background: #e2e8f0;
-            color: #334155;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--text-primary);
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 800;
+            border: 1px solid rgba(42, 139, 187, 0.3);
             white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(30, 90, 150, 0.04);
         }
 
         /* Responsive Breakpoints */
         @media (max-width: 768px) {
             body {
-                padding: 15px 10px;
+                padding: 20px 10px;
             }
 
             .container {
-                padding: 25px 20px;
-                border-radius: 16px;
+                padding: 30px 20px;
+                border-radius: 20px;
             }
 
             header {
@@ -352,11 +478,11 @@
             }
 
             .logo-area i {
-                font-size: 2.2rem;
+                font-size: 2.8rem;
             }
 
             h1 {
-                font-size: 1.6rem;
+                font-size: 1.8rem;
             }
 
             .subtitle {
@@ -364,8 +490,8 @@
             }
 
             h2 {
-                font-size: 1.3rem;
-                margin-top: 30px;
+                font-size: 1.35rem;
+                margin-top: 35px;
                 padding-bottom: 6px;
             }
 
@@ -374,8 +500,8 @@
                 margin-top: 20px;
             }
 
-            p, li {
-                font-size: 0.9rem;
+            p, .card-body {
+                font-size: 0.92rem;
             }
 
             .resources-bar {
@@ -385,7 +511,7 @@
             }
 
             .resource-card {
-                padding: 14px 16px;
+                padding: 16px;
             }
 
             .flow-column {
@@ -401,8 +527,8 @@
         /* Print styling optimized for PDF export */
         @media print {
             body {
-                background: white;
-                color: black;
+                background: white !important;
+                color: black !important;
                 padding: 0;
             }
 
@@ -411,23 +537,33 @@
                 box-shadow: none;
                 padding: 0;
                 max-width: 100%;
+                background: transparent !important;
+                backdrop-filter: none !important;
             }
 
             h2, h3 {
                 page-break-after: avoid;
             }
 
-            tr, pre, blockquote {
+            tr, pre, blockquote, .doc-card {
                 page-break-inside: avoid;
             }
 
-            .no-print {
-                display: none;
+            .no-print, .bubble {
+                display: none !important;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Floating bubbles elements -->
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+
     <div class="container">
         <header>
             <div class="logo-area">
@@ -441,7 +577,7 @@
         <!-- Seccion de Enlaces Interactivos Directos -->
         <section class="resources-bar no-print">
             <a href="https://goa-wcnb.onrender.com" target="_blank" class="resource-card">
-                <i class="fa-solid fa-globe" style="color: var(--accent-blue);"></i>
+                <i class="fa-solid fa-globe" style="color: var(--accent-indigo);"></i>
                 <div class="resource-info">
                     <span class="resource-title">Acceder a la Plataforma Web</span>
                     <span class="resource-desc">goa-wcnb.onrender.com</span>
@@ -456,12 +592,12 @@
             </a>
         </section>
 
-        <section class="no-print" style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 12px; padding: 15px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <section class="no-print" style="background: rgba(224, 242, 254, 0.6); border: 1px solid rgba(186, 230, 253, 0.8); border-radius: 16px; padding: 15px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; backdrop-filter: blur(10px);">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-print" style="font-size: 1.5rem; color: var(--accent-blue);"></i>
+                <i class="fa-solid fa-print" style="font-size: 1.5rem; color: var(--accent-indigo);"></i>
                 <span style="font-size: 0.9rem; font-weight: 700; color: #0369a1;">¿Deseas guardar esto como un archivo PDF?</span>
             </div>
-            <button onclick="window.print()" style="background: var(--accent-blue); color: white; border: none; padding: 8px 16px; border-radius: 30px; font-family: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#1e719c'" onmouseout="this.style.background='var(--accent-blue)'">
+            <button onclick="window.print()" style="background: var(--accent-indigo); color: white; border: none; padding: 8px 16px; border-radius: 30px; font-family: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#1e719c'" onmouseout="this.style.background='var(--accent-indigo)'">
                 Guardar / Imprimir PDF
             </button>
         </section>
@@ -477,7 +613,7 @@
                     <span class="flow-label">Acceso del Alumno</span>
                     <div class="flow-step student"><i class="fa-solid fa-gamepad"></i> Portal de Estudiantes</div>
                     <div class="flow-arrow"><i class="fa-solid fa-arrow-down"></i></div>
-                    <p style="font-size: 0.8rem; text-align: center; margin: 0; color: var(--secondary);">Lectura de notas, evaluación inicial, toma de decisiones e historial detallado de aciertos.</p>
+                    <p style="font-size: 0.8rem; text-align: center; margin: 0; color: var(--text-secondary);">Lectura de notas, evaluación inicial, toma de decisiones e historial detallado de aciertos.</p>
                 </div>
                 <div class="flow-column">
                     <span class="flow-label">Acceso de Profesionales</span>
@@ -488,7 +624,7 @@
                         <div class="flow-step admin"><i class="fa-solid fa-crown"></i> Panel Administrador</div>
                     </div>
                     <div class="flow-arrow"><i class="fa-solid fa-arrow-down"></i></div>
-                    <p style="font-size: 0.8rem; text-align: center; margin: 0; color: var(--secondary);">Monitoreo, generación de códigos, descarga de reportes PDF/Excel y edición de contenidos pedagógicos.</p>
+                    <p style="font-size: 0.8rem; text-align: center; margin: 0; color: var(--text-secondary);">Monitoreo, generación de códigos, descarga de reportes PDF/Excel y edición de contenidos pedagógicos.</p>
                 </div>
             </div>
         </div>
@@ -504,59 +640,87 @@
         </ol>
 
         <h3>📥 Fases del Juego</h3>
-        
-        <h4>Paso 1: Acceso a la Partida</h4>
-        <ul>
-            <li>Escriba el código de 6 letras y números en el campo <strong>Código de Partida</strong> (ej. <code>4A8K9L</code>). El campo se ajusta a mayúsculas automáticamente.</li>
-            <li>Al validarse, aparecerá una tarjeta verde con el mensaje: <em>"¡Código verificado! Eres estudiante del profesor/a: [Nombre]"</em> y se habilitará el botón <span class="btn-ref">Continuar</span>.</li>
-        </ul>
+        <div class="step-cards">
+            <!-- Paso 1 -->
+            <div class="doc-card card-student">
+                <div class="card-header">
+                    <i class="fa-solid fa-unlock-keyhole"></i>
+                    <span class="card-title">Paso 1: Acceso a la Partida</span>
+                </div>
+                <div class="card-body">
+                    Escriba el código de 6 letras y números en el campo <strong>Código de Partida</strong> (ej. <code>4A8K9L</code>). El campo se ajusta a mayúsculas automáticamente. Al validarse, aparecerá una tarjeta verde indicando: <em>"¡Código verificado! Eres estudiante del profesor/a: [Nombre]"</em> y se habilitará el botón <span class="btn-ref">Continuar</span>.
+                </div>
+            </div>
 
-        <h4>Paso 2: Identifícate</h4>
-        <ul>
-            <li>Ingrese su Nombre y Apellido en el campo de texto.</li>
-            <li><strong>Restricción:</strong> Máximo <strong>14 caracteres</strong>. Si ingresa más, el sistema le alertará que no puede exceder el límite.</li>
-            <li>Haga clic en <span class="btn-ref">Ingresar a la Actividad</span>. Si desea cambiar el código, pulse <span class="btn-ref">Volver Atrás</span>.</li>
-        </ul>
+            <!-- Paso 2 -->
+            <div class="doc-card card-student">
+                <div class="card-header">
+                    <i class="fa-solid fa-signature"></i>
+                    <span class="card-title">Paso 2: Identifícate</span>
+                </div>
+                <div class="card-body">
+                    Ingrese su Nombre y Apellido en el campo de texto.
+                    <strong>Restricción:</strong> Máximo <strong>14 caracteres</strong>. Si ingresa más, el sistema le alertará que no puede exceder el límite. Haga clic en <span class="btn-ref">Ingresar a la Actividad</span>.
+                </div>
+            </div>
 
-        <h4>Paso 3: Kit del Guardián (Material de Estudio)</h4>
-        <ul>
-            <li>Lea detenidamente las 3 notas interactivas secuenciales que aparecen en pantalla.</li>
-            <li>Presione el botón con el <strong>icono de parlante</strong> para reproducir por voz (Text-to-Speech) el contenido.</li>
-            <li>Una vez leídas, pulse el botón <span class="btn-ref">Comenzar Evaluación</span> que se habilitará al final.</li>
-        </ul>
+            <!-- Paso 3 -->
+            <div class="doc-card card-student">
+                <div class="card-header">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                    <span class="card-title">Paso 3: Kit del Guardián (Material de Estudio)</span>
+                </div>
+                <div class="card-body">
+                    Lea detenidamente las 3 notas interactivas secuenciales en pantalla. Presione el botón con el <strong>icono de parlante</strong> para reproducir por voz (Text-to-Speech) el contenido. Una vez leídas, pulse el botón <span class="btn-ref">Comenzar Evaluación</span> que se habilitará al final.
+                </div>
+            </div>
 
-        <div class="alert-box">
-            <p><strong>Nota:</strong> Los temas varían según el bloque seleccionado por el docente (Residuos, Agua, Energía o Comunidad) o se selecciona al azar.</p>
+            <!-- Paso 4 -->
+            <div class="doc-card card-student">
+                <div class="card-header">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span class="card-title">Paso 4: Evaluación Inicial (5 Preguntas)</span>
+                </div>
+                <div class="card-body">
+                    Responda pulsando una de las opciones (A, B, C, D). Al presionar una opción, se resaltará en azul y mostrará una explicación abajo indicando si es correcta o incorrecta. Habilite el botón <span class="btn-ref">Siguiente Pregunta</span> para continuar.
+                    <br>
+                    <strong>Cofre de Notas Flotante:</strong> Durante todo el examen e historia, puede presionar el botón de la <strong>Caja de herramientas (esquina inferior derecha)</strong> para abrir un panel deslizante lateral con las notas del Kit para recordar conceptos.
+                </div>
+            </div>
+
+            <!-- Paso 5 -->
+            <div class="doc-card card-student">
+                <div class="card-header">
+                    <i class="fa-solid fa-forward-step"></i>
+                    <span class="card-title">Paso 5: Transición a la Historia</span>
+                </div>
+                <div class="card-body">
+                    Observe la tarjeta informativa que indica el <strong>Título de la Historia</strong> y la introducción del dilema del bloque. Presione el botón <span class="btn-ref">Entrar a la Historia</span>.
+                </div>
+            </div>
+
+            <!-- Paso 6 -->
+            <div class="doc-card card-student">
+                <div class="card-header">
+                    <i class="fa-solid fa-comments"></i>
+                    <span class="card-title">Paso 6: Historia Interactiva (3 Nudos)</span>
+                </div>
+                <div class="card-body">
+                    Lea la situación planteada (o escúchela con el lector de voz). Frente al dilema <em>¿Qué debes hacer?</em>, presione una de las 3 opciones de decisión y observe la consecuencia. Pulse <span class="btn-ref">Siguiente Escena</span> o <span class="btn-ref">Ver Resultados</span>.
+                </div>
+            </div>
+
+            <!-- Paso 7 -->
+            <div class="doc-card card-student">
+                <div class="card-header">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span class="card-title">Paso 7: Resultados del Reto</span>
+                </div>
+                <div class="card-body">
+                    Visualice su puntaje final en el círculo central (ej: <code>7/8</code> aciertos). Revise la lista de tarjetas verdes (correctas) y rojas (incorrectas) para ver qué respondió y la explicación educativa. Pulse <span class="btn-ref">Volver al Portal de Inicio</span> para finalizar.
+                </div>
+            </div>
         </div>
-
-        <h4>Paso 4: Evaluación Inicial (5 Preguntas)</h4>
-        <ul>
-            <li>Observe el enunciado de la pregunta y responda pulsando una de las opciones (A, B, C, D).</li>
-            <li><strong>Feedback instantáneo:</strong> Al presionar la opción, se resaltará en azul y mostrará una explicación abajo indicando por qué es correcta o por qué falló.</li>
-            <li>Habilite el botón <span class="btn-ref">Siguiente Pregunta</span> para continuar.</li>
-            <li><strong>Cofre de Notas Flotante:</strong> Durante todo el examen e historia, puede presionar el botón de la <strong>Caja de herramientas (esquina inferior derecha)</strong> para abrir un panel deslizante lateral con las notas del Kit para recordar conceptos.</li>
-        </ul>
-
-        <h4>Paso 5: Transición a la Historia</h4>
-        <ul>
-            <li>Observe la tarjeta informativa que indica el <strong>Título de la Historia</strong> y la introducción del dilema del bloque.</li>
-            <li>Presione <span class="btn-ref">Entrar a la Historia</span>.</li>
-        </ul>
-
-        <h4>Paso 6: Historia Interactiva (3 Nudos)</h4>
-        <ul>
-            <li>Lea la situación planteada en la caja de cristal (o pulse el botón de parlante para escucharla).</li>
-            <li>Frente al dilema <em>¿Qué debes hacer? ¿Qué harías tú?</em>, presione una de las 3 opciones de decisión y observe la consecuencia.</li>
-            <li>Pulse <span class="btn-ref">Siguiente Escena</span> o <span class="btn-ref">Ver Resultados</span>.</li>
-            <li><strong>Cofre de Notas Flotante:</strong> Sigue disponible para consulta rápida.</li>
-        </ul>
-
-        <h4>Paso 7: Resultados del Reto</h4>
-        <ul>
-            <li>Visualice su puntaje en el círculo central (ej: <code>7/8</code> aciertos).</li>
-            <li>Revise la lista de tarjetas verdes (correctas) y rojas (incorrectas) para ver qué respondió y la explicación educativa.</li>
-            <li>Pulse <span class="btn-ref">Volver al Portal de Inicio</span> para finalizar.</li>
-        </ul>
 
         <h2><i class="fa-solid fa-chalkboard-user"></i> 2. Portal del Docente (Monitoreo y Reportes)</h2>
         <p>El docente gestiona los códigos de clase, asigna temáticas específicas, evalúa el rendimiento del grupo y descarga informes de notas.</p>
@@ -603,83 +767,122 @@
 
         <h3>🛠️ Funcionalidades del Panel Docente</h3>
 
-        <h4>A. Pestaña "Panel de Inicio y Diagnóstico"</h4>
-        <ul>
-            <li>Visualice estadísticas globales del grupo, porcentaje general de aciertos e indicadores de desempeño por bloques temáticos para detectar en qué áreas los estudiantes tienen más dificultades.</li>
-        </ul>
+        <div class="step-cards">
+            <!-- A -->
+            <div class="doc-card card-teacher">
+                <div class="card-header">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span class="card-title">A. Pestaña "Panel de Inicio y Diagnóstico"</span>
+                </div>
+                <div class="card-body">
+                    Visualice estadísticas globales del grupo, porcentaje general de aciertos e indicadores de desempeño por bloques temáticos para detectar en qué áreas los estudiantes tienen más dificultades.
+                </div>
+            </div>
 
-        <h4>B. Pestaña "Generar Códigos de Acceso"</h4>
-        <ul>
-            <li><strong>Botón "Generar Nuevo Código":</strong> Genera un código alfanumérico único de 6 caracteres. Cada docente puede tener un máximo de <strong>5 códigos activos</strong>.</li>
-            <li><strong>Tarjetas de Código:</strong>
-                <ul>
-                    <li>Las tarjetas rojas indican código <strong>Sin usar</strong>.</li>
-                    <li>Las tarjetas azules indican código <strong>En uso</strong> (tiene partidas cargadas).</li>
-                </ul>
-            </li>
-            <li>Haga clic en una tarjeta de código para abrir sus detalles:
-                <ul>
-                    <li><strong>Descargar Informe:</strong> Descarga un PDF maquetado con la tabla de estudiantes y porcentaje de aciertos de la sesión.</li>
-                    <li><strong>Descargar Excel:</strong> Exporta un reporte en archivo Excel (.xlsx) estructurado.</li>
-                    <li><strong>Asignar Bloque (Sólo códigos rojos):</strong> Despliegue el selector, fije un bloque de estudio específico (1, 2, 3 o 4) y pulse <span class="btn-ref">Asignar Bloque</span> para que todo su grupo juegue ese tema. Si el código ya se usó, se bloqueará en modo lectura.</li>
-                    <li><strong>Eliminar Código (Rojo):</strong> Borra el código de la sesión y todas las partidas ligadas en la base de datos (con confirmación).</li>
-                </ul>
-            </li>
-        </ul>
+            <!-- B -->
+            <div class="doc-card card-teacher">
+                <div class="card-header">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span class="card-title">B. Pestaña "Generar Códigos de Acceso"</span>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li><strong>Botón "Generar Nuevo Código":</strong> Crea un código único alfanumérico. Cada docente puede tener un máximo de <strong>5 códigos activos</strong>.</li>
+                        <li><strong>Tarjetas de Código:</strong> Rojas indica código <code>Sin usar</code>; Azules indica código <code>En uso</code> (tiene partidas).</li>
+                        <li>Al pulsar una tarjeta se abren sus detalles:
+                            <ul>
+                                <li><strong>Descargar Informe:</strong> Descarga un PDF maquetado con la tabla de estudiantes y porcentaje de aciertos de la sesión.</li>
+                                <li><strong>Descargar Excel:</strong> Exporta un reporte en archivo Excel (.xlsx) estructurado.</li>
+                                <li><strong>Asignar Bloque (Sólo códigos rojos):</strong> Fije un bloque de estudio específico (1, 2, 3 o 4) y pulse <span class="btn-ref">Asignar Bloque</span> para que todo su grupo juegue ese tema. Si el código ya se usó, se bloqueará en modo lectura.</li>
+                                <li><strong>Eliminar Código (Rojo):</strong> Borra el código de la sesión y todas las partidas ligadas en la base de datos (con confirmación).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
 
-        <h4>C. Pestaña "Historial de Partidas"</h4>
-        <ul>
-            <li><strong>Buscador:</strong> Filtre al instante por nombre, código o bloque jugado.</li>
-            <li><strong>Selector de Filtro:</strong> Seleccione un código específico de su listado para aislar los resultados en la tabla.</li>
-            <li><strong>Botón de Basurero (Rojo):</strong> Elimina la partida de un estudiante específico si cometió un error o duplicó su intento.</li>
-            <li><strong>Ver Examen Detallado:</strong> Pulse en cualquier fila del estudiante para abrir su modal individual:
-                <ul>
-                    <li>Visualice aciertos, errores y porcentaje de éxito en una barra bicolor.</li>
-                    <li>Descargue el informe individual en PDF o Excel del estudiante.</li>
-                    <li>Revise la lista de las 8 preguntas respondidas con la opción elegida y el feedback.</li>
-                </ul>
-            </li>
-        </ul>
+            <!-- C -->
+            <div class="doc-card card-teacher">
+                <div class="card-header">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span class="card-title">C. Pestaña "Historial de Partidas"</span>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li><strong>Buscador:</strong> Filtre al instante por nombre, código o bloque jugado.</li>
+                        <li><strong>Selector de Filtro:</strong> Seleccione un código específico de su listado para aislar los resultados en la tabla.</li>
+                        <li><strong>Botón de Basurero (Rojo):</strong> Elimina la partida de un estudiante específico si cometió un error o duplicó su intento.</li>
+                        <li><strong>Ver Examen Detallado:</strong> Pulse en cualquier fila del estudiante para abrir su modal individual:
+                            <ul>
+                                <li>Visualice aciertos, errores y porcentaje de éxito en una barra bicolor.</li>
+                                <li>Descargue el informe individual en PDF o Excel del estudiante.</li>
+                                <li>Revise la lista de las 8 preguntas respondidas con la opción elegida y el feedback.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
 
-        <h4>D. Pestaña "Mi Perfil de Docente"</h4>
-        <ul>
-            <li><strong>Perfil de Docente:</strong> Edite su Nombre de Usuario Público (nombre que ven sus alumnos) y su teléfono de WhatsApp. Presione <span class="btn-ref">Guardar Cambios</span>.</li>
-            <li><strong>Cambiar Contraseña:</strong> Ingrese su contraseña actual y registre una nueva de mínimo 6 caracteres. Presione <span class="btn-ref">Cambiar Contraseña</span>.</li>
-        </ul>
+            <!-- D -->
+            <div class="doc-card card-teacher">
+                <div class="card-header">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span class="card-title">D. Pestaña "Mi Perfil de Docente"</span>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li><strong>Perfil de Docente:</strong> Edite su Nombre de Usuario Público (nombre que ven sus alumnos) y su teléfono de WhatsApp. Presione <span class="btn-ref">Guardar Cambios</span>.</li>
+                        <li><strong>Cambiar Contraseña:</strong> Ingrese su contraseña actual y registre una nueva de mínimo 6 caracteres. Presione <span class="btn-ref">Cambiar Contraseña</span>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-        <h2><i class="fa-solid fa-crown"></i> 3. Portal del Administrador (Gestión General)</h2>
+        <h2><i class="fa-solid fa-crown"></i> 3. Portal del Administrador (Gestión Global)</h2>
         <p>El administrador supervisa todo el sistema de forma global y actualiza el contenido escolar. Inicia sesión con el usuario <code>admin.goa</code>.</p>
 
         <h3>📌 Herramientas Especiales del Administrador</h3>
         
-        <h4>1. Monitoreo Global</h4>
         <ul>
-            <li>En las pestañas <strong>Panel de Inicio y Diagnóstico</strong>, <strong>Generar Códigos de Acceso</strong> e <strong>Historial de Partidas</strong>, visualiza y administra los códigos y partidas de <strong>todos los profesores</strong> del sistema al mismo tiempo.</li>
-        </ul>
-
-        <h4>2. Campana de Soporte (Topbar)</h4>
-        <ul>
-            <li>Muestra las notificaciones de docentes bloqueados.</li>
-            <li>Haga clic en el botón <span class="btn-ref">WhatsApp</span> de la alerta para abrir un enlace directo al chat de soporte del profesor. Presione <span class="btn-ref">Marcar como leídas</span> para limpiar el panel.</li>
+            <li><strong>Monitoreo Global:</strong> En las pestañas <strong>Panel de Inicio y Diagnóstico</strong>, <strong>Generar Códigos de Acceso</strong> e <strong>Historial de Partidas</strong>, visualiza y administra los códigos y partidas de <strong>todos los profesores</strong> del sistema al mismo tiempo.</li>
+            <li><strong>Campana de Soporte (Topbar):</strong> Muestra las notificaciones de docentes bloqueados. Haga clic en el botón <span class="btn-ref">WhatsApp</span> de la alerta para abrir un enlace directo al chat de soporte del profesor. Presione <span class="btn-ref">Marcar como leídas</span> para limpiar el panel.</li>
         </ul>
 
         <h3>🖥️ Paneles Administrativos</h3>
 
-        <h4>A. Pestaña "Creador de Historias y Contenido" (Wizard de Bloques)</h4>
-        <p>Asistente interactivo de 4 pasos para configurar los bloques (admite hasta 10 bloques en total):</p>
-        <ol>
-            <li><strong>Paso 1: Bloque y Notas:</strong> Seleccione el bloque a editar, cree un bloque nuevo o elimine el bloque actual (el sistema reindexará en cascada los siguientes bloques). Edite el título del bloque, seleccione el icono (12 opciones) y el color de fondo (8 opciones). Ingrese los títulos y textos de la Nota 1, Nota 2 y Nota 3.</li>
-            <li><strong>Paso 2: Evaluación:</strong> Edite las 5 preguntas del examen teóricas con sus 4 opciones, sus feedbacks de respuesta y el desplegable con la respuesta correcta (1-4).</li>
-            <li><strong>Paso 3: Historia:</strong> Configure el título global, la introducción de la historia y los 3 nudos/escenas (título, texto de situación, 3 decisiones con sus feedbacks y cuál es la correcta de la 1 a la 3).</li>
-            <li><strong>Paso 4: Guardar:</strong> Resumen final y botón <span class="btn-ref">Guardar y Aplicar Cambios</span>. Realiza una reindexación automática para evitar vacíos de ID.</li>
-        </ol>
+        <div class="step-cards">
+            <!-- Story Creator -->
+            <div class="doc-card card-admin">
+                <div class="card-header">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span class="card-title">A. Pestaña "Creador de Historias y Contenido" (Wizard de Bloques)</span>
+                </div>
+                <div class="card-body">
+                    Asistente interactivo de 4 pasos para configurar los bloques (admite hasta 10 bloques en total):
+                    <ol>
+                        <li><strong>Paso 1: Bloque y Notas:</strong> Seleccione el bloque a editar, cree un bloque nuevo o elimine el bloque actual (el sistema reindexará en cascada los siguientes bloques). Edite el título del bloque, seleccione el icono (12 opciones) y el color de fondo (8 opciones). Ingrese los títulos y textos de la Nota 1, Nota 2 y Nota 3.</li>
+                        <li><strong>Paso 2: Evaluación:</strong> Edite las 5 preguntas del examen teóricas con sus 4 opciones, sus feedbacks de respuesta y el desplegable con la respuesta correcta (1-4).</li>
+                        <li><strong>Paso 3: Historia:</strong> Configure el título global, la introducción de la historia y los 3 nudos/escenas (título, texto de situación, 3 decisiones con sus feedbacks y cuál es la correcta de la 1 a la 3).</li>
+                        <li><strong>Paso 4: Guardar:</strong> Resumen final y botón <span class="btn-ref">Guardar y Aplicar Cambios</span>. Realiza una reindexación automática para evitar vacíos de ID.</li>
+                    </ol>
+                </div>
+            </div>
 
-        <h4>B. Pestaña "Gestión de Profesores"</h4>
-        <ul>
-            <li>Visualice la tabla de todos los profesores, incluyendo sus contraseñas de acceso para soporte y cantidad de partidas de sus alumnos.</li>
-            <li>Haga clic en la fila de un docente para abrir el desglose de sus códigos y alumnos asociados.</li>
-            <li>Pulse <span class="btn-ref">Eliminar Docente</span> para borrar la cuenta del profesor, sus códigos generados y partidas de alumnos de forma automática. El sistema reajustará secuencialmente los IDs de los docentes restantes.</li>
-        </ul>
+            <!-- Teachers management -->
+            <div class="doc-card card-admin">
+                <div class="card-header">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span class="card-title">B. Pestaña "Gestión de Profesores"</span>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>Visualice la tabla de todos los profesores, incluyendo sus contraseñas de acceso para soporte y cantidad de partidas de sus alumnos.</li>
+                        <li>Haga clic en la fila de un docente para abrir el desglose de sus códigos y alumnos asociados.</li>
+                        <li>Pulse <span class="btn-ref">Eliminar Docente</span> para borrar la cuenta del profesor, sus códigos generados y partidas de alumnos de forma automática. El sistema reajustará secuencialmente los IDs de los docentes restantes.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
         <h2>💡 Recomendaciones y Buenas Prácticas</h2>
         
